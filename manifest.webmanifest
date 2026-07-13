@@ -1,0 +1,21 @@
+{
+  "name": "Simple Liturgy",
+  "short_name": "Simple Liturgy",
+  "description": "Offline BCP 1979 Daily Office readings and prayers for your phone or home screen.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#171716",
+  "theme_color": "#171716",
+  "icons": [
+    {
+      "src": "./icon.svg?v=48",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

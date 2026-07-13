@@ -1,0 +1,22 @@
+# Simple Liturgy
+
+> A focused, offline-ready web reader for the 1979 Book of Common Prayer Daily Office lectionary and daily prayers.
+
+## Primary site
+
+- [Simple Liturgy](https://simpleliturgy.com/): Open the reader and installable web app.
+
+## What the app provides
+
+- Daily Office citations for Psalms, Old Testament, New Testament, and Gospel readings.
+- A prayer-first focus sequence followed by the readings and Gloria.
+- Keyboard, touch, and swipe navigation with responsive portrait and landscape layouts.
+- Offline access after the web app has been loaded or installed.
+
+## Reference and source
+
+- [BCP Online Daily Office Lectionary](https://www.bcponline.org/DOLectionary/dolectionary.html): Reference used for calendar and citation review.
+- [Simple Liturgy source](https://github.com/parksmithh/simple-liturgy): Production website source.
+- [Daily Office Reader staging source](https://github.com/parksmithh/daily-office-reader): Hardware, firmware, data, and staging web app development.
+
+Simple Liturgy is an independent project and is not an official publication of The Episcopal Church or Church Publishing Incorporated.

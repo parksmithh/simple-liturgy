@@ -395,7 +395,7 @@ export function screenHtml(view) {
   const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(date);
   const mediumDate = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(date);
   const labels = { OT: "Old Testament", PS: "Psalms", NT: "New Testament", GS: "Gospel", PRAYER: "Prayer", GLORIA: "Gloria" };
-  const feastBanner = view.feast ? `<div class="feast-banner">${escapeHtml(view.feast)}</div>` : "";
+  const feastBanner = view.feast ? `<span class="feast-banner">${escapeHtml(view.feast)}</span>` : "";
   const meta = [view.label, compactYear(view.year)].filter(Boolean).join(" · ");
   const headerClass = view.focus ? "screen-header-copy focus-header" : "screen-header-copy";
   const beforeToday = view.todayRelation === "past";
@@ -403,8 +403,12 @@ export function screenHtml(view) {
   const relationLabel = beforeToday ? " Shown date is before today." : afterToday ? " Shown date is after today." : "";
   const beforeChevron = afterToday ? '<span class="today-chevron today-chevron-before" aria-hidden="true">&lt;</span>' : "";
   const afterChevron = beforeToday ? '<span class="today-chevron today-chevron-after" aria-hidden="true">&gt;</span>' : "";
-  const headerCopy = `<div class="${headerClass}"><div class="header-summary"><button class="date-line" data-event="TODAY" type="button" aria-label="Return to today.${relationLabel}">${beforeChevron}<span class="weekday">${escapeHtml(weekday)}</span>${afterChevron}<span>${escapeHtml(mediumDate)}</span></button>${meta ? `<div class="meta">· ${escapeHtml(meta)}</div>` : ""}</div></div>`;
-  const heading = `${feastBanner}${headerCopy}`;
+  const weekdayLine = `<span class="weekday-line">${beforeChevron}<span class="weekday">${escapeHtml(weekday)}</span>${afterChevron}</span>`;
+  const primaryHeader = `<span class="header-primary">${weekdayLine}${feastBanner}</span>`;
+  const secondaryHeader = `<span class="header-secondary"><span class="date-value">${escapeHtml(mediumDate)}</span>${meta ? `<span class="meta"><span class="meta-separator" aria-hidden="true">· </span>${escapeHtml(meta)}</span>` : ""}</span>`;
+  const dateLine = `<button class="date-line" data-event="TODAY" type="button" aria-label="Return to today.${relationLabel}">${primaryHeader}${secondaryHeader}</button>`;
+  const headerCopy = `<div class="${headerClass}"><div class="header-summary">${dateLine}</div></div>`;
+  const heading = headerCopy;
   if (view.error && !(view.focus === "PRAYER" && view.prayer)) return `${heading}<h2 class="warning">${escapeHtml(view.error)}</h2>`;
   const prayerIndex = view.prayer?.pages.length > 1 ? ` (${view.prayer.page + 1}/${view.prayer.pages.length})` : "";
   const prayerFocus = view.focus === "PRAYER" && view.prayer

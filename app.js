@@ -1,6 +1,6 @@
-import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=48";
-import { renderPixelArtStack } from "./pixel-art.js?v=48";
-import { initializeTheme, toggleTheme } from "./theme.js?v=48";
+import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=55";
+import { renderPixelArtStack } from "./pixel-art.js?v=55";
+import { initializeTheme, toggleTheme } from "./theme.js?v=55";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
@@ -19,6 +19,7 @@ const fullscreenExit = document.querySelector("#fullscreen-exit");
 const previousControl = document.querySelector("#previous-control");
 const centerControl = document.querySelector("#center-control");
 const nextControl = document.querySelector("#next-control");
+const mobileReaderMedia = window.matchMedia("(max-width: 767px), (hover: none) and (pointer: coarse)");
 let state = createState();
 let bundle = null;
 let collects = null;
@@ -38,9 +39,11 @@ const themeContext = {
   meta: document.querySelector('meta[name="theme-color"]'),
   storage: window.localStorage,
   media: window.matchMedia("(prefers-color-scheme: dark)"),
+  styles: window.getComputedStyle.bind(window),
 };
 
 initializeTheme(themeContext);
+if (mobileReaderMedia.matches) document.documentElement.classList.add("mobile-reader-expanded");
 
 export function localIsoDate(date = new Date()) {
   const year = date.getFullYear();
@@ -84,7 +87,7 @@ function paint(view) {
   deviceScreen.classList.toggle("has-feast", Boolean(view.feast));
   screen.innerHTML = screenHtml(view);
   const layout = matchingPrayerLayout(view);
-  if (view.focus === "PRAYER" && layout?.fontSize) {
+  if ((view.focus === "PRAYER" || view.focus === "GLORIA") && layout?.fontSize) {
     screen.querySelector(".prayer-text")?.style.setProperty("font-size", `${layout.fontSize}px`);
   }
   renderPixelArtStack(artStack, view);
@@ -317,7 +320,9 @@ if ("ResizeObserver" in window) {
 }
 
 function syncReaderFullscreen() {
-  const active = document.fullscreenElement === reader || reader.classList.contains("fullscreen-fallback");
+  const active = document.fullscreenElement === reader
+    || reader.classList.contains("fullscreen-fallback")
+    || (mobileReaderMedia.matches && document.documentElement.classList.contains("mobile-reader-expanded"));
   fullscreenButton.dataset.active = String(active);
   fullscreenButton.setAttribute("aria-pressed", String(active));
   fullscreenButton.setAttribute("aria-label", active ? "Exit full screen" : "Enter full screen");
@@ -325,7 +330,20 @@ function syncReaderFullscreen() {
   render();
 }
 
+function setMobileReaderExpanded(expanded) {
+  document.documentElement.classList.toggle("mobile-reader-expanded", expanded);
+  syncReaderFullscreen();
+}
+
 async function toggleReaderFullscreen() {
+  if (mobileReaderMedia.matches) {
+    if (document.documentElement.classList.contains("mobile-reader-expanded")) {
+      if (document.fullscreenElement === reader) await document.exitFullscreen();
+      reader.classList.remove("fullscreen-fallback");
+      return setMobileReaderExpanded(false);
+    }
+    return setMobileReaderExpanded(true);
+  }
   if (document.fullscreenElement === reader) return document.exitFullscreen();
   if (reader.classList.contains("fullscreen-fallback")) {
     reader.classList.remove("fullscreen-fallback");

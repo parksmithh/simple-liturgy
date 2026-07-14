@@ -25,10 +25,10 @@
   <meta name="twitter:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=3">
   <meta name="twitter:image:alt" content="Simplified Simple Liturgy reader showing Psalms, Old Testament, New Testament, and Gospel citations">
   <title>Simple Liturgy | BCP 1979 Daily Office Reader</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=68">
-  <link rel="icon" href="./icon.svg?v=68" type="image/svg+xml">
-  <link rel="stylesheet" href="./design-tokens.css?v=68">
-  <link rel="stylesheet" href="./app.css?v=68">
+  <link rel="manifest" href="./manifest.webmanifest?v=75">
+  <link rel="icon" href="./icon.svg?v=75" type="image/svg+xml">
+  <link rel="stylesheet" href="./design-tokens.css?v=75">
+  <link rel="stylesheet" href="./app.css?v=75">
 </head>
 <body>
   <main class="app-shell" id="settings-page" hidden>
@@ -50,7 +50,7 @@
         <legend>Color theme</legend>
         <label><input type="radio" name="theme" value="light"> <span>Light</span></label>
         <label><input type="radio" name="theme" value="dark"> <span>Dark</span></label>
-        <label><input type="radio" name="theme" value="system"> <span>System</span></label>
+        <label><input type="radio" name="theme" value="system" checked> <span>System</span></label>
       </fieldset>
       <p class="settings-note">System follows your device appearance automatically.</p>
     </section>
@@ -73,6 +73,20 @@
         <div><strong>Tap the middle</strong><span>Start or advance focus mode</span></div>
         <div><strong>Tap the date</strong><span>Return to today and overview</span></div>
       </div>
+    </section>
+
+    <section class="settings-card share-settings" aria-labelledby="share-title">
+      <p class="eyebrow">Send to someone</p>
+      <h2 id="share-title">Share Simple Liturgy</h2>
+      <p>Open your device's share sheet to send the reader to someone else.</p>
+      <button class="settings-action" id="share-button" type="button">
+        <svg class="share-sheet-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 15V3m0 0L8 7m4-4 4 4"/>
+          <path d="M8 10H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2"/>
+        </svg>
+        <span>Share Simple Liturgy</span>
+      </button>
+      <p class="settings-note" id="share-status" aria-live="polite">If native sharing is unavailable, the link will be copied instead.</p>
     </section>
 
     <section class="settings-card feedback-settings" aria-labelledby="feedback-title">
@@ -150,6 +164,15 @@
       <div class="pixel-art-stack" id="pixel-art-stack" aria-label="Liturgical calendar pixel artwork"></div>
     </div>
 
+    <aside class="install-tooltip" aria-label="Save Simple Liturgy to your Home Screen">
+      <span>Tap</span>
+      <svg class="share-sheet-icon" viewBox="0 0 24 24" role="img" aria-label="Share">
+        <path d="M12 15V3m0 0L8 7m4-4 4 4"/>
+        <path d="M8 10H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2"/>
+      </svg>
+      <span>then <strong>Add to Home Screen</strong></span>
+    </aside>
+
     <div class="navigation-controls" aria-label="Reader controls">
       <button id="previous-control" data-event="PREV_DAY" type="button"><kbd aria-hidden="true">←</kbd><span>previous day</span></button>
       <button id="center-control" data-event="FOCUS" type="button" aria-label="Enter focus mode"><kbd aria-hidden="true">↵</kbd><span>Focus</span></button>
@@ -170,6 +193,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="./app.js?v=68"></script>
+  <script type="module" src="./app.js?v=75"></script>
 </body>
 </html>

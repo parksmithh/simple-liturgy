@@ -1,6 +1,6 @@
-import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=68";
-import { renderPixelArtStack } from "./pixel-art.js?v=68";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=68";
+import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=75";
+import { renderPixelArtStack } from "./pixel-art.js?v=75";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=75";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
@@ -17,6 +17,13 @@ const deviceScreen = document.querySelector("#device-screen");
 const themeControls = document.querySelectorAll('input[name="theme"]');
 const readerMenu = document.querySelector("#reader-menu");
 const openReaderButton = document.querySelector("#open-reader-button");
+const shareButton = document.querySelector("#share-button");
+const shareStatus = document.querySelector("#share-status");
+const canonicalUrl = document.querySelector('link[rel="canonical"]')?.href || window.location.href;
+const installedPwa = window.matchMedia("(display-mode: standalone)").matches
+  || window.matchMedia("(display-mode: fullscreen)").matches
+  || window.navigator.standalone === true;
+document.documentElement.classList.toggle("installed-pwa", installedPwa);
 const previousControl = document.querySelector("#previous-control");
 const centerControl = document.querySelector("#center-control");
 const nextControl = document.querySelector("#next-control");
@@ -327,6 +334,29 @@ if ("ResizeObserver" in window) {
 
 readerMenu.addEventListener("click", () => setSettingsOpen(true));
 openReaderButton.addEventListener("click", () => setSettingsOpen(false));
+
+shareButton.addEventListener("click", async () => {
+  const shareData = {
+    title: "Simple Liturgy",
+    text: "BCP 1979 Daily Office readings and prayers.",
+    url: canonicalUrl,
+  };
+  if (typeof navigator.share === "function") {
+    try {
+      await navigator.share(shareData);
+      shareStatus.textContent = "Share sheet opened.";
+    } catch (error) {
+      if (error.name !== "AbortError") shareStatus.textContent = "Sharing could not be opened. Please try again.";
+    }
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(canonicalUrl);
+    shareStatus.textContent = "Link copied to clipboard.";
+  } catch {
+    shareStatus.textContent = "Sharing is not available in this browser.";
+  }
+});
 
 window.addEventListener("beforeinstallprompt", event => {
   event.preventDefault();

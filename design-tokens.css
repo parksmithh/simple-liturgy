@@ -10,6 +10,7 @@
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
   --font-weight-black: 900;
+  --font-weight-reader-content: var(--font-weight-extrabold);
 
   --type-eyebrow: 10px;
   --type-app-title: clamp(18px, 4.6vw, 27px);
@@ -28,6 +29,7 @@
   --type-reader-prayer: clamp(20px, 4.8vw, 34px);
   --type-reader-symbol: .82em;
   --type-reader-warning: .62em;
+  --type-reader-hint: .62em;
   --type-today-chevron: 1.18em;
   --type-control-glyph: clamp(28px, 6vw, 44px);
   --type-control-label: clamp(11px, 2.4vw, 16px);
@@ -44,6 +46,8 @@
   --paper: var(--screen-paper);
   --red: var(--color-bwr-red);
   --paper-shadow: #d8d2bb;
+  --paper-texture-opacity: .22;
+  --paper-texture-strength: 12%;
   --app-background: #e9e6dc;
   --app-background-deep: #d3d0c5;
   --app-text: var(--color-bwr-black);
@@ -73,6 +77,8 @@
   --screen-paper: var(--color-bwr-black);
   --red: var(--color-bwr-red-bright);
   --paper-shadow: #4b4a43;
+  --paper-texture-opacity: .2;
+  --paper-texture-strength: 10%;
   --app-background: #111311;
   --app-background-deep: #1b1e1b;
   --app-text: #f4f4ef;

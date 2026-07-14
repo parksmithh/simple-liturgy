@@ -436,5 +436,6 @@ export function screenHtml(view) {
     ? prayerFocus || gloriaFocus || `<button class="reading focus" data-reading="${view.focus}" type="button"><span class="label">${labels[view.focus]}</span>${citationHtml(view, view.focus, "focus-cite")}</button>`
     : `<div class="grid">${openingPrayerOverview}${Object.keys(view.values).map(key => `<button class="reading" data-reading="${key}" type="button"><span class="label">${labels[key]}</span>${citationHtml(view, key, "cite")}</button>`).join("")}${gloriaOverview}</div>`;
   const focusHint = view.focus ? '<span class="focus-next-hint" aria-hidden="true"></span>' : "";
-  return `${heading}${body}${focusHint}`;
+  const overviewHint = view.focus ? "" : '<span class="overview-focus-hint">Tap to focus</span>';
+  return `${heading}${body}${focusHint}${overviewHint}`;
 }

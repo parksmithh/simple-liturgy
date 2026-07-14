@@ -1,4 +1,4 @@
-const CACHE = "daily-office-reader-v68";
+const CACHE = "daily-office-reader-v75";
 const CONTENT_ROOT = self.registration.scope.endsWith("/web/") ? "../" : "./";
 const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl`;
 const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json`;
@@ -7,14 +7,14 @@ const COLLECTS_PATH = new URL(COLLECTS_URL, self.registration.scope).pathname;
 const SHELL = [
   "./",
   "./index.html",
-  "./design-tokens.css?v=68",
-  "./app.css?v=68",
-  "./app.js?v=68",
-  "./bookmark-engine.js?v=68",
-  "./pixel-art.js?v=68",
-  "./theme.js?v=68",
-  "./manifest.webmanifest?v=68",
-  "./icon.svg?v=68",
+  "./design-tokens.css?v=75",
+  "./app.css?v=75",
+  "./app.js?v=75",
+  "./bookmark-engine.js?v=75",
+  "./pixel-art.js?v=75",
+  "./theme.js?v=75",
+  "./manifest.webmanifest?v=75",
+  "./icon.svg?v=75",
   "./assets/og-simple-liturgy.png?v=3",
   "./llms.txt",
   PACK_URL,

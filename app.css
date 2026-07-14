@@ -107,7 +107,7 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .install-tooltip {
   position: fixed;
   z-index: 7;
-  bottom: max(58px, calc(env(safe-area-inset-bottom) + 52px));
+  bottom: max(8px, env(safe-area-inset-bottom));
   left: 50%;
   display: none;
   align-items: center;

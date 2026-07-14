@@ -1,6 +1,6 @@
-import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=55";
-import { renderPixelArtStack } from "./pixel-art.js?v=55";
-import { initializeTheme, toggleTheme } from "./theme.js?v=55";
+import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=58";
+import { renderPixelArtStack } from "./pixel-art.js?v=58";
+import { initializeTheme, toggleTheme } from "./theme.js?v=58";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;

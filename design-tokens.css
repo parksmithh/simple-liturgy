@@ -21,7 +21,7 @@
   --type-reader-header: .72em;
   --type-reader-date: 1em;
   --type-reader-label: .72em;
-  --type-reader-banner: var(--type-reader-label);
+  --type-reader-banner: var(--type-reader-date);
   --type-reader-citation: .92em;
   --type-reader-focus-label: var(--type-reader-label);
   --type-reader-focus-citation: clamp(30px, 8vw, 56px);
@@ -117,7 +117,7 @@
     --type-reader-header: clamp(11px, 2.5vh, 15px);
     --type-reader-date: clamp(13px, 3vh, 17px);
     --type-reader-label: .68em;
-    --type-reader-banner: clamp(11px, 2.5vh, 15px);
+    --type-reader-banner: var(--type-reader-date);
     --type-reader-citation: 1.12em;
     --type-reader-focus-citation: clamp(46px, 13vh, 82px);
     --type-reader-prayer: clamp(20px, 5vh, 34px);

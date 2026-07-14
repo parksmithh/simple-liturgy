@@ -25,10 +25,10 @@
   <meta name="twitter:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=3">
   <meta name="twitter:image:alt" content="Simplified Simple Liturgy reader showing Psalms, Old Testament, New Testament, and Gospel citations">
   <title>Simple Liturgy | BCP 1979 Daily Office Reader</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=75">
-  <link rel="icon" href="./icon.svg?v=75" type="image/svg+xml">
-  <link rel="stylesheet" href="./design-tokens.css?v=75">
-  <link rel="stylesheet" href="./app.css?v=75">
+  <link rel="manifest" href="./manifest.webmanifest?v=76">
+  <link rel="icon" href="./icon.svg?v=76" type="image/svg+xml">
+  <link rel="stylesheet" href="./design-tokens.css?v=76">
+  <link rel="stylesheet" href="./app.css?v=76">
 </head>
 <body>
   <main class="app-shell" id="settings-page" hidden>
@@ -164,14 +164,14 @@
       <div class="pixel-art-stack" id="pixel-art-stack" aria-label="Liturgical calendar pixel artwork"></div>
     </div>
 
-    <aside class="install-tooltip" aria-label="Save Simple Liturgy to your Home Screen">
+    <button class="install-tooltip" id="install-tooltip" type="button" aria-label="Dismiss Add to Home Screen instructions">
       <span>Tap</span>
       <svg class="share-sheet-icon" viewBox="0 0 24 24" role="img" aria-label="Share">
         <path d="M12 15V3m0 0L8 7m4-4 4 4"/>
         <path d="M8 10H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2"/>
       </svg>
       <span>then <strong>Add to Home Screen</strong></span>
-    </aside>
+    </button>
 
     <div class="navigation-controls" aria-label="Reader controls">
       <button id="previous-control" data-event="PREV_DAY" type="button"><kbd aria-hidden="true">←</kbd><span>previous day</span></button>
@@ -193,6 +193,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="./app.js?v=75"></script>
+  <script type="module" src="./app.js?v=76"></script>
 </body>
 </html>

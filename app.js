@@ -1,12 +1,13 @@
-import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=75";
-import { renderPixelArtStack } from "./pixel-art.js?v=75";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=75";
+import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=76";
+import { renderPixelArtStack } from "./pixel-art.js?v=76";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=76";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
 const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl", CONTENT_ROOT);
 const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
+const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
 const screen = document.querySelector("#screen");
 const artStack = document.querySelector("#pixel-art-stack");
 const installButton = document.querySelector("#install-button");
@@ -19,11 +20,21 @@ const readerMenu = document.querySelector("#reader-menu");
 const openReaderButton = document.querySelector("#open-reader-button");
 const shareButton = document.querySelector("#share-button");
 const shareStatus = document.querySelector("#share-status");
+const installTooltip = document.querySelector("#install-tooltip");
 const canonicalUrl = document.querySelector('link[rel="canonical"]')?.href || window.location.href;
 const installedPwa = window.matchMedia("(display-mode: standalone)").matches
   || window.matchMedia("(display-mode: fullscreen)").matches
   || window.navigator.standalone === true;
 document.documentElement.classList.toggle("installed-pwa", installedPwa);
+const installTooltipMedia = window.matchMedia("(max-width: 767px), (hover: none) and (pointer: coarse)");
+let installTooltipDismissed = false;
+try {
+  installTooltipDismissed = window.sessionStorage.getItem(INSTALL_TOOLTIP_SESSION_KEY) === "true";
+} catch {}
+function syncInstallTooltip() {
+  document.documentElement.classList.toggle("install-tooltip-active", !installedPwa && installTooltipMedia.matches && !installTooltipDismissed);
+}
+syncInstallTooltip();
 const previousControl = document.querySelector("#previous-control");
 const centerControl = document.querySelector("#center-control");
 const nextControl = document.querySelector("#next-control");
@@ -334,6 +345,14 @@ if ("ResizeObserver" in window) {
 
 readerMenu.addEventListener("click", () => setSettingsOpen(true));
 openReaderButton.addEventListener("click", () => setSettingsOpen(false));
+installTooltip.addEventListener("click", () => {
+  installTooltipDismissed = true;
+  try {
+    window.sessionStorage.setItem(INSTALL_TOOLTIP_SESSION_KEY, "true");
+  } catch {}
+  syncInstallTooltip();
+});
+installTooltipMedia.addEventListener?.("change", syncInstallTooltip);
 
 shareButton.addEventListener("click", async () => {
   const shareData = {

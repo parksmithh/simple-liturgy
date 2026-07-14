@@ -1,11 +1,10 @@
 const STORAGE_KEY = "daily-office-theme";
+const MODES = new Set(["light", "dark", "system"]);
 
-function updateControl(button, theme) {
-  if (!button) return;
-  const nextTheme = theme === "dark" ? "light" : "dark";
-  button.textContent = nextTheme === "dark" ? "Dark" : "Light";
-  button.setAttribute("aria-label", `Use ${nextTheme} mode`);
-  button.setAttribute("aria-pressed", String(theme === "dark"));
+function updateControls(controls, mode) {
+  controls?.forEach(control => {
+    control.checked = control.value === mode;
+  });
 }
 
 function themeColor(context) {
@@ -15,23 +14,35 @@ function themeColor(context) {
   return styles?.getPropertyValue("--app-background").trim() || "";
 }
 
-function applyTheme(context, theme) {
+function resolvedTheme(mode, media) {
+  return mode === "system" ? media.matches ? "dark" : "light" : mode;
+}
+
+function applyTheme(context, mode) {
+  const theme = resolvedTheme(mode, context.media);
+  context.root.dataset.themeMode = mode;
   context.root.dataset.theme = theme;
   const color = themeColor(context);
   if (color) context.meta?.setAttribute("content", color);
-  updateControl(context.button, theme);
+  updateControls(context.controls, mode);
+  return theme;
 }
 
-export function initializeTheme({ root, button, storage, media, meta, styles }) {
+export function initializeTheme({ root, controls, storage, media, meta, styles }) {
   const saved = storage.getItem(STORAGE_KEY);
-  const theme = saved === "light" || saved === "dark" ? saved : media.matches ? "dark" : "light";
-  applyTheme({ root, button, meta, styles }, theme);
-  return theme;
+  const mode = MODES.has(saved) ? saved : "system";
+  applyTheme({ root, controls, media, meta, styles }, mode);
+  return mode;
 }
 
-export function toggleTheme({ root, button, storage, meta, styles }) {
-  const theme = root.dataset.theme === "dark" ? "light" : "dark";
-  applyTheme({ root, button, meta, styles }, theme);
-  storage.setItem(STORAGE_KEY, theme);
-  return theme;
+export function setThemeMode(context, mode) {
+  if (!MODES.has(mode)) return context.root.dataset.themeMode;
+  applyTheme(context, mode);
+  context.storage.setItem(STORAGE_KEY, mode);
+  return mode;
+}
+
+export function syncSystemTheme(context) {
+  if (context.root.dataset.themeMode !== "system") return null;
+  return applyTheme(context, "system");
 }

@@ -1,6 +1,6 @@
-import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=62";
-import { renderPixelArtStack } from "./pixel-art.js?v=62";
-import { initializeTheme, toggleTheme } from "./theme.js?v=62";
+import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=68";
+import { renderPixelArtStack } from "./pixel-art.js?v=68";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=68";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
@@ -11,15 +11,15 @@ const screen = document.querySelector("#screen");
 const artStack = document.querySelector("#pixel-art-stack");
 const installButton = document.querySelector("#install-button");
 const installDialog = document.querySelector("#install-dialog");
+const settingsPage = document.querySelector("#settings-page");
 const reader = document.querySelector(".reader");
 const deviceScreen = document.querySelector("#device-screen");
-const themeButton = document.querySelector("#theme-button");
-const fullscreenButton = document.querySelector("#fullscreen-button");
-const fullscreenExit = document.querySelector("#fullscreen-exit");
+const themeControls = document.querySelectorAll('input[name="theme"]');
+const readerMenu = document.querySelector("#reader-menu");
+const openReaderButton = document.querySelector("#open-reader-button");
 const previousControl = document.querySelector("#previous-control");
 const centerControl = document.querySelector("#center-control");
 const nextControl = document.querySelector("#next-control");
-const mobileReaderMedia = window.matchMedia("(max-width: 767px), (hover: none) and (pointer: coarse)");
 let state = createState();
 let bundle = null;
 let collects = null;
@@ -34,7 +34,7 @@ let lastVerticalKey = null;
 let lastVerticalKeyAt = -Infinity;
 const themeContext = {
   root: document.documentElement,
-  button: themeButton,
+  controls: themeControls,
   meta: document.querySelector('meta[name="theme-color"]'),
   storage: window.localStorage,
   media: window.matchMedia("(prefers-color-scheme: dark)"),
@@ -42,7 +42,20 @@ const themeContext = {
 };
 
 initializeTheme(themeContext);
-if (mobileReaderMedia.matches) document.documentElement.classList.add("mobile-reader-expanded");
+
+function setSettingsOpen(open) {
+  document.documentElement.classList.toggle("settings-open", open);
+  settingsPage.hidden = !open;
+  reader.hidden = open;
+  prayerLayout = null;
+  if (open) {
+    window.scrollTo({ top: 0, behavior: "auto" });
+    openReaderButton.focus({ preventScroll: true });
+    return;
+  }
+  render();
+  readerMenu.focus({ preventScroll: true });
+}
 
 export function localIsoDate(date = new Date()) {
   const year = date.getFullYear();
@@ -234,7 +247,7 @@ async function loadPack() {
 centerControl.addEventListener("click", () => dispatch(centerControl.dataset.event));
 
 window.addEventListener("keydown", event => {
-  if (!bundle || !collects || installDialog.open || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+  if (!settingsPage.hidden || !bundle || !collects || installDialog.open || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
   if (event.target instanceof Element && event.target.closest("input, textarea, select, [contenteditable]")) return;
   if (event.key === "Enter" && event.target instanceof Element && event.target.closest("button, a")) return;
   const verticalKey = event.key === "ArrowUp" || event.key === "ArrowDown";
@@ -290,8 +303,14 @@ deviceScreen.addEventListener("pointercancel", () => {
   pointerStart = null;
 });
 
-themeButton.addEventListener("click", () => {
-  toggleTheme(themeContext);
+themeControls.forEach(control => control.addEventListener("change", () => {
+  if (!control.checked) return;
+  setThemeMode(themeContext, control.value);
+  if (bundle && collects) renderPixelArtStack(artStack, currentView());
+}));
+
+themeContext.media.addEventListener?.("change", () => {
+  if (!syncSystemTheme(themeContext)) return;
   if (bundle && collects) renderPixelArtStack(artStack, currentView());
 });
 
@@ -306,52 +325,8 @@ if ("ResizeObserver" in window) {
   }).observe(deviceScreen);
 }
 
-function syncReaderFullscreen() {
-  const active = document.fullscreenElement === reader
-    || reader.classList.contains("fullscreen-fallback")
-    || (mobileReaderMedia.matches && document.documentElement.classList.contains("mobile-reader-expanded"));
-  fullscreenButton.dataset.active = String(active);
-  fullscreenButton.setAttribute("aria-pressed", String(active));
-  fullscreenButton.setAttribute("aria-label", active ? "Exit full screen" : "Enter full screen");
-  prayerLayout = null;
-  render();
-}
-
-function setMobileReaderExpanded(expanded) {
-  document.documentElement.classList.toggle("mobile-reader-expanded", expanded);
-  syncReaderFullscreen();
-}
-
-async function toggleReaderFullscreen() {
-  if (mobileReaderMedia.matches) {
-    if (document.documentElement.classList.contains("mobile-reader-expanded")) {
-      if (document.fullscreenElement === reader) await document.exitFullscreen();
-      reader.classList.remove("fullscreen-fallback");
-      return setMobileReaderExpanded(false);
-    }
-    return setMobileReaderExpanded(true);
-  }
-  if (document.fullscreenElement === reader) return document.exitFullscreen();
-  if (reader.classList.contains("fullscreen-fallback")) {
-    reader.classList.remove("fullscreen-fallback");
-    return syncReaderFullscreen();
-  }
-  if (reader.requestFullscreen) {
-    try {
-      await reader.requestFullscreen();
-      return;
-    } catch {}
-  }
-  reader.classList.add("fullscreen-fallback");
-  syncReaderFullscreen();
-}
-
-fullscreenButton.addEventListener("click", toggleReaderFullscreen);
-fullscreenExit.addEventListener("click", toggleReaderFullscreen);
-document.addEventListener("fullscreenchange", () => {
-  reader.classList.remove("fullscreen-fallback");
-  syncReaderFullscreen();
-});
+readerMenu.addEventListener("click", () => setSettingsOpen(true));
+openReaderButton.addEventListener("click", () => setSettingsOpen(false));
 
 window.addEventListener("beforeinstallprompt", event => {
   event.preventDefault();

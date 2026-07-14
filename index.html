@@ -14,7 +14,7 @@
   <meta property="og:title" content="Simple Liturgy | BCP 1979 Daily Office Reader">
   <meta property="og:description" content="Read the BCP 1979 Daily Office lectionary and daily prayers in a focused, offline-ready web app.">
   <meta property="og:url" content="https://simpleliturgy.com/">
-  <meta property="og:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=2">
+  <meta property="og:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=3">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -22,45 +22,63 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Simple Liturgy | BCP 1979 Daily Office Reader">
   <meta name="twitter:description" content="Read the BCP 1979 Daily Office lectionary and daily prayers in a focused, offline-ready web app.">
-  <meta name="twitter:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=2">
+  <meta name="twitter:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=3">
   <meta name="twitter:image:alt" content="Simplified Simple Liturgy reader showing Psalms, Old Testament, New Testament, and Gospel citations">
   <title>Simple Liturgy | BCP 1979 Daily Office Reader</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=62">
-  <link rel="icon" href="./icon.svg?v=62" type="image/svg+xml">
-  <link rel="stylesheet" href="./design-tokens.css?v=62">
-  <link rel="stylesheet" href="./app.css?v=62">
+  <link rel="manifest" href="./manifest.webmanifest?v=68">
+  <link rel="icon" href="./icon.svg?v=68" type="image/svg+xml">
+  <link rel="stylesheet" href="./design-tokens.css?v=68">
+  <link rel="stylesheet" href="./app.css?v=68">
 </head>
 <body>
-  <main class="app-shell">
+  <main class="app-shell" id="settings-page" hidden>
     <header class="app-bar">
       <div>
         <p class="eyebrow">BCP 1979 · Daily Office</p>
         <h1>Simple Liturgy</h1>
       </div>
       <div class="app-actions">
-        <button class="icon-button" id="theme-button" type="button">Dark</button>
         <button class="icon-button" id="install-button" type="button" hidden>Save app</button>
-        <button class="icon-button" id="fullscreen-button" type="button" aria-label="Enter full screen" aria-pressed="false" data-active="false">
-          <svg class="fullscreen-icon fullscreen-icon-enter" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6"/></svg>
-          <svg class="fullscreen-icon fullscreen-icon-exit" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6"/></svg>
-        </button>
+        <button class="icon-button reader-launch" id="open-reader-button" type="button">Open reader</button>
       </div>
     </header>
 
-    <section class="reader" aria-label="Simple Liturgy reader">
-      <button class="fullscreen-exit" id="fullscreen-exit" type="button" aria-label="Minimize reader">
-        <svg class="fullscreen-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6"/></svg>
-      </button>
-      <div class="device-screen" id="device-screen">
-        <div class="screen-copy" id="screen" aria-live="polite">Loading readings…</div>
-        <div class="pixel-art-stack" id="pixel-art-stack" aria-label="Liturgical calendar pixel artwork"></div>
-      </div>
+    <section class="settings-card appearance-settings" aria-labelledby="appearance-title">
+      <p class="eyebrow">Preferences</p>
+      <h2 id="appearance-title">Appearance</h2>
+      <fieldset class="theme-options">
+        <legend>Color theme</legend>
+        <label><input type="radio" name="theme" value="light"> <span>Light</span></label>
+        <label><input type="radio" name="theme" value="dark"> <span>Dark</span></label>
+        <label><input type="radio" name="theme" value="system"> <span>System</span></label>
+      </fieldset>
+      <p class="settings-note">System follows your device appearance automatically.</p>
+    </section>
 
-      <div class="navigation-controls" aria-label="Three physical bookmark buttons">
-        <button id="previous-control" data-event="PREV_DAY" type="button"><kbd aria-hidden="true">←</kbd><span>previous day</span></button>
-        <button id="center-control" data-event="FOCUS" type="button" aria-label="Enter focus mode"><kbd aria-hidden="true">↵</kbd><span>Focus</span></button>
-        <button id="next-control" data-event="NEXT_DAY" type="button"><kbd aria-hidden="true">→</kbd><span>next day</span></button>
+    <section class="settings-card shortcuts-settings" aria-labelledby="shortcuts-title">
+      <p class="eyebrow">Controls</p>
+      <h2 id="shortcuts-title">Shortcuts</h2>
+      <div class="desktop-shortcuts" aria-label="Desktop keyboard shortcuts">
+        <div><kbd>←</kbd><span>Previous day or reading</span></div>
+        <div><kbd>→</kbd><span>Next day or reading</span></div>
+        <div><kbd>Enter</kbd><span>Enter or advance focus mode</span></div>
+        <div><kbd>↑</kbd><span>Return to overview</span></div>
+        <div><kbd>↓</kbd><span>Start focus mode</span></div>
+        <div><kbd>↑ ↑</kbd><span>Return to today from overview</span></div>
+        <div><kbd>↓ ↓</kbd><span>Return to Opening Prayer in focus</span></div>
       </div>
+      <div class="mobile-shortcuts" aria-label="Mobile tap and swipe controls">
+        <div><strong>Tap left or right edge</strong><span>Move backward or forward</span></div>
+        <div><strong>Swipe left or right</strong><span>Move between days or focused readings</span></div>
+        <div><strong>Tap the middle</strong><span>Start or advance focus mode</span></div>
+        <div><strong>Tap the date</strong><span>Return to today and overview</span></div>
+      </div>
+    </section>
+
+    <section class="settings-card feedback-settings" aria-labelledby="feedback-title">
+      <p class="eyebrow">Get in touch</p>
+      <h2 id="feedback-title">Feedback</h2>
+      <p>Questions, corrections, or ideas are welcome at <a href="mailto:simpleliturgy@mtworth.co">simpleliturgy@mtworth.co</a>.</p>
     </section>
 
     <footer class="app-footer">
@@ -90,8 +108,8 @@
       </section>
       <section class="rotate-guide" aria-labelledby="rotate-guide-title">
         <p class="eyebrow">Read without distractions</p>
-        <h2 id="rotate-guide-title">Full-screen reader</h2>
-        <p>Tap the full-screen icon to expand the reader in portrait, or rotate your phone sideways for a full-screen landscape view.</p>
+        <h2 id="rotate-guide-title">Immersive reader</h2>
+        <p>Open the reader for a full-screen portrait view, or rotate your phone sideways for the landscape layout. Use the three-dot menu to return here.</p>
       </section>
       <section class="faq-guide" aria-labelledby="faq-guide-title">
         <p class="eyebrow">About the reader</p>
@@ -113,11 +131,31 @@
       </section>
       <div class="project-credit">
         <p><a href="https://beginnersapprenticeship.com">A Beginner's Apprenticeship Project</a></p>
-        <p><a href="./llms.txt">LLMs.txt</a></p>
+        <p class="llms-credit"><a href="./llms.txt">LLMs.txt</a></p>
         <p>&copy; 2026 Mount Worth Creative LLC</p>
       </div>
     </footer>
   </main>
+
+  <section class="reader" aria-label="Simple Liturgy reader">
+    <button class="reader-menu" id="reader-menu" type="button" aria-label="Open settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="5" r="1.8"/>
+        <circle cx="12" cy="12" r="1.8"/>
+        <circle cx="12" cy="19" r="1.8"/>
+      </svg>
+    </button>
+    <div class="device-screen" id="device-screen">
+      <div class="screen-copy" id="screen" aria-live="polite">Loading readings…</div>
+      <div class="pixel-art-stack" id="pixel-art-stack" aria-label="Liturgical calendar pixel artwork"></div>
+    </div>
+
+    <div class="navigation-controls" aria-label="Reader controls">
+      <button id="previous-control" data-event="PREV_DAY" type="button"><kbd aria-hidden="true">←</kbd><span>previous day</span></button>
+      <button id="center-control" data-event="FOCUS" type="button" aria-label="Enter focus mode"><kbd aria-hidden="true">↵</kbd><span>Focus</span></button>
+      <button id="next-control" data-event="NEXT_DAY" type="button"><kbd aria-hidden="true">→</kbd><span>next day</span></button>
+    </div>
+  </section>
 
   <dialog id="install-dialog" aria-labelledby="install-dialog-title">
     <form method="dialog">
@@ -126,12 +164,12 @@
       <div class="dialog-steps">
         <p><strong>iPhone or iPad:</strong> Open this page in Safari, tap Share, choose <strong>Add to Home Screen</strong>, then tap Add.</p>
         <p><strong>Android:</strong> Open this page in Chrome, open the three-dot menu, choose <strong>Add to Home screen</strong> or <strong>Install app</strong>, then confirm.</p>
-        <p>After saving, tap the full-screen icon for a portrait reader or rotate your phone sideways for landscape.</p>
+        <p>After saving, open the reader and rotate your phone whenever you want the landscape layout.</p>
       </div>
       <button value="close" type="submit">Got it</button>
     </form>
   </dialog>
 
-  <script type="module" src="./app.js?v=62"></script>
+  <script type="module" src="./app.js?v=68"></script>
 </body>
 </html>

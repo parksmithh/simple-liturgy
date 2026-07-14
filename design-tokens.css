@@ -88,7 +88,7 @@
   --dialog-backdrop: #000b;
 }
 
-:is(.reader:fullscreen, .reader.fullscreen-fallback) .device-screen {
+.reader .device-screen {
   --type-reader-base: clamp(18px, 2vw, 30px);
   --type-reader-prayer: clamp(24px, 3.4vw, 42px);
 }
@@ -104,7 +104,7 @@
     --type-reader-citation: clamp(20px, 3.5cqi, 28px);
   }
 
-  :is(.reader:fullscreen, .reader.fullscreen-fallback) .device-screen {
+  .reader .device-screen {
     --type-reader-header: clamp(18px, 1.6vw, 28px);
     --type-reader-label: clamp(22px, 1.6vw, 30px);
     --type-reader-citation: clamp(40px, 3.6vw, 68px);
@@ -123,7 +123,7 @@
     --type-reader-prayer: clamp(20px, 5vh, 34px);
   }
 
-  :is(.reader:fullscreen, .reader.fullscreen-fallback) .device-screen {
+  .reader .device-screen {
     --type-reader-base: clamp(20px, 5.2vh, 30px);
   }
 }

@@ -206,6 +206,23 @@ function focusTargets(prayerPageCount) {
   return targets;
 }
 
+function moveFocus(next, direction, prayerPageCount, exitAtBoundary = true) {
+  const targets = focusTargets(Math.max(1, prayerPageCount || 0));
+  const index = targets.findIndex(target => target.focus === next.focus && target.focusPage === (next.focusPage || 0));
+  if (index === -1) return;
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= targets.length) {
+    if (exitAtBoundary) {
+      next.focus = null;
+      next.focusPage = 0;
+    }
+    return;
+  }
+  const target = targets[targetIndex];
+  next.focus = target.focus;
+  next.focusPage = target.focusPage;
+}
+
 export function handle(state, event, context = {}) {
   const next = { ...state };
   if (event === "PREV_DAY") {
@@ -217,25 +234,20 @@ export function handle(state, event, context = {}) {
     next.focus = null;
     next.focusPage = 0;
   } else if (event === "NEXT_READING" || event === "PREV_READING") {
-    const targets = focusTargets(Math.max(1, context.prayerPageCount || 0));
-    const index = targets.findIndex(target => target.focus === next.focus && target.focusPage === (next.focusPage || 0));
-    if (index !== -1) {
-      const direction = event === "NEXT_READING" ? 1 : -1;
-      const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= targets.length) {
-        next.focus = null;
-        next.focusPage = 0;
-      } else {
-        const target = targets[targetIndex];
-        next.focus = target.focus;
-        next.focusPage = target.focusPage;
-      }
-    }
+    moveFocus(next, event === "NEXT_READING" ? 1 : -1, context.prayerPageCount);
   }
-  else if (event === "FOCUS" || event === "CENTER") {
+  else if (event === "FOCUS") {
     if (!next.focus) {
       next.focus = FOCUS_ORDER[0];
       next.focusPage = 0;
+    }
+  }
+  else if (event === "CENTER") {
+    if (!next.focus) {
+      next.focus = FOCUS_ORDER[0];
+      next.focusPage = 0;
+    } else {
+      moveFocus(next, 1, context.prayerPageCount, next.focus === "GLORIA");
     }
   }
   else if (event === "OVERVIEW") {
@@ -261,9 +273,10 @@ export function controlModel(viewOrFocus) {
     const firstPrayerPage = focus === "PRAYER" && (!prayer || prayer.page === 0);
     const previousLabel = firstPrayerPage ? "exit focus" : focus === "PRAYER" ? "previous page" : "previous reading";
     const nextLabel = focus === "GLORIA" ? "exit focus" : focus === "PRAYER" && prayer && prayer.page < prayer.pages.length - 1 ? "next page" : "next reading";
+    const centerLabel = focus === "GLORIA" ? "Overview" : nextLabel;
     return [
       { event: "PREV_READING", key: "←", label: previousLabel },
-      { event: "OVERVIEW", key: "↵", label: "Overview" },
+      { event: "CENTER", key: "↵", label: centerLabel },
       { event: "NEXT_READING", key: "→", label: nextLabel },
     ];
   }
@@ -295,8 +308,8 @@ export function focusSwipeEvent(focus, swipe) {
 export function keyboardEvent(focus, key, doublePress = false) {
   if (key === "ArrowLeft") return focus ? "PREV_READING" : "PREV_DAY";
   if (key === "ArrowRight") return focus ? "NEXT_READING" : "NEXT_DAY";
-  if (key === "Enter") return focus ? "OVERVIEW" : "FOCUS";
-  if (key === "ArrowUp") return doublePress && !focus ? "TODAY" : "OVERVIEW";
+  if (key === "Enter") return focus ? "CENTER" : "FOCUS";
+  if (key === "ArrowUp") return focus ? null : doublePress ? "TODAY" : "OVERVIEW";
   if (key === "ArrowDown") return doublePress && focus ? "OPEN_PRAYER" : "FOCUS";
   return null;
 }
@@ -307,13 +320,13 @@ export function screenTapEvent(focus, clientX, screenLeft, screenWidth, edgeRati
   const position = (clientX - screenLeft) / screenWidth;
   if (position <= edgeRatio) return "PREV_READING";
   if (position >= 1 - edgeRatio) return "NEXT_READING";
-  return "OVERVIEW";
+  return "CENTER";
 }
 
 export function screenClickEvent(focus, clientX, screenLeft, screenWidth, { detail = 1, fromPointer = true, reading = false } = {}) {
   if (!fromPointer && detail === 0) {
     if (!reading) return null;
-    return focus ? "OVERVIEW" : "FOCUS";
+    return focus ? "CENTER" : "FOCUS";
   }
   return screenTapEvent(focus, clientX, screenLeft, screenWidth);
 }
@@ -417,9 +430,11 @@ export function screenHtml(view) {
   const gloriaFocus = view.focus === "GLORIA"
     ? `<button class="reading focus prayer-focus" data-reading="GLORIA" type="button"><span class="label">Gloria</span><span class="prayer-text gloria-text">${escapeHtml(GLORIA_TEXT)}</span></button>`
     : null;
+  const openingPrayerOverview = '<div class="reading overview-marker opening-prayer-marker"><span class="label">Opening Prayer</span></div>';
+  const gloriaOverview = '<div class="reading overview-marker gloria-marker"><span class="label">Gloria</span></div>';
   const body = view.focus
     ? prayerFocus || gloriaFocus || `<button class="reading focus" data-reading="${view.focus}" type="button"><span class="label">${labels[view.focus]}</span>${citationHtml(view, view.focus, "focus-cite")}</button>`
-    : `<div class="grid">${Object.keys(view.values).map(key => `<button class="reading" data-reading="${key}" type="button"><span class="label">${labels[key]}</span>${citationHtml(view, key, "cite")}</button>`).join("")}</div>`;
+    : `<div class="grid">${openingPrayerOverview}${Object.keys(view.values).map(key => `<button class="reading" data-reading="${key}" type="button"><span class="label">${labels[key]}</span>${citationHtml(view, key, "cite")}</button>`).join("")}${gloriaOverview}</div>`;
   const focusHint = view.focus ? '<span class="focus-next-hint" aria-hidden="true"></span>' : "";
   return `${heading}${body}${focusHint}`;
 }

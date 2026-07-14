@@ -11,7 +11,19 @@
 - Daily Office citations for Psalms, Old Testament, New Testament, and Gospel readings.
 - A prayer-first focus sequence followed by the readings and Gloria.
 - Keyboard, touch, and swipe navigation with responsive portrait and landscape layouts.
-- Offline access after the web app has been loaded or installed.
+- A citation companion meant to be paired with a physical Bible; the app does not reproduce Scripture text.
+- Offline access after the web app has been fully loaded or installed once while online.
+
+## Offline behavior
+
+- The app saves its interface, lectionary citations, and prayers for airplane-mode use.
+- The first complete load or installation requires an internet connection.
+- Browsers may clear stored site data under storage pressure, and reconnecting is required to receive updates.
+
+## Project background
+
+- Simple Liturgy is a Beginner's Apprenticeship project.
+- [Beginner's Apprenticeship](https://beginnersapprenticeship.com/about) creates inter-denominational books, music, podcasts, and simple liturgies that adapt historic Christian prayer rhythms for families and households with small children.
 
 ## Reference and source
 

@@ -1,6 +1,6 @@
-import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=58";
-import { renderPixelArtStack } from "./pixel-art.js?v=58";
-import { initializeTheme, toggleTheme } from "./theme.js?v=58";
+import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=62";
+import { renderPixelArtStack } from "./pixel-art.js?v=62";
+import { initializeTheme, toggleTheme } from "./theme.js?v=62";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
@@ -27,7 +27,6 @@ let deferredInstall = null;
 let pointerStart = null;
 let pointerActivated = false;
 let suppressReadingTap = false;
-let centerTapTimer = null;
 let prayerLayout = null;
 let observedDeviceSize = "";
 let activeLocalDate = null;
@@ -232,19 +231,7 @@ async function loadPack() {
   button.addEventListener("click", () => dispatch(button.dataset.event));
 });
 
-centerControl.addEventListener("click", () => {
-  if (centerTapTimer !== null) {
-    clearTimeout(centerTapTimer);
-    centerTapTimer = null;
-    dispatch("TODAY");
-    return;
-  }
-  const event = centerControl.dataset.event;
-  centerTapTimer = setTimeout(() => {
-    centerTapTimer = null;
-    dispatch(event);
-  }, 350);
-});
+centerControl.addEventListener("click", () => dispatch(centerControl.dataset.event));
 
 window.addEventListener("keydown", event => {
   if (!bundle || !collects || installDialog.open || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;

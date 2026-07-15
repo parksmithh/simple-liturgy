@@ -1,23 +1,23 @@
-const CACHE = "daily-office-reader-v0.3.53";
+const CACHE = "daily-office-reader-v0.3.56";
 const CONTENT_ROOT = self.registration.scope.endsWith("/web/") ? "../" : "./";
-const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.53`;
+const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.56`;
 const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json`;
 const PACK_PATH = new URL(PACK_URL, self.registration.scope).pathname;
 const COLLECTS_PATH = new URL(COLLECTS_URL, self.registration.scope).pathname;
 const SHELL = [
   "./",
   "./index.html",
-  "./design-tokens.css?v=0.3.53",
-  "./app.css?v=0.3.53",
-  "./app.js?v=0.3.53",
-  "./bookmark-engine.js?v=0.3.53",
-  "./feast-link-preference.js?v=0.3.53",
-  "./feast-wikipedia.js?v=0.3.53",
-  "./pixel-art.js?v=0.3.53",
-  "./theme.js?v=0.3.53",
-  "./version.js?v=0.3.53",
-  "./manifest.webmanifest?v=0.3.53",
-  "./icon.svg?v=0.3.53",
+  "./design-tokens.css?v=0.3.56",
+  "./app.css?v=0.3.56",
+  "./app.js?v=0.3.56",
+  "./bookmark-engine.js?v=0.3.56",
+  "./feast-link-preference.js?v=0.3.56",
+  "./feast-wikipedia.js?v=0.3.56",
+  "./pixel-art.js?v=0.3.56",
+  "./theme.js?v=0.3.56",
+  "./version.js?v=0.3.56",
+  "./manifest.webmanifest?v=0.3.56",
+  "./icon.svg?v=0.3.56",
   "./assets/og-simple-liturgy.png?v=3",
   "./assets/liturgical-icons/liturgical-calendar/lit-01-solemnity.svg",
   "./assets/liturgical-icons/liturgical-calendar/lit-02-feast.svg",

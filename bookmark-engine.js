@@ -1,4 +1,4 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.53";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.56";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -364,6 +364,57 @@ export function dateWithOffset(isoDate, offset) {
   const date = new Date(isoDate + "T12:00:00Z");
   date.setUTCDate(date.getUTCDate() + offset);
   return date.toISOString().slice(0, 10);
+}
+
+export function stateForDate(today, targetDate) {
+  const dayMilliseconds = 24 * 60 * 60 * 1000;
+  const todayTime = Date.parse(`${today}T12:00:00Z`);
+  const targetTime = Date.parse(`${targetDate}T12:00:00Z`);
+  return { ...createState(), offset: Math.round((targetTime - todayTime) / dayMilliseconds) };
+}
+
+export function liturgicalSeason(label) {
+  if (/Advent/i.test(label)) return "Advent";
+  if (/Christmas/i.test(label)) return "Christmas";
+  if (/Epiphany/i.test(label)) return "Epiphany";
+  if (/Holy Week/i.test(label)) return "Holy Week";
+  if (/Ash Wednesday|Lent/i.test(label)) return "Lent";
+  if (/Easter/i.test(label)) return "Easter";
+  if (/Day of Pentecost/i.test(label)) return "Pentecost";
+  if (/Trinity|Proper/i.test(label)) return "After Pentecost";
+  return label;
+}
+
+function seasonalTitleForDay(day) {
+  const weekday = new Date(`${day.date}T12:00:00Z`).getUTCDay();
+  if (day.label === "Ash Wednesday and Following" && weekday === 3) return "Ash Wednesday";
+  if (day.label === "Holy Week") {
+    return ["Palm Sunday", null, null, null, "Maundy Thursday", "Good Friday", "Holy Saturday"][weekday];
+  }
+  if (day.label === "Easter Week" && weekday === 0) return "Easter Day";
+  if (day.label === "Week of 6 Easter" && weekday === 4) return "Ascension Day";
+  if (day.label === "The Day of Pentecost" && weekday === 0) return "Day of Pentecost";
+  if (day.label === "Trinity Sunday" && weekday === 0) return "Trinity Sunday";
+  if (day.label === "Week of 1 Advent" && weekday === 0) return "First Sunday of Advent";
+  return null;
+}
+
+export function upcomingFeastDays(bundle, today) {
+  return [...bundle.dates.values()]
+    .filter(day => day.date >= today)
+    .map(day => {
+      const churchFeast = day.feast && day.occasion_type === "church";
+      const title = churchFeast ? day.feast : seasonalTitleForDay(day);
+      if (!title) return null;
+      return {
+        date: day.date,
+        title,
+        season: liturgicalSeason(day.label),
+        kind: churchFeast ? "Feast day" : "Seasonal day",
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) => left.date.localeCompare(right.date));
 }
 
 function saintNameForFeast(feast) {

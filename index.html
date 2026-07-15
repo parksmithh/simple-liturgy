@@ -25,10 +25,10 @@
   <meta name="twitter:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=3">
   <meta name="twitter:image:alt" content="Simplified Simple Liturgy reader showing Psalms, Old Testament, New Testament, and Gospel citations">
   <title>Simple Liturgy | BCP 1979 Daily Office Reader</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=0.3.53">
-  <link rel="icon" href="./icon.svg?v=0.3.53" type="image/svg+xml">
-  <link rel="stylesheet" href="./design-tokens.css?v=0.3.53">
-  <link rel="stylesheet" href="./app.css?v=0.3.53">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.3.56">
+  <link rel="icon" href="./icon.svg?v=0.3.56" type="image/svg+xml">
+  <link rel="stylesheet" href="./design-tokens.css?v=0.3.56">
+  <link rel="stylesheet" href="./app.css?v=0.3.56">
 </head>
 <body>
   <main class="app-shell" id="settings-page" hidden>
@@ -43,6 +43,19 @@
       </div>
     </header>
 
+    <section class="feast-browser" id="feast-browser" aria-labelledby="feast-browser-title" hidden>
+      <header class="feast-browser-header">
+        <button class="icon-button feast-browser-back" id="close-feast-browser" type="button">← Settings</button>
+        <div>
+          <p class="eyebrow">Liturgical calendar</p>
+          <h2 id="feast-browser-title">Upcoming feast days</h2>
+        </div>
+      </header>
+      <p class="feast-browser-intro">Browse church feasts and major seasonal days from today forward. Choose one to open its readings in the reader.</p>
+      <div class="feast-list" id="feast-list"></div>
+      <p class="settings-note" id="feast-list-status" role="status"></p>
+    </section>
+
     <section class="settings-card appearance-settings" aria-labelledby="appearance-title">
       <p class="eyebrow">Preferences</p>
       <h2 id="appearance-title">Appearance</h2>
@@ -56,7 +69,7 @@
     </section>
 
     <section class="settings-card feast-links-settings" aria-labelledby="feast-links-title">
-      <p class="eyebrow">Focus mode</p>
+      <p class="eyebrow">Feast days</p>
       <h2 id="feast-links-title">Feast day links</h2>
       <label class="settings-switch" for="feast-links-enabled">
         <span class="settings-switch-copy">
@@ -65,6 +78,7 @@
         </span>
         <input id="feast-links-enabled" type="checkbox" role="switch" checked>
       </label>
+      <button class="settings-action" id="browse-feast-days" type="button">Browse feast days…</button>
     </section>
 
     <section class="settings-card shortcuts-settings" aria-labelledby="shortcuts-title">
@@ -201,6 +215,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="./app.js?v=0.3.53"></script>
+  <script type="module" src="./app.js?v=0.3.56"></script>
 </body>
 </html>

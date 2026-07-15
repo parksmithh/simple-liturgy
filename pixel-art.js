@@ -250,6 +250,12 @@ export function artNamesFor(view) {
   return [...new Set(names)];
 }
 
+export function calendarEventIconAssetPath(view) {
+  if (!view) return null;
+  const name = feastArtNameFor(view.feast) || principalArtNameFor(view) || seasonArtNameFor(view);
+  return name ? iconAssetPathFor(name) : null;
+}
+
 function iconLabelFor(name) {
   if (name.startsWith("feast:")) return name.slice("feast:".length);
   return name.replace(/^season-/, "").replaceAll("-", " ");

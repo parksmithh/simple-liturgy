@@ -1,12 +1,12 @@
-import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=0.3.53";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.53";
-import { renderPixelArtStack } from "./pixel-art.js?v=0.3.53";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.53";
-import { appVersionLabel } from "./version.js?v=0.3.53";
+import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.56";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.56";
+import { calendarEventIconAssetPath, renderPixelArtStack } from "./pixel-art.js?v=0.3.56";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.56";
+import { appVersionLabel } from "./version.js?v=0.3.56";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.53", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.56", CONTENT_ROOT);
 const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -19,6 +19,11 @@ const reader = document.querySelector(".reader");
 const deviceScreen = document.querySelector("#device-screen");
 const themeControls = document.querySelectorAll('input[name="theme"]');
 const feastLinksControl = document.querySelector("#feast-links-enabled");
+const feastBrowser = document.querySelector("#feast-browser");
+const feastList = document.querySelector("#feast-list");
+const feastListStatus = document.querySelector("#feast-list-status");
+const browseFeastDaysButton = document.querySelector("#browse-feast-days");
+const closeFeastBrowserButton = document.querySelector("#close-feast-browser");
 const readerMenu = document.querySelector("#reader-menu");
 const openReaderButton = document.querySelector("#open-reader-button");
 const shareButton = document.querySelector("#share-button");
@@ -73,6 +78,7 @@ function setSettingsOpen(open) {
   settingsPage.hidden = !open;
   reader.hidden = open;
   prayerLayout = null;
+  setFeastBrowserOpen(false, { focus: false, scroll: false });
   if (open) {
     window.scrollTo({ top: 0, behavior: "auto" });
     openReaderButton.focus({ preventScroll: true });
@@ -87,6 +93,93 @@ export function localIsoDate(date = new Date()) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+const feastDateFormatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+
+function renderFeastList() {
+  const today = localIsoDate();
+  feastList.replaceChildren();
+  if (!bundle) {
+    feastListStatus.textContent = "Feast days will appear when the readings finish loading.";
+    return;
+  }
+
+  const days = upcomingFeastDays(bundle, today);
+  const fragment = document.createDocumentFragment();
+  let yearItems = null;
+  let activeYear = null;
+  for (const day of days) {
+    const year = day.date.slice(0, 4);
+    if (year !== activeYear) {
+      activeYear = year;
+      const group = document.createElement("section");
+      const heading = document.createElement("h3");
+      yearItems = document.createElement("div");
+      heading.className = "feast-year-title";
+      heading.id = `feast-year-${year}`;
+      heading.textContent = year;
+      yearItems.className = "feast-year-items";
+      group.className = "feast-year-group";
+      group.setAttribute("aria-labelledby", heading.id);
+      group.append(heading, yearItems);
+      fragment.append(group);
+    }
+
+    const button = document.createElement("button");
+    const iconFrame = document.createElement("span");
+    const dateLabel = document.createElement("span");
+    const time = document.createElement("time");
+    const copy = document.createElement("span");
+    const title = document.createElement("strong");
+    const detail = document.createElement("span");
+    const arrow = document.createElement("span");
+    button.className = "feast-list-item";
+    button.type = "button";
+    button.dataset.feastDate = day.date;
+    iconFrame.className = "feast-list-icon";
+    iconFrame.setAttribute("aria-hidden", "true");
+    const iconPath = calendarEventIconAssetPath(bundle.dates.get(day.date));
+    if (iconPath) {
+      const icon = document.createElement("img");
+      icon.src = new URL(iconPath, import.meta.url).href;
+      icon.alt = "";
+      icon.draggable = false;
+      icon.decoding = "async";
+      icon.loading = "lazy";
+      iconFrame.append(icon);
+    }
+    dateLabel.className = "feast-list-date";
+    time.dateTime = day.date;
+    time.textContent = `${day.date === today ? "Today · " : ""}${feastDateFormatter.format(new Date(`${day.date}T12:00:00Z`))}`;
+    copy.className = "feast-list-copy";
+    title.textContent = day.title;
+    detail.textContent = `${day.kind} · ${day.season}`;
+    arrow.className = "feast-list-arrow";
+    arrow.setAttribute("aria-hidden", "true");
+    arrow.textContent = "→";
+    dateLabel.append(time);
+    copy.append(title, detail);
+    button.append(iconFrame, dateLabel, copy, arrow);
+    yearItems.append(button);
+  }
+  feastList.append(fragment);
+  feastListStatus.textContent = days.length
+    ? `Showing ${days.length} upcoming dates through ${days.at(-1).date.slice(0, 4)}.`
+    : "There are no more feast days in the installed calendar pack.";
+}
+
+function setFeastBrowserOpen(open, { focus = true, scroll = true } = {}) {
+  settingsPage.classList.toggle("feast-browser-open", open);
+  feastBrowser.hidden = !open;
+  if (open) renderFeastList();
+  if (scroll) window.scrollTo({ top: 0, behavior: "auto" });
+  if (focus) (open ? closeFeastBrowserButton : browseFeastDaysButton).focus({ preventScroll: true });
 }
 
 function deviceSize() {
@@ -267,6 +360,7 @@ async function loadPack() {
     if (!collectsResponse.ok) throw new Error(`Prayers could not be loaded (${collectsResponse.status})`);
     bundle = parseBundle(await packResponse.text());
     collects = parseCollects(await collectsResponse.text());
+    if (!feastBrowser.hidden) renderFeastList();
     render();
   } catch (error) {
     showLoadError(error);
@@ -374,6 +468,18 @@ if ("ResizeObserver" in window) {
 
 readerMenu.addEventListener("click", () => setSettingsOpen(true));
 openReaderButton.addEventListener("click", () => setSettingsOpen(false));
+browseFeastDaysButton.addEventListener("click", () => setFeastBrowserOpen(true));
+closeFeastBrowserButton.addEventListener("click", () => setFeastBrowserOpen(false));
+feastList.addEventListener("click", event => {
+  const button = event.target instanceof Element ? event.target.closest("[data-feast-date]") : null;
+  const targetDate = button?.dataset.feastDate;
+  if (!targetDate || !bundle || !collects) return;
+  const today = localIsoDate();
+  activeLocalDate = today;
+  state = stateForDate(today, targetDate);
+  prayerLayout = null;
+  setSettingsOpen(false);
+});
 installTooltip.addEventListener("click", () => {
   installTooltipDismissed = true;
   try {

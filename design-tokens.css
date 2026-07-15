@@ -34,6 +34,8 @@
   --type-control-glyph: clamp(28px, 6vw, 44px);
   --type-control-label: clamp(11px, 2.4vw, 16px);
   --space-reading-group: 20px;
+  --size-reader-art-cell-portrait: clamp(48px, 14vw, 58px);
+  --size-reader-art-icon-portrait: clamp(42px, 12vw, 50px);
 
   --color-bwr-black: #171716;
   --color-bwr-paper: #f2efdf;

@@ -43,6 +43,54 @@ const ART = {
     ".......BB.......", ".......BB.......", ".......BB.......", ".......BB.......",
     ".......BB.......", ".......BB.......", ".......BB.......", "................",
   ],
+  "season-advent": [
+    "................", "................", "........R.......", "........R.......",
+    "........R.......", "......R.R.R.....", ".......BBB......", "...RRRRBBBRRRR..",
+    ".......BBB......", "......R.R.R.....", "........R.......", "........R.......",
+    "........R.......", "................", "................", "................",
+  ],
+  "season-christmas": [
+    "................", "................", "................", "........B.......",
+    ".......B.B......", ".....BB...B.....", "....B......BB...", "...B.........B..",
+    "..BB...RRR...BB.", "...B...RRR...B..", "...B.BBBBBBB.B..", "...B.BB...BB.B..",
+    "...BB.......BB..", "...BBBBBBBBBBB..", "...B.........B..", "................",
+  ],
+  "season-epiphany": [
+    "................", "................", "................", "........B.......",
+    "..B.....B....B..", "..BB...B.B..BB..", "..B.B..B.B..BB..", "..B.B..B.B.B.B..",
+    "..B..BB...BB.B..", "..B...B...B..B..", "..B..........B..", "..BRR..RR..RRB..",
+    "..BRR..RR..RRB..", "..B..........B..", "..BBBBBBBBBBBB..", "................",
+  ],
+  "season-lent": [
+    "................", "................", "........B.......", "...R....B.......",
+    "........B....R..", "........B.......", "....BBBBBBBBB...", "........B.......",
+    "........B.......", "........B.......", "........B.......", "........B.......",
+    "....R...B.......", "........B...R...", "........B.......", "................",
+  ],
+  "season-holy-week": [
+    "................", "........B.......", "........B.......", "........B.......",
+    "........B.......", "....BBBBBBBBB...", ".......RRR......", ".......RRR......",
+    "........B.......", "........B.......", "........B.......", "........B.......",
+    "......BBBBB.....", ".....B.....B....", "...BB.......BB..", "..B...........B.",
+  ],
+  "season-easter": [
+    "................", "................", "................", "................",
+    "................", "................", "........BBBBB...", "........B....B..",
+    "..BBB...BRRRRB..", ".B...B..BR..R.B.", ".B...B..BR..R.B.", ".B...B.B.R..R.B.",
+    ".B...B.B.R..R.B.", ".B...B.B.RRRR.B.", "..BBB..BBBBBBBB.", "................",
+  ],
+  "season-pentecost": [
+    "................", "........R.......", ".......R........", ".......R..R.....",
+    "......R..RR.....", ".....R...R.R....", ".....R..R..R....", "....R...R..R....",
+    "....R...R...R...", ".....R.BBB..R...", ".....R.BBB.R....", "......RBBBR.....",
+    "......RBBB......", ".......BBB......", ".......R........", "................",
+  ],
+  "season-ordinary": [
+    "................", "................", "................", "...R...R.R...R..",
+    "....BR.....RB...", ".....BB.B..B....", ".......BB.B.....", "..R.....BB....R.",
+    "...BBR..B..R.B..", ".....BB.B..BB...", ".......BBBB.....", "........B.......",
+    "........B.......", "........B.......", "........B.......", ".....BBBBBBB....",
+  ],
   feast: [
     "................", ".....BBBBBB.....", "...BB......BB...", "..BB...RR...BB..",
     "..B....RR....B..", ".B.....BB.....B.", ".B.....BB.....B.", ".B..BBBBBBBB..B.",
@@ -315,6 +363,19 @@ function weekdayFor(view) {
   return new Date(`${view.date}T12:00:00Z`).getUTCDay();
 }
 
+function seasonArtNameFor(view) {
+  const label = String(view.label || "").toLowerCase();
+  if (label.includes("advent")) return "season-advent";
+  if (label.includes("christmas")) return "season-christmas";
+  if (label.includes("epiphany")) return "season-epiphany";
+  if (label.includes("ash wednesday") || label.includes("lent")) return "season-lent";
+  if (label === "holy week") return "season-holy-week";
+  if (label.includes("easter")) return "season-easter";
+  if (label === "the day of pentecost") return "season-pentecost";
+  if (label === "trinity sunday" || label.includes("proper")) return "season-ordinary";
+  return null;
+}
+
 function principalArtNameFor(view) {
   const label = String(view.label || "").toLowerCase();
   const weekday = weekdayFor(view);
@@ -350,8 +411,9 @@ export function artNameFor(view) {
 
 export function artNamesFor(view) {
   const weekday = weekdayFor(view);
+  const season = seasonArtNameFor(view);
   const principal = principalArtNameFor(view);
-  const names = [principal, feastArtNameFor(view.feast)].filter(Boolean);
+  const names = [season, principal, feastArtNameFor(view.feast)].filter(Boolean);
   if (weekday === 0) names.push("eucharist");
   if (weekday === 5 && principal !== "good-friday") names.push("friday-cross");
   return [...new Set(names)];

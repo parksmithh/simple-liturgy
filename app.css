@@ -354,7 +354,15 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
     top: clamp(92px, 24vw, 126px);
     right: auto;
     left: clamp(13px, 3vw, 22px);
+    display: grid;
+    grid-auto-columns: var(--size-reader-art-cell-portrait);
+    grid-auto-flow: column;
+    place-items: center;
     gap: clamp(10px, 3vw, 16px);
+  }
+  .pixel-art-stack .pixel-art {
+    width: var(--size-reader-art-icon-portrait);
+    place-self: center;
   }
 }
 

@@ -1,4 +1,4 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.49";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.51";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -165,6 +165,8 @@ export function stateAfterDateChange(state, previousDate, currentDate) {
 
 const FOCUS_ORDER = ["PRAYER", "PS", "OT", "NT", "GS", "GLORIA"];
 const GLORIA_TEXT = "Glory to the Father, to the Son, and to the Holy Spirit. Amen.";
+const READING_LABELS = { OT: "Old Testament", PS: "Psalms", NT: "New Testament", GS: "Gospel", PRAYER: "Prayer", GLORIA: "Gloria" };
+const PSALM_OFFICE_LABELS = { morning: "Morning", evening: "Evening" };
 const GOSPEL_BOOKS = ["matthew", "mark", "luke", "john"];
 const NEW_TESTAMENT_BOOKS = [
   ...GOSPEL_BOOKS,
@@ -415,6 +417,15 @@ function citationHtml(view, key, className) {
   return `<span class="${className} psalm-cite"><span class="psalm-office"><span class="office-icon" aria-label="Morning">☀</span><span>${escapeHtml(view.psalms.morning)}</span></span><span class="psalm-office"><span class="office-icon" aria-label="Evening">☾</span><span>${escapeHtml(view.psalms.evening)}</span></span></span>`;
 }
 
+function readingContentHtml(view, key, className, psalmPresentation) {
+  if (key !== "PS" || !view.psalms || !psalmPresentation.byTime) {
+    return `<span class="label">${READING_LABELS[key]}</span>${citationHtml(view, key, className)}`;
+  }
+  const label = PSALM_OFFICE_LABELS[psalmPresentation.office];
+  const citation = view.psalms[psalmPresentation.office] || `No ${label} Psalms listed`;
+  return `<span class="label">${label} Psalms</span><span class="${className} psalm-cite psalm-cite-single">${escapeHtml(citation)}</span>`;
+}
+
 function prayerPageHtml(prayer) {
   const ellipsis = '<span class="continuation-ellipsis" aria-hidden="true">...</span>';
   const prefix = prayer.page > 0 ? ellipsis : "";
@@ -440,11 +451,14 @@ function compactYear(year) {
   return year;
 }
 
-export function screenHtml(view, { feastLinksEnabled = true } = {}) {
+export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = "together", psalmOffice = "morning" } = {}) {
   const date = new Date(`${view.date}T12:00:00Z`);
   const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(date);
   const mediumDate = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(date);
-  const labels = { OT: "Old Testament", PS: "Psalms", NT: "New Testament", GS: "Gospel", PRAYER: "Prayer", GLORIA: "Gloria" };
+  const psalmPresentation = {
+    byTime: psalmDisplayMode === "by-time-of-day",
+    office: psalmOffice === "evening" ? "evening" : "morning",
+  };
   const occasionType = view.occasionType || null;
   const occasionTypeAttribute = occasionType ? ` data-occasion-type="${occasionType}"` : "";
   const feastBanner = view.feast ? `<span class="feast-banner"${occasionTypeAttribute}>${escapeHtml(view.feast)}</span>` : "";
@@ -472,8 +486,8 @@ export function screenHtml(view, { feastLinksEnabled = true } = {}) {
   const openingPrayerOverview = '<div class="reading overview-marker opening-prayer-marker"><span class="label">Opening Prayer</span></div>';
   const gloriaOverview = '<div class="reading overview-marker gloria-marker"><span class="label">Gloria</span></div>';
   const body = view.focus
-    ? prayerFocus || gloriaFocus || `<button class="reading focus" data-reading="${view.focus}" type="button"><span class="label">${labels[view.focus]}</span>${citationHtml(view, view.focus, "focus-cite")}</button>`
-    : `<div class="grid">${openingPrayerOverview}${Object.keys(view.values).map(key => `<button class="reading" data-reading="${key}" type="button"><span class="label">${labels[key]}</span>${citationHtml(view, key, "cite")}</button>`).join("")}${gloriaOverview}</div>`;
+    ? prayerFocus || gloriaFocus || `<button class="reading focus" data-reading="${view.focus}" type="button">${readingContentHtml(view, view.focus, "focus-cite", psalmPresentation)}</button>`
+    : `<div class="grid">${openingPrayerOverview}${Object.keys(view.values).map(key => `<button class="reading" data-reading="${key}" type="button">${readingContentHtml(view, key, "cite", psalmPresentation)}</button>`).join("")}${gloriaOverview}</div>`;
   const focusHint = view.focus ? '<span class="focus-next-hint" aria-hidden="true"></span>' : "";
   const overviewHint = view.focus ? "" : '<span class="overview-focus-hint">Tap to focus</span>';
   return `${heading}${body}${focusHint}${overviewHint}`;

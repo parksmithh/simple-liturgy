@@ -335,6 +335,124 @@ const CALENDAR_ICON_SPECS = {
   ],
 };
 
+const WEB_SIZE = 24;
+
+const WEB_ICON_SPECS = {
+  "season-advent": [
+    ["v", "R", 12, 2, 21], ["h", "R", 3, 21, 11],
+    ["l", "B", 5, 4, 19, 18], ["l", "B", 19, 4, 5, 18],
+    ["f", "R", 10, 9, 5, 5], ["f", "B", 11, 10, 3, 3],
+  ],
+  "season-christmas": [
+    ["v", "R", 18, 1, 7], ["h", "R", 15, 21, 4], ["l", "R", 16, 2, 20, 6], ["l", "R", 20, 2, 16, 6],
+    ["l", "B", 3, 11, 12, 4], ["l", "B", 12, 4, 21, 11], ["v", "B", 4, 11, 21], ["v", "B", 20, 11, 21],
+    ["h", "B", 4, 20, 21], ["l", "B", 7, 14, 17, 14], ["l", "B", 17, 14, 14, 19], ["h", "B", 9, 14, 19],
+    ["f", "R", 10, 15, 4, 2],
+  ],
+  "season-epiphany": [
+    ["v", "B", 4, 8, 20], ["v", "B", 20, 8, 20], ["h", "B", 4, 20, 20],
+    ["l", "B", 4, 8, 8, 13], ["l", "B", 8, 13, 12, 5], ["l", "B", 12, 5, 16, 13], ["l", "B", 16, 13, 20, 8],
+    ["f", "R", 6, 16, 3, 3], ["f", "R", 11, 16, 3, 3], ["f", "R", 16, 16, 3, 3],
+  ],
+  "season-lent": [
+    ["h", "B", 7, 17, 4], ["l", "B", 7, 4, 4, 8], ["v", "B", 4, 8, 20], ["h", "B", 4, 20, 20],
+    ["v", "B", 20, 8, 20], ["l", "B", 20, 8, 17, 4], ["h", "B", 8, 16, 12],
+    ["p", "R", 9, 7], ["p", "R", 12, 6], ["p", "R", 15, 8],
+  ],
+  "season-holy-week": [
+    ["l", "R", 5, 6, 9, 3], ["l", "R", 9, 3, 12, 7], ["l", "R", 12, 7, 15, 3], ["l", "R", 15, 3, 19, 6],
+    ["v", "R", 5, 6, 10], ["v", "R", 19, 6, 10], ["l", "R", 5, 10, 12, 21], ["l", "R", 19, 10, 12, 21],
+    ["v", "B", 12, 6, 17], ["h", "B", 8, 16, 10], ["h", "B", 8, 16, 11],
+  ],
+  "season-easter": [
+    ["v", "R", 17, 1, 6], ["h", "R", 14, 20, 4], ["l", "R", 15, 2, 19, 6], ["l", "R", 19, 2, 15, 6],
+    ["h", "B", 8, 19, 7], ["l", "B", 8, 7, 4, 12], ["v", "B", 4, 12, 21], ["h", "B", 4, 21, 21],
+    ["v", "B", 21, 12, 21], ["l", "B", 21, 12, 19, 7], ["r", "R", 10, 12, 7, 9],
+    ["r", "B", 1, 14, 6, 6], ["p", "R", 3, 16],
+  ],
+  "season-pentecost": [
+    ["l", "R", 12, 1, 7, 9], ["l", "R", 7, 9, 10, 8], ["l", "R", 10, 8, 7, 17],
+    ["l", "R", 7, 17, 12, 22], ["l", "R", 12, 22, 18, 16], ["l", "R", 18, 16, 16, 8], ["l", "R", 16, 8, 12, 1],
+    ["l", "B", 12, 10, 10, 17], ["l", "B", 10, 17, 14, 20], ["l", "B", 14, 20, 15, 13], ["l", "B", 15, 13, 12, 10],
+  ],
+  "season-ordinary": [
+    ["v", "B", 12, 9, 22], ["l", "B", 12, 13, 7, 8], ["l", "B", 12, 15, 18, 9], ["h", "B", 7, 17, 22],
+    ["r", "B", 4, 3, 6, 6], ["r", "B", 9, 1, 7, 7], ["r", "B", 15, 4, 6, 6], ["r", "B", 7, 7, 10, 7],
+    ["f", "R", 6, 5, 2, 2], ["f", "R", 11, 3, 2, 2], ["f", "R", 17, 6, 2, 2], ["f", "R", 10, 9, 2, 2], ["f", "R", 14, 10, 2, 2],
+  ],
+  eucharist: [
+    ["h", "R", 7, 17, 3], ["l", "R", 7, 3, 5, 7], ["l", "R", 17, 3, 19, 7], ["h", "R", 5, 19, 7],
+    ["h", "B", 6, 18, 8], ["l", "B", 6, 8, 8, 14], ["l", "B", 18, 8, 16, 14], ["h", "B", 8, 16, 14],
+    ["v", "B", 12, 14, 20], ["h", "B", 8, 16, 20], ["f", "R", 10, 9, 5, 2],
+  ],
+  "friday-cross": [
+    ["v", "B", 12, 2, 22], ["h", "B", 5, 19, 8], ["f", "R", 10, 7, 5, 4],
+    ["l", "R", 3, 4, 6, 7], ["l", "R", 21, 4, 18, 7], ["h", "R", 1, 4, 12], ["h", "R", 20, 23, 12],
+  ],
+  saint: [
+    ["r", "R", 7, 1, 10, 5], ["r", "B", 9, 5, 6, 6], ["v", "B", 12, 11, 14],
+    ["l", "B", 12, 13, 6, 20], ["l", "B", 12, 13, 18, 20], ["h", "B", 6, 18, 20], ["f", "R", 10, 15, 5, 3],
+  ],
+  apostle: [
+    ["l", "B", 2, 12, 7, 7], ["l", "B", 7, 7, 14, 5], ["l", "B", 14, 5, 21, 12],
+    ["l", "B", 21, 12, 14, 19], ["l", "B", 14, 19, 7, 17], ["l", "B", 7, 17, 2, 12],
+    ["l", "B", 18, 9, 22, 5], ["l", "B", 18, 15, 22, 19], ["f", "R", 8, 11, 3, 3],
+  ],
+  martyr: [
+    ["r", "R", 7, 1, 10, 5], ["r", "B", 9, 5, 6, 6], ["v", "B", 12, 11, 14],
+    ["l", "R", 12, 13, 6, 21], ["l", "R", 12, 13, 18, 21], ["h", "R", 6, 18, 21],
+    ["v", "B", 4, 5, 21], ["h", "B", 2, 7, 8],
+  ],
+  feast: [
+    ["v", "B", 5, 3, 21], ["r", "B", 6, 4, 14, 10], ["l", "B", 19, 13, 15, 9],
+    ["v", "R", 12, 6, 12], ["h", "R", 9, 15, 9],
+  ],
+  "ash-wednesday": [
+    ["v", "B", 12, 2, 22], ["h", "B", 5, 19, 8],
+    ["p", "R", 4, 4], ["p", "R", 19, 5], ["p", "R", 5, 19], ["p", "R", 18, 20], ["p", "R", 8, 3], ["p", "R", 16, 18],
+  ],
+  "palm-sunday": [
+    ["l", "B", 4, 22, 17, 2], ["l", "R", 7, 18, 2, 13], ["l", "R", 8, 16, 14, 17],
+    ["l", "R", 10, 13, 4, 9], ["l", "R", 11, 11, 18, 12], ["l", "R", 13, 8, 7, 5],
+    ["l", "R", 14, 6, 22, 7], ["l", "R", 15, 4, 11, 1], ["l", "R", 17, 3, 22, 3],
+  ],
+  "maundy-thursday": [
+    ["h", "B", 6, 18, 5], ["l", "B", 6, 5, 8, 14], ["l", "B", 18, 5, 16, 14], ["h", "B", 8, 16, 14],
+    ["v", "B", 12, 14, 21], ["h", "B", 8, 16, 21], ["f", "R", 9, 7, 7, 3],
+    ["f", "B", 2, 16, 5, 4], ["h", "R", 2, 6, 20],
+  ],
+  "good-friday": [
+    ["l", "R", 5, 5, 9, 2], ["l", "R", 9, 2, 12, 6], ["l", "R", 12, 6, 15, 2], ["l", "R", 15, 2, 19, 5],
+    ["v", "R", 5, 5, 10], ["v", "R", 19, 5, 10], ["l", "R", 5, 10, 12, 21], ["l", "R", 19, 10, 12, 21],
+    ["v", "B", 12, 7, 18], ["h", "B", 8, 16, 11],
+  ],
+  "holy-saturday": [
+    ["l", "B", 2, 21, 7, 13], ["v", "B", 7, 13, 21], ["h", "B", 7, 17, 13], ["v", "B", 17, 13, 21], ["l", "B", 17, 13, 22, 21],
+    ["v", "R", 12, 3, 16], ["h", "R", 9, 15, 7], ["f", "B", 10, 16, 5, 5],
+  ],
+  easter: [
+    ["v", "R", 18, 1, 6], ["h", "R", 15, 21, 4], ["l", "R", 16, 2, 20, 6], ["l", "R", 20, 2, 16, 6],
+    ["h", "B", 8, 19, 7], ["l", "B", 8, 7, 4, 12], ["v", "B", 4, 12, 21], ["h", "B", 4, 21, 21], ["v", "B", 21, 12, 21], ["l", "B", 21, 12, 19, 7],
+    ["r", "R", 10, 12, 7, 9], ["r", "B", 1, 14, 6, 6],
+  ],
+  ascension: [
+    ["h", "B", 3, 21, 19], ["h", "B", 6, 18, 16], ["p", "B", 5, 17], ["p", "B", 19, 17],
+    ["v", "R", 12, 3, 15], ["l", "R", 12, 3, 7, 8], ["l", "R", 12, 3, 17, 8],
+  ],
+  pentecost: [
+    ["l", "R", 12, 1, 7, 9], ["l", "R", 7, 9, 10, 8], ["l", "R", 10, 8, 7, 17], ["l", "R", 7, 17, 12, 22],
+    ["l", "R", 12, 22, 18, 16], ["l", "R", 18, 16, 16, 8], ["l", "R", 16, 8, 12, 1], ["f", "B", 10, 13, 5, 7],
+  ],
+  trinity: [
+    ["r", "B", 2, 4, 8, 8], ["r", "B", 14, 4, 8, 8], ["r", "B", 8, 12, 8, 8],
+    ["f", "R", 10, 10, 5, 5],
+  ],
+  "feast:All Saints' Day": [
+    ["l", "B", 3, 20, 12, 7], ["l", "B", 12, 7, 21, 20], ["h", "B", 3, 21, 20], ["v", "B", 12, 2, 7], ["h", "B", 9, 15, 3],
+    ["r", "R", 5, 12, 5, 6], ["r", "R", 10, 11, 5, 6], ["r", "R", 15, 12, 5, 6],
+  ],
+};
+
 const OBVIOUS_SAINT_SYMBOLS = new Set([
   "Confession of St. Peter", "Conversion of St. Paul", "St. Joseph", "St. Mark",
   "Nativity of St. John the Baptist", "St. Peter and St. Paul", "St. Mary Magdalene",
@@ -348,7 +466,7 @@ const APOSTLE_FEASTS = new Set([
   "St. James of Jerusalem", "St. Simon and St. Jude",
 ]);
 
-function drawLine(grid, color, startX, startY, endX, endY) {
+function drawLine(grid, color, startX, startY, endX, endY, size = SIZE) {
   const deltaX = Math.abs(endX - startX);
   const stepX = startX < endX ? 1 : -1;
   const deltaY = -Math.abs(endY - startY);
@@ -357,7 +475,7 @@ function drawLine(grid, color, startX, startY, endX, endY) {
   let x = startX;
   let y = startY;
   while (true) {
-    if (x >= 0 && x < SIZE && y >= 0 && y < SIZE) grid[y][x] = color;
+    if (x >= 0 && x < size && y >= 0 && y < size) grid[y][x] = color;
     if (x === endX && y === endY) break;
     const doubledError = 2 * error;
     if (doubledError >= deltaY) { error += deltaY; x += stepX; }
@@ -365,19 +483,19 @@ function drawLine(grid, color, startX, startY, endX, endY) {
   }
 }
 
-function rowsForSpec(operations) {
-  const grid = Array.from({ length: SIZE }, () => Array(SIZE).fill("."));
+function rowsForSpec(operations, size = SIZE) {
+  const grid = Array.from({ length: size }, () => Array(size).fill("."));
   for (const [kind, color, ...values] of operations) {
     if (kind === "p") grid[values[1]][values[0]] = color;
-    if (kind === "h") drawLine(grid, color, values[0], values[2], values[1], values[2]);
-    if (kind === "v") drawLine(grid, color, values[0], values[1], values[0], values[2]);
-    if (kind === "l") drawLine(grid, color, ...values);
+    if (kind === "h") drawLine(grid, color, values[0], values[2], values[1], values[2], size);
+    if (kind === "v") drawLine(grid, color, values[0], values[1], values[0], values[2], size);
+    if (kind === "l") drawLine(grid, color, ...values, size);
     if (kind === "r") {
       const [x, y, width, height] = values;
-      drawLine(grid, color, x, y, x + width - 1, y);
-      drawLine(grid, color, x, y + height - 1, x + width - 1, y + height - 1);
-      drawLine(grid, color, x, y, x, y + height - 1);
-      drawLine(grid, color, x + width - 1, y, x + width - 1, y + height - 1);
+      drawLine(grid, color, x, y, x + width - 1, y, size);
+      drawLine(grid, color, x, y + height - 1, x + width - 1, y + height - 1, size);
+      drawLine(grid, color, x, y, x, y + height - 1, size);
+      drawLine(grid, color, x + width - 1, y, x + width - 1, y + height - 1, size);
     }
     if (kind === "f") {
       const [x, y, width, height] = values;
@@ -478,6 +596,20 @@ export function artRows(name) {
   return ART[name] || ART.feast;
 }
 
+function upscaleRows(rows, size = WEB_SIZE) {
+  return Array.from({ length: size }, (_, y) => Array.from({ length: size }, (_, x) => {
+    const sourceY = Math.min(rows.length - 1, Math.floor((y * rows.length) / size));
+    const sourceX = Math.min(rows[sourceY].length - 1, Math.floor((x * rows[sourceY].length) / size));
+    return rows[sourceY][sourceX];
+  }).join(""));
+}
+
+export function webArtRows(name) {
+  const spec = WEB_ICON_SPECS[name];
+  if (spec) return rowsForSpec(spec, WEB_SIZE);
+  return upscaleRows(artRows(name));
+}
+
 export function drawPixelArt(canvas, view) {
   const name = artNameFor(view);
   if (name) drawArt(canvas, name);
@@ -506,18 +638,42 @@ function drawArt(canvas, name, palette = paletteFor(canvas)) {
   }));
 }
 
+function createSvgArt(name) {
+  const namespace = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(namespace, "svg");
+  const feast = name.startsWith("feast:") ? name.slice("feast:".length) : name;
+  svg.setAttribute("class", "pixel-art liturgical-icon");
+  svg.setAttribute("viewBox", `0 0 ${WEB_SIZE} ${WEB_SIZE}`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", `${feast} liturgical pixel art`);
+  svg.setAttribute("shape-rendering", "crispEdges");
+
+  webArtRows(name).forEach((row, y) => {
+    let start = 0;
+    while (start < row.length) {
+      const pixel = row[start];
+      if (pixel === ".") {
+        start += 1;
+        continue;
+      }
+      let end = start + 1;
+      while (end < row.length && row[end] === pixel) end += 1;
+      const rectangle = document.createElementNS(namespace, "rect");
+      rectangle.setAttribute("x", String(start));
+      rectangle.setAttribute("y", String(y));
+      rectangle.setAttribute("width", String(end - start));
+      rectangle.setAttribute("height", "1");
+      rectangle.setAttribute("class", pixel === "R" ? "icon-red" : "icon-ink");
+      svg.append(rectangle);
+      start = end;
+    }
+  });
+  return svg;
+}
+
 export function renderPixelArtStack(container, view) {
   const names = artNamesFor(view);
-  const palette = paletteFor(container);
-  const canvases = names.map(name => {
-    const canvas = document.createElement("canvas");
-    canvas.className = "pixel-art";
-    canvas.width = SIZE;
-    canvas.height = SIZE;
-    canvas.setAttribute("role", "img");
-    drawArt(canvas, name, palette);
-    return canvas;
-  });
-  container.dataset.count = String(canvases.length);
-  container.replaceChildren(...canvases);
+  const icons = names.map(createSvgArt);
+  container.dataset.count = String(icons.length);
+  container.replaceChildren(...icons);
 }

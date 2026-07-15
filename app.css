@@ -203,6 +203,7 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .label { color: var(--red); font-size: var(--type-reader-label); font-weight: var(--font-weight-regular); text-transform: uppercase; }
 .cite { min-height: 2.2em; margin-top: 2px; font-size: var(--type-reader-citation); font-weight: var(--font-weight-reader-content); line-height: 1.1; overflow-wrap: break-word; white-space: normal; }
 .psalm-cite { display: flex !important; flex-direction: column; justify-content: flex-end; gap: .08em; }
+.psalm-cite-single { min-height: 0; }
 .psalm-office { display: grid !important; grid-template-columns: 1.2em minmax(0, 1fr); align-items: baseline; }
 .office-icon { color: var(--red); font-size: var(--type-reader-symbol); font-weight: var(--font-weight-regular); text-align: center; }
 .focus { flex: 1; justify-content: center; margin-top: clamp(8px, 3vw, 18px); }
@@ -231,12 +232,16 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 }
 
 .pixel-art {
+  display: block;
   width: clamp(30px, 8vw, 40px);
   height: auto;
   aspect-ratio: 1 / 1;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  shape-rendering: crispEdges;
 }
+.pixel-art .icon-ink { fill: var(--screen-ink); }
+.pixel-art .icon-red { fill: var(--red); }
 
 .device-screen.has-feast .pixel-art-stack { top: clamp(42px, 9vw, 62px); }
 
@@ -265,12 +270,14 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .settings-card h2, .settings-card p { margin: 0; }
 .settings-card h2 { font: var(--font-weight-semibold) var(--type-section-title) var(--font-family-display); }
 .feedback-settings a { color: var(--app-text); font-weight: var(--font-weight-bold); text-underline-offset: 3px; }
-.theme-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; border: 0; }
-.theme-options legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.theme-options label { position: relative; display: grid; min-height: 52px; place-items: center; border: 2px solid var(--line); border-radius: 5px; background: var(--control); color: var(--control-text); font-weight: var(--font-weight-bold); cursor: pointer; }
-.theme-options label:has(input:checked) { border-color: var(--red); box-shadow: inset 0 -4px var(--red); }
-.theme-options input { position: absolute; opacity: 0; pointer-events: none; }
-.theme-options label:has(input:focus-visible) { outline: 3px solid var(--red); outline-offset: 3px; }
+.settings-options { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.theme-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.psalm-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.settings-options legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.settings-options label { position: relative; display: grid; min-height: 52px; place-items: center; border: 2px solid var(--line); border-radius: 5px; background: var(--control); color: var(--control-text); font-weight: var(--font-weight-bold); cursor: pointer; }
+.settings-options label:has(input:checked) { border-color: var(--red); box-shadow: inset 0 -4px var(--red); }
+.settings-options input { position: absolute; opacity: 0; pointer-events: none; }
+.settings-options label:has(input:focus-visible) { outline: 3px solid var(--red); outline-offset: 3px; }
 .settings-switch { display: grid; min-height: 58px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 18px; cursor: pointer; }
 .settings-switch-copy { display: grid; gap: 2px; }
 .settings-switch-copy strong { color: var(--app-text); }
@@ -327,7 +334,7 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
   .device-screen.has-feast .pixel-art-stack { top: 38px; }
   .app-footer { font-size: var(--type-footer); }
   .platform-steps { grid-template-columns: 1fr; }
-  .theme-options { grid-template-columns: 1fr; }
+  .theme-options, .psalm-options { grid-template-columns: 1fr; }
 }
 
 @media (display-mode: standalone), (display-mode: fullscreen) {

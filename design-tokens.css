@@ -38,8 +38,6 @@
   --size-reader-art-icon-portrait: clamp(42px, 12vw, 50px);
   --size-reader-art-icon-landscape: clamp(56px, min(7vw, 9vh), 112px);
   --space-reader-art-gap-landscape: clamp(6px, 1.2vw, 22px);
-  --reader-art-filter: none;
-  --reader-art-blend-mode: multiply;
 
   --color-bwr-black: #171716;
   --color-bwr-paper: #f2efdf;
@@ -98,8 +96,6 @@
   --eyebrow: #d7dcd7;
   --screen-border: #656961;
   --dialog-backdrop: #000b;
-  --reader-art-filter: invert(1) hue-rotate(180deg);
-  --reader-art-blend-mode: screen;
 }
 
 .reader .device-screen {

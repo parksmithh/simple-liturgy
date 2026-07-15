@@ -1,3 +1,5 @@
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=82";
+
 export function parseBundle(text) {
   const readings = new Map();
   const dates = new Map();
@@ -331,6 +333,33 @@ export function screenClickEvent(focus, clientX, screenLeft, screenWidth, { deta
   return screenTapEvent(focus, clientX, screenLeft, screenWidth);
 }
 
+export function screenClickDecision(
+  { focus, clientX, screenLeft, screenWidth },
+  { suppressed = false, link = false, controlEvent = null, detail = 1, fromPointer = true, reading = false } = {},
+) {
+  if (suppressed) return { action: null, preventDefault: link };
+  if (link) return { action: null, preventDefault: false };
+  if (controlEvent) return { action: controlEvent, preventDefault: false };
+  return {
+    action: screenClickEvent(focus, clientX, screenLeft, screenWidth, { detail, fromPointer, reading }),
+    preventDefault: false,
+  };
+}
+
+export function prayerAvailableHeight({
+  focusHeight,
+  paddingTop,
+  paddingBottom,
+  labelHeight,
+  textMarginTop,
+  feastLinkHeight = 0,
+  feastLinkMarginTop = 0,
+  feastLinkMarginBottom = 0,
+}) {
+  return focusHeight - paddingTop - paddingBottom - labelHeight - textMarginTop
+    - feastLinkHeight - feastLinkMarginTop - feastLinkMarginBottom;
+}
+
 export function dateWithOffset(isoDate, offset) {
   const date = new Date(isoDate + "T12:00:00Z");
   date.setUTCDate(date.getUTCDate() + offset);
@@ -362,6 +391,7 @@ export function model(bundle, state, today, collects = null, options = {}) {
     label: day.label,
     year: `Year ${day.lectionary_year[0].toUpperCase()}${day.lectionary_year.slice(1)}`,
     feast: day.feast,
+    occasionType: day.occasion_type || null,
     focus: state.focus,
     prayer,
   };
@@ -397,18 +427,27 @@ function prayerHeading(prayer, includeArticle = false) {
   return `${includeArticle ? "A " : ""}Prayer for ${prayer.title}`;
 }
 
+function feastAboutHtml(feast, occasionType, enabled) {
+  if (!enabled || occasionType !== "church") return "";
+  const wikipediaUrl = wikipediaUrlForFeast(feast);
+  if (!wikipediaUrl) return "";
+  return `<a class="feast-about-link" href="${wikipediaUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(`About ${feast} →`)}</a>`;
+}
+
 function compactYear(year) {
   if (year === "Year One") return "Y1";
   if (year === "Year Two") return "Y2";
   return year;
 }
 
-export function screenHtml(view) {
+export function screenHtml(view, { feastLinksEnabled = true } = {}) {
   const date = new Date(`${view.date}T12:00:00Z`);
   const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(date);
   const mediumDate = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(date);
   const labels = { OT: "Old Testament", PS: "Psalms", NT: "New Testament", GS: "Gospel", PRAYER: "Prayer", GLORIA: "Gloria" };
-  const feastBanner = view.feast ? `<span class="feast-banner">${escapeHtml(view.feast)}</span>` : "";
+  const occasionType = view.occasionType || null;
+  const occasionTypeAttribute = occasionType ? ` data-occasion-type="${occasionType}"` : "";
+  const feastBanner = view.feast ? `<span class="feast-banner"${occasionTypeAttribute}>${escapeHtml(view.feast)}</span>` : "";
   const meta = [view.label, compactYear(view.year)].filter(Boolean).join(" · ");
   const headerClass = view.focus ? "screen-header-copy focus-header" : "screen-header-copy";
   const beforeToday = view.todayRelation === "past";
@@ -425,7 +464,7 @@ export function screenHtml(view) {
   if (view.error && !(view.focus === "PRAYER" && view.prayer)) return `${heading}<h2 class="warning">${escapeHtml(view.error)}</h2>`;
   const prayerIndex = view.prayer?.pages.length > 1 ? ` (${view.prayer.page + 1}/${view.prayer.pages.length})` : "";
   const prayerFocus = view.focus === "PRAYER" && view.prayer
-    ? `<button class="reading focus prayer-focus" data-reading="PRAYER" type="button"><span class="label">${escapeHtml(prayerHeading(view.prayer))}${prayerIndex}</span><span class="prayer-text">${prayerPageHtml(view.prayer)}</span></button>`
+    ? `<div class="reading focus prayer-focus"><button class="prayer-content" data-reading="PRAYER" type="button"><span class="label">${escapeHtml(prayerHeading(view.prayer))}${prayerIndex}</span><span class="prayer-text">${prayerPageHtml(view.prayer)}</span></button>${feastAboutHtml(view.feast, occasionType, feastLinksEnabled)}</div>`
     : null;
   const gloriaFocus = view.focus === "GLORIA"
     ? `<button class="reading focus prayer-focus" data-reading="GLORIA" type="button"><span class="label">Gloria</span><span class="prayer-text gloria-text">${escapeHtml(GLORIA_TEXT)}</span></button>`

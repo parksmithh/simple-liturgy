@@ -1,10 +1,11 @@
-import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, screenClickEvent, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=79";
-import { renderPixelArtStack } from "./pixel-art.js?v=79";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=79";
+import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=82";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=82";
+import { renderPixelArtStack } from "./pixel-art.js?v=82";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=82";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=82", CONTENT_ROOT);
 const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -16,6 +17,7 @@ const settingsPage = document.querySelector("#settings-page");
 const reader = document.querySelector(".reader");
 const deviceScreen = document.querySelector("#device-screen");
 const themeControls = document.querySelectorAll('input[name="theme"]');
+const feastLinksControl = document.querySelector("#feast-links-enabled");
 const readerMenu = document.querySelector("#reader-menu");
 const openReaderButton = document.querySelector("#open-reader-button");
 const shareButton = document.querySelector("#share-button");
@@ -58,8 +60,10 @@ const themeContext = {
   media: window.matchMedia("(prefers-color-scheme: dark)"),
   styles: window.getComputedStyle.bind(window),
 };
+const feastLinksContext = { control: feastLinksControl, storage: window.localStorage };
 
 initializeTheme(themeContext);
+initializeFeastLinks(feastLinksContext);
 
 function setSettingsOpen(open) {
   document.documentElement.classList.toggle("settings-open", open);
@@ -115,7 +119,8 @@ function currentView() {
 
 function paint(view) {
   deviceScreen.classList.toggle("has-feast", Boolean(view.feast));
-  screen.innerHTML = screenHtml(view);
+  const feastLinksEnabled = feastLinksControl.checked;
+  screen.innerHTML = screenHtml(view, { feastLinksEnabled });
   const layout = matchingPrayerLayout(view);
   if ((view.focus === "PRAYER" || view.focus === "GLORIA") && layout?.fontSize) {
     screen.querySelector(".prayer-text")?.style.setProperty("font-size", `${layout.fontSize}px`);
@@ -168,17 +173,24 @@ function measuredPrayerLayout(view) {
   const focus = screen.querySelector(".prayer-focus");
   const text = screen.querySelector(".prayer-text");
   const label = focus?.querySelector(".label");
+  const feastAbout = focus?.querySelector(".feast-about-link");
   if (!focus || !text || !label) return null;
 
   const focusStyle = getComputedStyle(focus);
   const textStyle = getComputedStyle(text);
+  const feastAboutStyle = feastAbout ? getComputedStyle(feastAbout) : null;
   const focusHeight = focus.getBoundingClientRect().height;
   const labelHeight = label.getBoundingClientRect().height;
-  const availableHeight = focusHeight
-    - parseFloat(focusStyle.paddingTop)
-    - parseFloat(focusStyle.paddingBottom)
-    - labelHeight
-    - parseFloat(textStyle.marginTop);
+  const availableHeight = prayerAvailableHeight({
+    focusHeight,
+    paddingTop: parseFloat(focusStyle.paddingTop),
+    paddingBottom: parseFloat(focusStyle.paddingBottom),
+    labelHeight,
+    textMarginTop: parseFloat(textStyle.marginTop),
+    feastLinkHeight: feastAbout?.getBoundingClientRect().height || 0,
+    feastLinkMarginTop: feastAboutStyle ? parseFloat(feastAboutStyle.marginTop) : 0,
+    feastLinkMarginBottom: feastAboutStyle ? parseFloat(feastAboutStyle.marginBottom) : 0,
+  });
   const textWidth = text.getBoundingClientRect().width;
   if (availableHeight <= 0 || textWidth <= 0) return null;
 
@@ -287,18 +299,25 @@ window.addEventListener("keydown", event => {
 deviceScreen.addEventListener("click", event => {
   const fromPointer = pointerActivated;
   pointerActivated = false;
-  if (suppressReadingTap) return;
+  const link = event.target.closest("a");
   const control = event.target.closest("[data-event]");
-  if (control) return dispatch(control.dataset.event);
   const reading = event.target.closest("[data-reading]");
   const bounds = deviceScreen.getBoundingClientRect();
-  const tapEvent = screenClickEvent(state.focus, event.clientX, bounds.left, bounds.width, {
+  const decision = screenClickDecision({
+    focus: state.focus,
+    clientX: event.clientX,
+    screenLeft: bounds.left,
+    screenWidth: bounds.width,
+  }, {
+    suppressed: suppressReadingTap,
+    link: Boolean(link),
+    controlEvent: control?.dataset.event,
     detail: event.detail,
     fromPointer,
     reading: Boolean(reading),
   });
-  if (!tapEvent) return;
-  dispatch(tapEvent);
+  if (decision.preventDefault) event.preventDefault();
+  if (decision.action) dispatch(decision.action);
 });
 
 deviceScreen.addEventListener("pointerdown", event => {
@@ -326,6 +345,13 @@ themeControls.forEach(control => control.addEventListener("change", () => {
   setThemeMode(themeContext, control.value);
   if (bundle && collects) renderPixelArtStack(artStack, currentView());
 }));
+
+bindFeastLinksPreference({
+  ...feastLinksContext,
+  invalidateLayout: () => { prayerLayout = null; },
+  isReady: () => Boolean(bundle && collects),
+  render,
+});
 
 themeContext.media.addEventListener?.("change", () => {
   if (!syncSystemTheme(themeContext)) return;

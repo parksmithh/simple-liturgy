@@ -1,20 +1,22 @@
-const CACHE = "daily-office-reader-v79";
+const CACHE = "daily-office-reader-v82";
 const CONTENT_ROOT = self.registration.scope.endsWith("/web/") ? "../" : "./";
-const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl`;
+const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=82`;
 const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json`;
 const PACK_PATH = new URL(PACK_URL, self.registration.scope).pathname;
 const COLLECTS_PATH = new URL(COLLECTS_URL, self.registration.scope).pathname;
 const SHELL = [
   "./",
   "./index.html",
-  "./design-tokens.css?v=79",
-  "./app.css?v=79",
-  "./app.js?v=79",
-  "./bookmark-engine.js?v=79",
-  "./pixel-art.js?v=79",
-  "./theme.js?v=79",
-  "./manifest.webmanifest?v=79",
-  "./icon.svg?v=79",
+  "./design-tokens.css?v=82",
+  "./app.css?v=82",
+  "./app.js?v=82",
+  "./bookmark-engine.js?v=82",
+  "./feast-link-preference.js?v=82",
+  "./feast-wikipedia.js?v=82",
+  "./pixel-art.js?v=82",
+  "./theme.js?v=82",
+  "./manifest.webmanifest?v=82",
+  "./icon.svg?v=82",
   "./assets/og-simple-liturgy.png?v=3",
   "./llms.txt",
   PACK_URL,

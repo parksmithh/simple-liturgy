@@ -25,10 +25,10 @@
   <meta name="twitter:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=3">
   <meta name="twitter:image:alt" content="Simplified Simple Liturgy reader showing Psalms, Old Testament, New Testament, and Gospel citations">
   <title>Simple Liturgy | BCP 1979 Daily Office Reader</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=0.3.51">
-  <link rel="icon" href="./icon.svg?v=0.3.51" type="image/svg+xml">
-  <link rel="stylesheet" href="./design-tokens.css?v=0.3.51">
-  <link rel="stylesheet" href="./app.css?v=0.3.51">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.3.53">
+  <link rel="icon" href="./icon.svg?v=0.3.53" type="image/svg+xml">
+  <link rel="stylesheet" href="./design-tokens.css?v=0.3.53">
+  <link rel="stylesheet" href="./app.css?v=0.3.53">
 </head>
 <body>
   <main class="app-shell" id="settings-page" hidden>
@@ -46,24 +46,13 @@
     <section class="settings-card appearance-settings" aria-labelledby="appearance-title">
       <p class="eyebrow">Preferences</p>
       <h2 id="appearance-title">Appearance</h2>
-      <fieldset class="settings-options theme-options">
+      <fieldset class="theme-options">
         <legend>Color theme</legend>
         <label><input type="radio" name="theme" value="light"> <span>Light</span></label>
         <label><input type="radio" name="theme" value="dark"> <span>Dark</span></label>
         <label><input type="radio" name="theme" value="system" checked> <span>System</span></label>
       </fieldset>
       <p class="settings-note">System follows your device appearance automatically.</p>
-    </section>
-
-    <section class="settings-card psalm-settings" aria-labelledby="psalm-settings-title">
-      <p class="eyebrow">Reader</p>
-      <h2 id="psalm-settings-title">Morning and Evening Psalms</h2>
-      <fieldset class="settings-options psalm-options">
-        <legend>Psalm display</legend>
-        <label><input type="radio" name="psalm-display" value="together" checked> <span>Together</span></label>
-        <label><input type="radio" name="psalm-display" value="by-time-of-day"> <span>By time of day</span></label>
-      </fieldset>
-      <p class="settings-note">Midnight to noon shows Morning Psalms; noon to midnight shows Evening Psalms.</p>
     </section>
 
     <section class="settings-card feast-links-settings" aria-labelledby="feast-links-title">
@@ -180,7 +169,7 @@
     </button>
     <div class="device-screen" id="device-screen">
       <div class="screen-copy" id="screen" aria-live="polite">Loading readings…</div>
-      <div class="pixel-art-stack" id="pixel-art-stack" aria-label="Liturgical calendar pixel artwork"></div>
+      <div class="pixel-art-stack" id="pixel-art-stack" aria-label="Liturgical calendar artwork"></div>
     </div>
 
     <button class="install-tooltip" id="install-tooltip" type="button" aria-label="Dismiss Add to Home Screen instructions">
@@ -212,6 +201,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="./app.js?v=0.3.51"></script>
+  <script type="module" src="./app.js?v=0.3.53"></script>
 </body>
 </html>

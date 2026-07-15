@@ -1,13 +1,12 @@
-import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=0.3.51";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.51";
-import { renderPixelArtStack } from "./pixel-art.js?v=0.3.51";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.51";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.51";
-import { appVersionLabel } from "./version.js?v=0.3.51";
+import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=0.3.53";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.53";
+import { renderPixelArtStack } from "./pixel-art.js?v=0.3.53";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.53";
+import { appVersionLabel } from "./version.js?v=0.3.53";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.51", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.53", CONTENT_ROOT);
 const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -19,7 +18,6 @@ const settingsPage = document.querySelector("#settings-page");
 const reader = document.querySelector(".reader");
 const deviceScreen = document.querySelector("#device-screen");
 const themeControls = document.querySelectorAll('input[name="theme"]');
-const psalmControls = document.querySelectorAll('input[name="psalm-display"]');
 const feastLinksControl = document.querySelector("#feast-links-enabled");
 const readerMenu = document.querySelector("#reader-menu");
 const openReaderButton = document.querySelector("#open-reader-button");
@@ -54,7 +52,6 @@ let suppressReadingTap = false;
 let prayerLayout = null;
 let observedDeviceSize = "";
 let activeLocalDate = null;
-let activePsalmOffice = null;
 let lastVerticalKey = null;
 let lastVerticalKeyAt = -Infinity;
 const themeContext = {
@@ -66,16 +63,10 @@ const themeContext = {
   styles: window.getComputedStyle.bind(window),
 };
 const feastLinksContext = { control: feastLinksControl, storage: window.localStorage };
-const psalmContext = { controls: psalmControls, storage: window.localStorage };
-const psalmBoundary = createPsalmBoundaryTimer({
-  onBoundary: now => refreshAt(now, false),
-});
 
 initializeTheme(themeContext);
 initializeFeastLinks(feastLinksContext);
 appVersion.textContent = appVersionLabel();
-let psalmDisplayMode = initializePsalmPreference(psalmContext);
-psalmBoundary.setMode(psalmDisplayMode);
 
 function setSettingsOpen(open) {
   document.documentElement.classList.toggle("settings-open", open);
@@ -107,8 +98,8 @@ function matchingPrayerLayout(view) {
   return prayerLayout;
 }
 
-function resetForNewLocalDate(date = new Date()) {
-  const currentDate = localIsoDate(date);
+function resetForNewLocalDate() {
+  const currentDate = localIsoDate();
   if (activeLocalDate === null) {
     activeLocalDate = currentDate;
     return false;
@@ -132,9 +123,7 @@ function currentView() {
 function paint(view) {
   deviceScreen.classList.toggle("has-feast", Boolean(view.feast));
   const feastLinksEnabled = feastLinksControl.checked;
-  const psalmOffice = psalmOfficeAt();
-  screen.innerHTML = screenHtml(view, { feastLinksEnabled, psalmDisplayMode, psalmOffice });
-  activePsalmOffice = psalmDisplayMode === "by-time-of-day" ? psalmOffice : null;
+  screen.innerHTML = screenHtml(view, { feastLinksEnabled });
   const layout = matchingPrayerLayout(view);
   if ((view.focus === "PRAYER" || view.focus === "GLORIA") && layout?.fontSize) {
     screen.querySelector(".prayer-text")?.style.setProperty("font-size", `${layout.fontSize}px`);
@@ -367,16 +356,6 @@ bindFeastLinksPreference({
   render,
 });
 
-bindPsalmPreference({
-  ...psalmContext,
-  onChange: mode => {
-    psalmDisplayMode = mode;
-    activePsalmOffice = null;
-    psalmBoundary.setMode(mode);
-    if (bundle && collects) render();
-  },
-});
-
 themeContext.media.addEventListener?.("change", () => {
   if (!syncSystemTheme(themeContext)) return;
   if (bundle && collects) renderPixelArtStack(artStack, currentView());
@@ -442,24 +421,14 @@ installButton.addEventListener("click", async () => {
 });
 
 window.addEventListener("appinstalled", () => { installButton.hidden = true; });
-function refreshAt(date, rescheduleTimer = true) {
-  refreshPsalmDisplay({
-    date,
-    displayMode: psalmDisplayMode,
-    activeOffice: activePsalmOffice,
-    resetForNewLocalDate,
-    render,
-  });
-  if (rescheduleTimer) psalmBoundary.reschedule(date);
-}
-function refreshForCurrentTime() {
-  refreshAt(new Date());
+function refreshForCurrentDay() {
+  if (resetForNewLocalDate()) render();
 }
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) refreshForCurrentTime();
+  if (!document.hidden) refreshForCurrentDay();
 });
-window.addEventListener("focus", refreshForCurrentTime);
-window.addEventListener("pageshow", refreshForCurrentTime);
+window.addEventListener("focus", refreshForCurrentDay);
+window.addEventListener("pageshow", refreshForCurrentDay);
 
 if ("serviceWorker" in navigator) {
   let reloadingForUpdate = false;

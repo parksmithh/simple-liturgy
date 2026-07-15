@@ -304,6 +304,7 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .faq-list a { color: var(--app-text); font-weight: var(--font-weight-bold); text-underline-offset: 3px; }
 .project-credit { display: grid; gap: 3px; padding: 4px 0 8px; text-align: center; }
 .project-credit a { color: var(--app-text); font-weight: var(--font-weight-bold); text-underline-offset: 3px; }
+.app-version { color: var(--eyebrow); font-size: var(--type-eyebrow); letter-spacing: .08em; text-transform: uppercase; }
 
 dialog { width: min(88vw, 390px); border: 1px solid var(--line); border-radius: 8px; background: var(--shell); color: var(--app-text); }
 dialog::backdrop { background: var(--dialog-backdrop); }

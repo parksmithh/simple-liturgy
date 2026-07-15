@@ -12,7 +12,7 @@
   "theme_color": "#171716",
   "icons": [
     {
-      "src": "./icon.svg?v=82",
+      "src": "./icon.svg?v=83",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

@@ -1,12 +1,12 @@
-import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=0.3.48";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.48";
-import { renderPixelArtStack } from "./pixel-art.js?v=0.3.48";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.48";
-import { appVersionLabel } from "./version.js?v=0.3.48";
+import { controlModel, createState, focusSwipeEvent, handle, keyboardEvent, model, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, swipeEvent } from "./bookmark-engine.js?v=0.3.49";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.49";
+import { renderPixelArtStack } from "./pixel-art.js?v=0.3.49";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.49";
+import { appVersionLabel } from "./version.js?v=0.3.49";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.48", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.49", CONTENT_ROOT);
 const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";

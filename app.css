@@ -391,6 +391,7 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
 }
 
 @media (display-mode: standalone), (display-mode: fullscreen) {
+  html, body { min-height: 100vh; }
   .app-shell { padding-top: max(10px, env(safe-area-inset-top)); }
   .install-guide { display: none; }
   .install-tooltip { display: none !important; }
@@ -559,6 +560,13 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
     display: block;
     padding: 0;
     background: var(--paper);
+  }
+  .installed-pwa .reader {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    min-height: 100vh;
+    height: 100vh;
   }
   .device-screen {
     position: absolute;

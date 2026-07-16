@@ -1,0 +1,105 @@
+const STORAGE_KEY = "simple-liturgy.noonday-enabled";
+
+export function initializeNoondayPreference({ control, storage }) {
+  const enabled = storage.getItem(STORAGE_KEY) !== "false";
+  control.checked = enabled;
+  return enabled;
+}
+
+export function setNoondayEnabled({ control, storage }, enabled) {
+  const normalized = Boolean(enabled);
+  control.checked = normalized;
+  storage.setItem(STORAGE_KEY, String(normalized));
+  return normalized;
+}
+
+export function bindNoondayPreference({ control, storage, onChange }) {
+  control.addEventListener("change", () => {
+    onChange(setNoondayEnabled({ control, storage }, control.checked));
+  });
+}
+
+export function noondayServiceAt(date = new Date(), enabled = true) {
+  if (!enabled) return "daily";
+  const hour = date.getHours();
+  return hour >= 10 && hour < 14 ? "noonday" : "daily";
+}
+
+export function noondayPreviewRelation(date = new Date()) {
+  const noon = new Date(date);
+  noon.setHours(12, 0, 0, 0);
+  return date < noon ? "future" : "past";
+}
+
+export function shouldShowNoondayPreview(date = new Date(), enabled = true) {
+  return noondayServiceAt(date, enabled) !== "noonday";
+}
+
+export function millisecondsUntilNoondayBoundary(date = new Date()) {
+  const boundary = new Date(date);
+  const hour = date.getHours();
+  if (hour < 10) {
+    boundary.setHours(10, 0, 0, 0);
+  } else if (hour < 12) {
+    boundary.setHours(12, 0, 0, 0);
+  } else if (hour < 14) {
+    boundary.setHours(14, 0, 0, 0);
+  } else {
+    boundary.setDate(boundary.getDate() + 1);
+    boundary.setHours(10, 0, 0, 0);
+  }
+  return Math.max(1, boundary.getTime() - date.getTime());
+}
+
+export function refreshNoondayService({
+  date,
+  enabled,
+  activeService,
+  resetForNewLocalDate,
+  render,
+}) {
+  const dateChanged = resetForNewLocalDate(date);
+  const service = noondayServiceAt(date, enabled);
+  const serviceChanged = activeService !== service;
+  if (dateChanged || serviceChanged) render(service);
+  return { dateChanged, serviceChanged, service };
+}
+
+export function createNoondayBoundaryTimer({
+  now = () => new Date(),
+  setTimer = (callback, delay) => globalThis.setTimeout(callback, delay),
+  clearTimer = timer => globalThis.clearTimeout(timer),
+  onBoundary,
+}) {
+  let enabled = false;
+  let timer = null;
+
+  function clear() {
+    if (timer !== null) clearTimer(timer);
+    timer = null;
+  }
+
+  function schedule(date = now()) {
+    clear();
+    if (!enabled) return;
+    timer = setTimer(() => {
+      timer = null;
+      const boundaryTime = now();
+      try {
+        onBoundary(boundaryTime);
+      } finally {
+        schedule(boundaryTime);
+      }
+    }, millisecondsUntilNoondayBoundary(date));
+  }
+
+  return {
+    reschedule: schedule,
+    setEnabled(nextEnabled, date = now()) {
+      enabled = Boolean(nextEnabled);
+      schedule(date);
+      return enabled;
+    },
+    stop: clear,
+  };
+}

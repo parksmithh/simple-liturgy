@@ -27,6 +27,7 @@
   --type-reader-focus-label: var(--type-reader-label);
   --type-reader-focus-citation: clamp(30px, 8vw, 56px);
   --type-reader-prayer: clamp(20px, 4.8vw, 34px);
+  --type-reader-noonday: clamp(17px, 4vw, 30px);
   --type-reader-symbol: .82em;
   --type-reader-warning: .62em;
   --type-reader-hint: .62em;

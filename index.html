@@ -25,10 +25,10 @@
   <meta name="twitter:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=3">
   <meta name="twitter:image:alt" content="Simplified Simple Liturgy reader showing Psalms, Old Testament, New Testament, and Gospel citations">
   <title>Simple Liturgy | BCP 1979 Daily Office Reader</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=0.3.59">
-  <link rel="icon" href="./icon.svg?v=0.3.59" type="image/svg+xml">
-  <link rel="stylesheet" href="./design-tokens.css?v=0.3.59">
-  <link rel="stylesheet" href="./app.css?v=0.3.59">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.3.69">
+  <link rel="icon" href="./icon.svg?v=0.3.69" type="image/svg+xml">
+  <link rel="stylesheet" href="./design-tokens.css?v=0.3.69">
+  <link rel="stylesheet" href="./app.css?v=0.3.69">
 </head>
 <body>
   <svg class="reader-art-filters" width="0" height="0" aria-hidden="true" focusable="false">
@@ -91,6 +91,20 @@
         <label><input type="radio" name="theme" value="system" checked> <span>System</span></label>
       </fieldset>
       <p class="settings-note">System follows your device appearance automatically.</p>
+    </section>
+
+    <section class="settings-card noonday-settings" aria-labelledby="noonday-settings-title">
+      <p class="eyebrow">Reader</p>
+      <h2 id="noonday-settings-title">Noonday Prayer</h2>
+      <label class="settings-switch" for="noonday-enabled">
+        <span class="settings-switch-copy">
+          <strong>Use the Noonday office</strong>
+          <span>Automatically show Noonday Prayer from 10:00 a.m. to 2:00 p.m. in your device’s local time.</span>
+        </span>
+        <input id="noonday-enabled" type="checkbox" role="switch" checked>
+      </label>
+      <p class="settings-note">Follows the <a href="https://www.bcponline.org/DailyOffice/noonday.html" target="_blank" rel="noopener noreferrer">BCP 1979 Order of Service for Noonday</a>.</p>
+      <button class="settings-action" id="preview-noonday" type="button">Preview</button>
     </section>
 
     <section class="settings-card psalm-settings" aria-labelledby="psalm-settings-title">
@@ -251,6 +265,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="./app.js?v=0.3.59"></script>
+  <script type="module" src="./app.js?v=0.3.69"></script>
 </body>
 </html>

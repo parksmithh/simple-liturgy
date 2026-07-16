@@ -1,4 +1,4 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.59";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.69";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -155,6 +155,37 @@ export function paginatePrayerByFit(text, fits) {
   return pages;
 }
 
+export function paginateBlocksByFit(text, fits) {
+  const blocks = String(text || "").trim().split(/\n{2,}/).filter(Boolean);
+  if (blocks.length === 0) return [];
+  const pages = [];
+  let page = [];
+  for (const block of blocks) {
+    const candidate = [...page, block].join("\n\n");
+    if (page.length > 0 && !fits(candidate)) {
+      pages.push(page.join("\n\n"));
+      page = [block];
+    } else {
+      page.push(block);
+    }
+  }
+  if (page.length > 0) pages.push(page.join("\n\n"));
+  if (pages.length > 1) {
+    const previousIndex = pages.length - 2;
+    const finalIndex = pages.length - 1;
+    const previousBlocks = pages[previousIndex].split(/\n{2,}/);
+    const finalBlocks = pages[finalIndex].split(/\n{2,}/);
+    if (previousBlocks.length >= 3 && finalBlocks.length === 1) {
+      const balancedFinal = [previousBlocks.at(-1), ...finalBlocks].join("\n\n");
+      if (fits(balancedFinal)) {
+        pages[previousIndex] = previousBlocks.slice(0, -1).join("\n\n");
+        pages[finalIndex] = balancedFinal;
+      }
+    }
+  }
+  return pages;
+}
+
 export function createState() {
   return { offset: 0, focus: null, focusPage: 0 };
 }
@@ -163,7 +194,14 @@ export function stateAfterDateChange(state, previousDate, currentDate) {
   return previousDate === currentDate ? state : createState();
 }
 
-const FOCUS_ORDER = ["PRAYER", "PS", "OT", "NT", "GS", "GLORIA"];
+const DAILY_FOCUS_ORDER = ["PRAYER", "PS", "OT", "NT", "GS", "GLORIA"];
+const NOONDAY_FOCUS_ORDER = [
+  "NOONDAY_OPENING",
+  "NOONDAY_PSALM",
+  "NOONDAY_KYRIE",
+  "NOONDAY_LORDS_PRAYER",
+  "NOONDAY_CLOSING_PRAYER",
+];
 const GLORIA_TEXT = "Glory to the Father, to the Son, and to the Holy Spirit. Amen.";
 const READING_LABELS = { OT: "Old Testament", PS: "Psalms", NT: "New Testament", GS: "Gospel", PRAYER: "Prayer", GLORIA: "Gloria" };
 const PSALM_OFFICE_LABELS = { morning: "Morning", evening: "Evening" };
@@ -198,20 +236,20 @@ export function lessonValues(lessons = []) {
   return values;
 }
 
-function focusTargets(prayerPageCount) {
+function focusTargets(focusOrder = DAILY_FOCUS_ORDER, pageCounts = {}) {
   const targets = [];
-  for (const focus of FOCUS_ORDER) {
-    if (focus === "PRAYER") {
-      for (let page = 0; page < prayerPageCount; page += 1) targets.push({ focus, focusPage: page });
-    } else {
-      targets.push({ focus, focusPage: 0 });
-    }
+  for (const focus of focusOrder) {
+    const pageCount = Math.max(1, pageCounts[focus] || 0);
+    for (let page = 0; page < pageCount; page += 1) targets.push({ focus, focusPage: page });
   }
   return targets;
 }
 
-function moveFocus(next, direction, prayerPageCount, exitAtBoundary = true) {
-  const targets = focusTargets(Math.max(1, prayerPageCount || 0));
+function moveFocus(next, direction, context = {}, exitAtBoundary = true) {
+  const focusOrder = Array.isArray(context.focusOrder) && context.focusOrder.length > 0
+    ? context.focusOrder
+    : DAILY_FOCUS_ORDER;
+  const targets = focusTargets(focusOrder, context.focusPageCounts);
   const index = targets.findIndex(target => target.focus === next.focus && target.focusPage === (next.focusPage || 0));
   if (index === -1) return;
   const targetIndex = index + direction;
@@ -238,20 +276,21 @@ export function handle(state, event, context = {}) {
     next.focus = null;
     next.focusPage = 0;
   } else if (event === "NEXT_READING" || event === "PREV_READING") {
-    moveFocus(next, event === "NEXT_READING" ? 1 : -1, context.prayerPageCount);
+    moveFocus(next, event === "NEXT_READING" ? 1 : -1, context);
   }
   else if (event === "FOCUS") {
     if (!next.focus) {
-      next.focus = FOCUS_ORDER[0];
+      next.focus = context.focusOrder?.[0] || DAILY_FOCUS_ORDER[0];
       next.focusPage = 0;
     }
   }
   else if (event === "CENTER") {
     if (!next.focus) {
-      next.focus = FOCUS_ORDER[0];
+      next.focus = context.focusOrder?.[0] || DAILY_FOCUS_ORDER[0];
       next.focusPage = 0;
     } else {
-      moveFocus(next, 1, context.prayerPageCount, next.focus === "GLORIA");
+      const focusOrder = context.focusOrder || DAILY_FOCUS_ORDER;
+      moveFocus(next, 1, context, next.focus === focusOrder[focusOrder.length - 1]);
     }
   }
   else if (event === "OVERVIEW") {
@@ -259,10 +298,10 @@ export function handle(state, event, context = {}) {
     next.focusPage = 0;
   }
   else if (event === "OPEN_PRAYER") {
-    next.focus = "PRAYER";
+    next.focus = context.focusOrder?.[0] || DAILY_FOCUS_ORDER[0];
     next.focusPage = 0;
   }
-  else if (FOCUS_ORDER.includes(event)) {
+  else if ((context.focusOrder || DAILY_FOCUS_ORDER).includes(event)) {
     next.focus = next.focus === event ? null : event;
     next.focusPage = 0;
   }
@@ -274,10 +313,18 @@ export function controlModel(viewOrFocus) {
   const focus = typeof viewOrFocus === "string" ? viewOrFocus : viewOrFocus?.focus;
   if (focus) {
     const prayer = typeof viewOrFocus === "object" ? viewOrFocus.prayer : null;
-    const firstPrayerPage = focus === "PRAYER" && (!prayer || prayer.page === 0);
-    const previousLabel = firstPrayerPage ? "exit focus" : focus === "PRAYER" ? "previous page" : "previous reading";
-    const nextLabel = focus === "GLORIA" ? "exit focus" : focus === "PRAYER" && prayer && prayer.page < prayer.pages.length - 1 ? "next page" : "next reading";
-    const centerLabel = focus === "GLORIA" ? "Overview" : nextLabel;
+    const noondaySection = typeof viewOrFocus === "object" ? viewOrFocus.noonday?.sections?.[focus] : null;
+    const paginatedSection = focus === "PRAYER" ? prayer : noondaySection;
+    const focusOrder = typeof viewOrFocus === "object" && Array.isArray(viewOrFocus.focusOrder)
+      ? viewOrFocus.focusOrder
+      : DAILY_FOCUS_ORDER;
+    const currentPage = paginatedSection?.page || 0;
+    const pageCount = paginatedSection?.pages?.length || 1;
+    const firstFocus = focus === focusOrder[0] && currentPage === 0;
+    const lastFocus = focus === focusOrder[focusOrder.length - 1] && currentPage === pageCount - 1;
+    const previousLabel = firstFocus ? "exit focus" : currentPage > 0 ? "previous page" : "previous reading";
+    const nextLabel = lastFocus ? "exit focus" : currentPage < pageCount - 1 ? "next page" : "next reading";
+    const centerLabel = lastFocus ? "Overview" : nextLabel;
     return [
       { event: "PREV_READING", key: "←", label: previousLabel },
       { event: "CENTER", key: "↵", label: centerLabel },
@@ -426,11 +473,148 @@ function saintNameForFeast(feast) {
   return saintIndex === -1 ? null : feast.slice(saintIndex);
 }
 
+const NOONDAY_PSALMS = [
+  {
+    citation: "Psalm 119:105–112",
+    subtitle: "Lucerna pedibus meis",
+    text: [
+      "105  Your word is a lantern to my feet *\nand a light upon my path.",
+      "106  I have sworn and am determined *\nto keep your righteous judgments.",
+      "107  I am deeply troubled; *\npreserve my life, O LORD, according to your word.",
+      "108  Accept, O LORD, the willing tribute of my lips, *\nand teach me your judgments.",
+      "109  My life is always in my hand, *\nyet I do not forget your law.",
+      "110  The wicked have set a trap for me, *\nbut I have not strayed from your commandments.",
+      "111  Your decrees are my inheritance for ever; *\ntruly, they are the joy of my heart.",
+      "112  I have applied my heart to fulfill your statutes *\nfor ever and to the end.",
+    ].join("\n\n"),
+  },
+  {
+    citation: "Psalm 121",
+    subtitle: "Levavi oculos",
+    text: [
+      "1  I lift up my eyes to the hills; *\nfrom where is my help to come?",
+      "2  My help comes from the LORD, *\nthe maker of heaven and earth.",
+      "3  He will not let your foot be moved *\nand he who watches over you will not fall asleep.",
+      "4  Behold, he who keeps watch over Israel *\nshall neither slumber nor sleep;",
+      "5  The LORD himself watches over you; *\nthe LORD is your shade at your right hand,",
+      "6  So that the sun shall not strike you by day, *\nnor the moon by night.",
+      "7  The LORD shall preserve you from all evil; *\nit is he who shall keep you safe.",
+      "8  The LORD shall watch over your going out and your coming in, *\nfrom this time forth for evermore.",
+    ].join("\n\n"),
+  },
+  {
+    citation: "Psalm 126",
+    subtitle: "In convertendo",
+    text: [
+      "1  When the LORD restored the fortunes of Zion, *\nthen were we like those who dream.",
+      "2  Then was our mouth filled with laughter, *\nand our tongue with shouts of joy.",
+      "3  Then they said among the nations, *\n\"The LORD has done great things for them.\"",
+      "4  The LORD has done great things for us, *\nand we are glad indeed.",
+      "5  Restore our fortunes, O LORD, *\nlike the watercourses of the Negev.",
+      "6  Those who sowed with tears *\nwill reap with songs of joy.",
+      "7  Those who go out weeping, carrying the seed, *\nwill come again with joy, shouldering their sheaves.",
+    ].join("\n\n"),
+  },
+].map(psalm => ({ ...psalm, pages: [psalm.text] }));
+
+const NOONDAY_CLOSING_PRAYERS = [
+  "Heavenly Father, send your Holy Spirit into our hearts, to direct and rule us according to your will, to comfort us in all our afflictions, to defend us from all error, and to lead us into all truth; through Jesus Christ our Lord. Amen.",
+  "Blessed Savior, at this hour you hung upon the cross, stretching out your loving arms: Grant that all the peoples of the earth may look to you and be saved; for your tender mercies’ sake. Amen.",
+  "Almighty Savior, who at noonday called your servant Saint Paul to be an apostle to the Gentiles: We pray you to illumine the world with the radiance of your glory, that all nations may come and worship you; for you live and reign for ever and ever. Amen.",
+  "Lord Jesus Christ, you said to your apostles, \"Peace I give to you; my peace I leave with you:\" Regard not our sins, but the faith of your Church, and give to us the peace and unity of that heavenly city, where with the Father and the Holy Spirit you live and reign, now and for ever. Amen.",
+];
+function dailyRotationIndex(date, count) {
+  const epochDay = Math.floor(Date.parse(`${date}T12:00:00Z`) / (24 * 60 * 60 * 1000));
+  return ((epochDay % count) + count) % count;
+}
+
+function noondayPsalm(date) {
+  return NOONDAY_PSALMS[dailyRotationIndex(date, NOONDAY_PSALMS.length)];
+}
+
+function noondayClosingPrayer(date) {
+  return NOONDAY_CLOSING_PRAYERS[dailyRotationIndex(date, NOONDAY_CLOSING_PRAYERS.length)];
+}
+
+function noondayOffice(day) {
+  const inLent = /ash-wednesday|lent|holy-week/i.test(`${day.label} ${day.key}`);
+  const opening = [
+    "O God, make speed to save us.",
+    "O Lord, make haste to help us.",
+    "Glory to the Father, and to the Son, and to the Holy Spirit: as it was in the beginning, is now, and will be for ever. Amen.",
+  ];
+  if (!inLent) opening.push("Alleluia.");
+  const openingText = opening.join("\n\n");
+  const psalm = noondayPsalm(day.date);
+  const kyrie = "[Moment of prayer.]\n\nLord, have mercy. Christ, have mercy. Lord, have mercy.";
+  const lordsPrayer = "Our Father in heaven, hallowed be your Name, your kingdom come, your will be done, on earth as in heaven. Give us today our daily bread. Forgive us our sins as we forgive those who sin against us. Save us from the time of trial, and deliver us from evil.";
+  const closingPrayerText = noondayClosingPrayer(day.date);
+
+  return {
+    sections: {
+      NOONDAY_OPENING: {
+        label: "Noonday Prayer",
+        text: openingText,
+        pages: [openingText],
+        page: 0,
+      },
+      NOONDAY_PSALM: {
+        label: "Noonday Psalm",
+        ...psalm,
+        summary: psalm.citation.replace("Psalm ", ""),
+        page: 0,
+      },
+      NOONDAY_KYRIE: {
+        label: "Kyrie",
+        text: kyrie,
+        pages: [kyrie],
+        preservePages: true,
+        page: 0,
+      },
+      NOONDAY_LORDS_PRAYER: {
+        label: "The Lord’s Prayer",
+        text: lordsPrayer,
+        pages: [lordsPrayer],
+        preservePages: true,
+        page: 0,
+      },
+      NOONDAY_CLOSING_PRAYER: {
+        label: "Closing Prayer",
+        text: closingPrayerText,
+        pages: [closingPrayerText],
+        page: 0,
+      },
+    },
+  };
+}
+
 export function model(bundle, state, today, collects = null, options = {}) {
   const date = dateWithOffset(today, state.offset);
   const todayRelation = state.offset < 0 ? "past" : state.offset > 0 ? "future" : "today";
   const day = bundle.dates.get(date);
   if (!day) return { date, todayRelation, error: "DATE OUTSIDE INSTALLED PACK" };
+  if (options.service === "noonday") {
+    const noonday = noondayOffice(day);
+    const focusedSection = noonday.sections[state.focus];
+    if (focusedSection?.pages) {
+      const measuredPages = options.noondayPages?.[state.focus];
+      if (Array.isArray(measuredPages) && measuredPages.length > 0) focusedSection.pages = measuredPages;
+      focusedSection.page = Math.min(state.focusPage || 0, focusedSection.pages.length - 1);
+    }
+    return {
+      date,
+      todayRelation,
+      label: day.label,
+      year: `Year ${day.lectionary_year[0].toUpperCase()}${day.lectionary_year.slice(1)}`,
+      feast: day.feast,
+      occasionType: day.occasion_type || null,
+      focus: state.focus,
+      focusOrder: NOONDAY_FOCUS_ORDER,
+      service: "noonday",
+      noondayPreviewRelation: options.noondayPreviewRelation || null,
+      noonday,
+    };
+  }
   const reading = bundle.readings.get(day.key);
   const prayerEntry = resolvePrayer(collects, day);
   const prayerPages = prayerEntry
@@ -446,6 +630,8 @@ export function model(bundle, state, today, collects = null, options = {}) {
     feast: day.feast,
     occasionType: day.occasion_type || null,
     focus: state.focus,
+    focusOrder: DAILY_FOCUS_ORDER,
+    service: "daily",
     prayer,
   };
   if (!reading) return { ...dayView, error: "READINGS NOT IN INSTALLED PACK" };
@@ -459,8 +645,28 @@ export function model(bundle, state, today, collects = null, options = {}) {
   };
 }
 
+export function focusPageCounts(view) {
+  const pageCounts = { PRAYER: view.prayer?.pages.length || 1 };
+  for (const [focus, section] of Object.entries(view.noonday?.sections || {})) {
+    if (section.pages?.length) pageCounts[focus] = section.pages.length;
+  }
+  return pageCounts;
+}
+
 function escapeHtml(value) {
   return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+}
+
+export function noondayPsalmHtml(text) {
+  const verses = String(text || "").trim().split(/\n{2,}/).filter(Boolean);
+  return `<span class="noonday-psalm-verses">${verses.map(verse => {
+    const [numberedCall = "", ...responseLines] = verse.split("\n");
+    const match = numberedCall.match(/^(\d+)\s+(.*)$/);
+    const number = match?.[1] || "";
+    const call = (match?.[2] || numberedCall).replace(/\s*\*\s*$/, "");
+    const response = responseLines.join(" ");
+    return `<span class="noonday-psalm-verse"><span class="noonday-psalm-number">${escapeHtml(number)}</span><span class="noonday-psalm-lines"><span class="noonday-psalm-call">${escapeHtml(call)}</span><strong class="noonday-psalm-response">${escapeHtml(response)}</strong></span></span>`;
+  }).join("")}</span>`;
 }
 
 function citationHtml(view, key, className) {
@@ -502,6 +708,29 @@ function compactYear(year) {
   return year;
 }
 
+function noondayFocusHtml(section, key) {
+  const pageIndex = section.pages?.length > 1 ? ` (${section.page + 1}/${section.pages.length})` : "";
+  const citation = section.citation ? `<span class="focus-cite">${escapeHtml(section.citation)}</span>` : "";
+  const subtitle = section.subtitle ? `<span class="noonday-subtitle">${escapeHtml(section.subtitle)}</span>` : "";
+  const pageText = section.pages ? section.pages[section.page] : section.text;
+  const pageContent = key === "NOONDAY_PSALM" ? noondayPsalmHtml(pageText) : escapeHtml(pageText);
+  let textClass = "prayer-text noonday-text";
+  if (key === "NOONDAY_OPENING") textClass += " noonday-opening-text";
+  if (key === "NOONDAY_KYRIE" || key === "NOONDAY_LORDS_PRAYER") textClass += " noonday-prayer-text";
+  const content = `<span class="${textClass}">${pageContent}</span>`;
+  const response = section.response
+    ? `<span class="noonday-response">${escapeHtml(section.response)}</span>`
+    : "";
+  return `<button class="reading focus prayer-focus noonday-focus" data-reading="${key}" type="button"><span class="label">${escapeHtml(section.label)}${pageIndex}</span>${citation}${subtitle}${content}${response}</button>`;
+}
+
+function noondayOverviewHtml(sections) {
+  return `<div class="grid noonday-grid">${Object.entries(sections).map(([key, section]) => {
+    const summary = section.summary ? `<span class="cite">${escapeHtml(section.summary)}</span>` : "";
+    return `<button class="reading" data-reading="${key}" type="button"><span class="label">${escapeHtml(section.label)}</span>${summary}</button>`;
+  }).join("")}</div>`;
+}
+
 export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = "together", psalmOffice = "morning" } = {}) {
   const date = new Date(`${view.date}T12:00:00Z`);
   const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(date);
@@ -513,19 +742,39 @@ export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = 
   const occasionType = view.occasionType || null;
   const occasionTypeAttribute = occasionType ? ` data-occasion-type="${occasionType}"` : "";
   const feastBanner = view.feast ? `<span class="feast-banner"${occasionTypeAttribute}>${escapeHtml(view.feast)}</span>` : "";
-  const meta = [view.label, compactYear(view.year)].filter(Boolean).join(" · ");
+  const previewingNoonday = Boolean(view.noondayPreviewRelation);
+  const previewRelation = view.todayRelation === "today" ? view.noondayPreviewRelation : null;
+  const meta = [view.service === "noonday" && !previewingNoonday ? "Noonday Prayer" : null, view.label, compactYear(view.year)].filter(Boolean).join(" · ");
   const headerClass = view.focus ? "screen-header-copy focus-header" : "screen-header-copy";
   const beforeToday = view.todayRelation === "past";
   const afterToday = view.todayRelation === "future";
-  const relationLabel = beforeToday ? " Shown date is before today." : afterToday ? " Shown date is after today." : "";
-  const beforeChevron = afterToday ? '<span class="today-chevron today-chevron-before" aria-hidden="true">&lt;</span>' : "";
-  const afterChevron = beforeToday ? '<span class="today-chevron today-chevron-after" aria-hidden="true">&gt;</span>' : "";
+  let relationLabel = "";
+  if (previewRelation === "past") relationLabel = " Today's noon is in the past.";
+  else if (previewRelation === "future") relationLabel = " Today's noon is in the future.";
+  else if (beforeToday) relationLabel = " Shown date is before today.";
+  else if (afterToday) relationLabel = " Shown date is after today.";
+  const beforeChevron = previewRelation === "past" || (!previewRelation && afterToday)
+    ? '<span class="today-chevron today-chevron-before" aria-hidden="true">&lt;</span>'
+    : "";
+  const afterChevron = previewRelation === "future" || (!previewRelation && beforeToday)
+    ? '<span class="today-chevron today-chevron-after" aria-hidden="true">&gt;</span>'
+    : "";
   const weekdayLine = `<span class="weekday-line">${beforeChevron}<span class="weekday">${escapeHtml(weekday)}</span>${afterChevron}</span>`;
   const primaryHeader = `<span class="header-primary">${weekdayLine}${feastBanner}</span>`;
-  const secondaryHeader = `<span class="header-secondary"><span class="date-value">${escapeHtml(mediumDate)}</span>${meta ? `<span class="meta"><span class="meta-separator" aria-hidden="true">· </span>${escapeHtml(meta)}</span>` : ""}</span>`;
+  const noondayPreviewLabel = previewingNoonday ? '<span class="noonday-preview-label">Noonday</span>' : "";
+  const secondaryHeader = `<span class="header-secondary"><span class="date-value">${escapeHtml(mediumDate)}${noondayPreviewLabel}</span>${meta ? `<span class="meta"><span class="meta-separator" aria-hidden="true">· </span>${escapeHtml(meta)}</span>` : ""}</span>`;
   const dateLine = `<button class="date-line" data-event="TODAY" type="button" aria-label="Return to today.${relationLabel}">${primaryHeader}${secondaryHeader}</button>`;
   const headerCopy = `<div class="${headerClass}"><div class="header-summary">${dateLine}</div></div>`;
   const heading = headerCopy;
+  if (view.service === "noonday" && view.noonday) {
+    const sections = view.noonday.sections;
+    const body = view.focus && sections[view.focus]
+      ? noondayFocusHtml(sections[view.focus], view.focus)
+      : noondayOverviewHtml(sections);
+    const focusHint = view.focus ? '<span class="focus-next-hint" aria-hidden="true"></span>' : "";
+    const overviewHint = view.focus ? "" : '<span class="overview-focus-hint">Tap to focus</span>';
+    return `${heading}${body}${focusHint}${overviewHint}`;
+  }
   if (view.error && !(view.focus === "PRAYER" && view.prayer)) return `${heading}<h2 class="warning">${escapeHtml(view.error)}</h2>`;
   const prayerIndex = view.prayer?.pages.length > 1 ? ` (${view.prayer.page + 1}/${view.prayer.pages.length})` : "";
   const prayerFocus = view.focus === "PRAYER" && view.prayer

@@ -1,4 +1,4 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.74";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.77";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -710,10 +710,13 @@ function compactYear(year) {
 
 function noondayFocusHtml(section, key) {
   const pageIndex = section.pages?.length > 1 ? ` (${section.page + 1}/${section.pages.length})` : "";
-  const citation = section.citation && !(key === "NOONDAY_PSALM" && section.page > 0)
-    ? `<span class="focus-cite">${escapeHtml(section.citation)}</span>`
+  const isPsalmContinuation = key === "NOONDAY_PSALM" && section.page > 0;
+  const citation = section.citation && !isPsalmContinuation
+    ? `<span class="focus-cite${key === "NOONDAY_PSALM" ? " noonday-psalm-cite" : ""}">${escapeHtml(section.citation)}</span>`
     : "";
-  const subtitle = section.subtitle ? `<span class="noonday-subtitle">${escapeHtml(section.subtitle)}</span>` : "";
+  const subtitle = section.subtitle && !isPsalmContinuation
+    ? `<span class="noonday-subtitle">${escapeHtml(section.subtitle)}</span>`
+    : "";
   const pageText = section.pages ? section.pages[section.page] : section.text;
   const pageContent = key === "NOONDAY_PSALM" ? noondayPsalmHtml(pageText) : escapeHtml(pageText);
   let textClass = "prayer-text noonday-text";
@@ -744,9 +747,9 @@ export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = 
   const occasionType = view.occasionType || null;
   const occasionTypeAttribute = occasionType ? ` data-occasion-type="${occasionType}"` : "";
   const feastBanner = view.feast ? `<span class="feast-banner"${occasionTypeAttribute}>${escapeHtml(view.feast)}</span>` : "";
-  const previewingNoonday = Boolean(view.noondayPreviewRelation);
   const previewRelation = view.todayRelation === "today" ? view.noondayPreviewRelation : null;
-  const meta = [view.service === "noonday" && !previewingNoonday ? "Noonday Prayer" : null, view.label, compactYear(view.year)].filter(Boolean).join(" · ");
+  const serviceLabel = view.service === "noonday" ? "Noonday" : psalmPresentation.office === "evening" ? "Evening" : "Morning";
+  const meta = [view.label, compactYear(view.year)].filter(Boolean).join(" · ");
   const headerClass = view.focus ? "screen-header-copy focus-header" : "screen-header-copy";
   const beforeToday = view.todayRelation === "past";
   const afterToday = view.todayRelation === "future";
@@ -763,8 +766,7 @@ export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = 
     : "";
   const weekdayLine = `<span class="weekday-line">${beforeChevron}<span class="weekday">${escapeHtml(weekday)}</span>${afterChevron}</span>`;
   const primaryHeader = `<span class="header-primary">${weekdayLine}${feastBanner}</span>`;
-  const noondayPreviewLabel = previewingNoonday ? '<span class="noonday-preview-label">Noonday</span>' : "";
-  const secondaryHeader = `<span class="header-secondary"><span class="date-value">${escapeHtml(mediumDate)}${noondayPreviewLabel}</span>${meta ? `<span class="meta"><span class="meta-separator" aria-hidden="true">· </span>${escapeHtml(meta)}</span>` : ""}</span>`;
+  const secondaryHeader = `<span class="header-secondary"><span class="date-value">${escapeHtml(mediumDate)}<span class="service-label">${serviceLabel}</span></span>${meta ? `<span class="meta"><span class="meta-separator" aria-hidden="true">· </span>${escapeHtml(meta)}</span>` : ""}</span>`;
   const dateLine = `<button class="date-line" data-event="TODAY" type="button" aria-label="Return to today.${relationLabel}">${primaryHeader}${secondaryHeader}</button>`;
   const headerCopy = `<div class="${headerClass}"><div class="header-summary">${dateLine}</div></div>`;
   const heading = headerCopy;

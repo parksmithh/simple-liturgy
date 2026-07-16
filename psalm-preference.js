@@ -47,13 +47,12 @@ export function millisecondsUntilPsalmBoundary(date = new Date()) {
 
 export function refreshPsalmDisplay({
   date,
-  displayMode,
   activeOffice,
   resetForNewLocalDate,
   render,
 }) {
   const dateChanged = resetForNewLocalDate(date);
-  const officeChanged = displayMode === BY_TIME_OF_DAY && activeOffice !== psalmOfficeAt(date);
+  const officeChanged = activeOffice !== psalmOfficeAt(date);
   if (dateChanged || officeChanged) render();
   return { dateChanged, officeChanged };
 }

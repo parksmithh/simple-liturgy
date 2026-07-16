@@ -1,16 +1,16 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.74";
-import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.74";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.74";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, noondayServiceAt, refreshNoondayPreview, refreshNoondayService, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.74";
-import { calendarEventIconAssetPath, renderPixelArtStack } from "./pixel-art.js?v=0.3.74";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.74";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.74";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.74";
-import { appVersionLabel } from "./version.js?v=0.3.74";
+import { initializeAnalytics } from "./analytics.js?v=0.3.77";
+import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.77";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.77";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, noondayServiceAt, refreshNoondayPreview, refreshNoondayService, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.77";
+import { calendarEventIconAssetPath, renderPixelArtStack } from "./pixel-art.js?v=0.3.77";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.77";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.77";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.77";
+import { appVersionLabel } from "./version.js?v=0.3.77";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.74", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.77", CONTENT_ROOT);
 const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -111,7 +111,7 @@ initializeTheme(themeContext);
 initializeFeastLinks(feastLinksContext);
 appVersion.textContent = appVersionLabel();
 let psalmDisplayMode = initializePsalmPreference(psalmContext);
-psalmBoundary.setMode(psalmDisplayMode);
+psalmBoundary.setMode("by-time-of-day");
 let noondayEnabled = initializeNoondayPreference(noondayContext);
 const initialNoondayTime = new Date();
 activeService = noondayServiceAt(initialNoondayTime, noondayEnabled);
@@ -297,7 +297,7 @@ function paint(view) {
   const psalmOffice = psalmOfficeAt();
   screen.innerHTML = screenHtml(view, { feastLinksEnabled, psalmDisplayMode, psalmOffice });
   activeService = view.service || "daily";
-  activePsalmOffice = view.service === "daily" && psalmDisplayMode === "by-time-of-day" ? psalmOffice : null;
+  activePsalmOffice = view.service === "daily" ? psalmOffice : null;
   const layout = matchingPrayerLayout(view) || matchingNoondayLayout(view);
   if (layout?.fontSize) {
     screen.querySelector(".prayer-text")?.style.setProperty("font-size", `${layout.fontSize}px`);
@@ -371,25 +371,40 @@ function measuredNoondayTextArea(focus, text, focusStyle) {
 
 function measuredPsalmTextAreas(focus, text, section, focusStyle) {
   let citation = focus.querySelector(".focus-cite");
+  let subtitle = focus.querySelector(".noonday-subtitle");
   let temporaryCitation = null;
+  let temporarySubtitle = null;
   if (!citation && section.citation) {
     temporaryCitation = document.createElement("span");
-    temporaryCitation.className = "focus-cite";
+    temporaryCitation.className = "focus-cite noonday-psalm-cite";
     temporaryCitation.textContent = section.citation;
     temporaryCitation.style.visibility = "hidden";
     focus.insertBefore(temporaryCitation, focus.querySelector(".noonday-subtitle") || text);
     citation = temporaryCitation;
   }
+  if (!subtitle && section.subtitle) {
+    temporarySubtitle = document.createElement("span");
+    temporarySubtitle.className = "noonday-subtitle";
+    temporarySubtitle.textContent = section.subtitle;
+    temporarySubtitle.style.visibility = "hidden";
+    focus.insertBefore(temporarySubtitle, text);
+    subtitle = temporarySubtitle;
+  }
 
-  const originalDisplay = citation?.style.display || "";
+  const originalCitationDisplay = citation?.style.display || "";
+  const originalSubtitleDisplay = subtitle?.style.display || "";
   try {
-    if (citation) citation.style.display = originalDisplay;
+    if (citation) citation.style.display = originalCitationDisplay;
+    if (subtitle) subtitle.style.display = originalSubtitleDisplay;
     const firstPage = measuredNoondayTextArea(focus, text, focusStyle);
     if (citation) citation.style.display = "none";
+    if (subtitle) subtitle.style.display = "none";
     return [firstPage, measuredNoondayTextArea(focus, text, focusStyle)];
   } finally {
-    if (citation) citation.style.display = originalDisplay;
+    if (citation) citation.style.display = originalCitationDisplay;
+    if (subtitle) subtitle.style.display = originalSubtitleDisplay;
     temporaryCitation?.remove();
+    temporarySubtitle?.remove();
   }
 }
 
@@ -626,7 +641,6 @@ bindPsalmPreference({
   onChange: mode => {
     psalmDisplayMode = mode;
     activePsalmOffice = null;
-    psalmBoundary.setMode(mode);
     if (bundle && collects) render();
   },
 });
@@ -771,7 +785,6 @@ function refreshAt(date, rescheduleTimer = true) {
   if (noondayResult.service === "daily") {
     refreshPsalmDisplay({
       date,
-      displayMode: psalmDisplayMode,
       activeOffice: activePsalmOffice,
       resetForNewLocalDate,
       render,

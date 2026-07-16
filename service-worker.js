@@ -1,6 +1,6 @@
-const CACHE = "daily-office-reader-v0.3.74";
+const CACHE = "daily-office-reader-v0.3.77";
 const CONTENT_ROOT = self.registration.scope.endsWith("/web/") ? "../" : "./";
-const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.74`;
+const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.77`;
 const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json`;
 const PACK_PATH = new URL(PACK_URL, self.registration.scope).pathname;
 const COLLECTS_PATH = new URL(COLLECTS_URL, self.registration.scope).pathname;
@@ -8,21 +8,21 @@ const SHELL = [
   "./",
   "./index.html",
   "./privacy.html",
-  "./design-tokens.css?v=0.3.74",
-  "./app.css?v=0.3.74",
-  "./app.js?v=0.3.74",
-  "./analytics.js?v=0.3.74",
-  "./bookmark-engine.js?v=0.3.74",
-  "./feast-link-preference.js?v=0.3.74",
-  "./feast-wikipedia.js?v=0.3.74",
-  "./noonday-preference.js?v=0.3.74",
-  "./pixel-art.js?v=0.3.74",
-  "./prayer-calendar.js?v=0.3.74",
-  "./psalm-preference.js?v=0.3.74",
-  "./theme.js?v=0.3.74",
-  "./version.js?v=0.3.74",
-  "./manifest.webmanifest?v=0.3.74",
-  "./icon.svg?v=0.3.74",
+  "./design-tokens.css?v=0.3.77",
+  "./app.css?v=0.3.77",
+  "./app.js?v=0.3.77",
+  "./analytics.js?v=0.3.77",
+  "./bookmark-engine.js?v=0.3.77",
+  "./feast-link-preference.js?v=0.3.77",
+  "./feast-wikipedia.js?v=0.3.77",
+  "./noonday-preference.js?v=0.3.77",
+  "./pixel-art.js?v=0.3.77",
+  "./prayer-calendar.js?v=0.3.77",
+  "./psalm-preference.js?v=0.3.77",
+  "./theme.js?v=0.3.77",
+  "./version.js?v=0.3.77",
+  "./manifest.webmanifest?v=0.3.77",
+  "./icon.svg?v=0.3.77",
   "./assets/og-simple-liturgy.png?v=3",
   "./assets/liturgical-icons/liturgical-calendar/lit-01-solemnity.svg",
   "./assets/liturgical-icons/liturgical-calendar/lit-02-feast.svg",

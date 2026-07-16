@@ -1,15 +1,16 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.73";
-import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.73";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.73";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, noondayServiceAt, refreshNoondayPreview, refreshNoondayService, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.73";
-import { calendarEventIconAssetPath, renderPixelArtStack } from "./pixel-art.js?v=0.3.73";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.73";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.73";
-import { appVersionLabel } from "./version.js?v=0.3.73";
+import { initializeAnalytics } from "./analytics.js?v=0.3.74";
+import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.74";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.74";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, noondayServiceAt, refreshNoondayPreview, refreshNoondayService, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.74";
+import { calendarEventIconAssetPath, renderPixelArtStack } from "./pixel-art.js?v=0.3.74";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.74";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.74";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.74";
+import { appVersionLabel } from "./version.js?v=0.3.74";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.73", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.74", CONTENT_ROOT);
 const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -22,6 +23,10 @@ const reader = document.querySelector(".reader");
 const deviceScreen = document.querySelector("#device-screen");
 const themeControls = document.querySelectorAll('input[name="theme"]');
 const psalmControls = document.querySelectorAll('input[name="psalm-display"]');
+const prayerReminderControls = document.querySelectorAll("[data-prayer-office]");
+const createPrayerRemindersButton = document.querySelector("#create-prayer-reminders");
+const prayerReminderStatus = document.querySelector("#prayer-reminder-status");
+const prayerImportHelp = document.querySelector("#prayer-import-help");
 const noondayControl = document.querySelector("#noonday-enabled");
 const previewNoondayButton = document.querySelector("#preview-noonday");
 const feastLinksControl = document.querySelector("#feast-links-enabled");
@@ -37,6 +42,14 @@ const shareStatus = document.querySelector("#share-status");
 const installTooltip = document.querySelector("#install-tooltip");
 const appVersion = document.querySelector("#app-version");
 const canonicalUrl = document.querySelector('link[rel="canonical"]')?.href || window.location.href;
+bindPrayerReminderSettings({
+  controls: prayerReminderControls,
+  button: createPrayerRemindersButton,
+  status: prayerReminderStatus,
+  importHelp: prayerImportHelp,
+  storage: window.localStorage,
+  appUrl: canonicalUrl,
+});
 const installedPwa = window.matchMedia("(display-mode: standalone)").matches
   || window.matchMedia("(display-mode: fullscreen)").matches
   || window.navigator.standalone === true;

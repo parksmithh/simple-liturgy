@@ -390,8 +390,8 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .project-credit a { color: var(--app-text); font-weight: var(--font-weight-bold); text-underline-offset: 3px; }
 .app-version { color: var(--eyebrow); font-size: var(--type-eyebrow); letter-spacing: .08em; text-transform: uppercase; }
 
-.privacy-back-link { font-weight: var(--font-weight-bold); text-decoration: none; }
-.privacy-content { display: grid; gap: 14px; }
+.privacy-back-link, .legal-back-link { font-weight: var(--font-weight-bold); text-decoration: none; }
+.privacy-content, .legal-content { display: grid; gap: 14px; }
 
 dialog { width: min(88vw, 390px); border: 1px solid var(--line); border-radius: 8px; background: var(--shell); color: var(--app-text); }
 dialog::backdrop { background: var(--dialog-backdrop); }

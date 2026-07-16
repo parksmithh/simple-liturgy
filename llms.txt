@@ -30,5 +30,9 @@
 - [BCP Online Daily Office Lectionary](https://www.bcponline.org/DOLectionary/dolectionary.html): Reference used for calendar and citation review.
 - [Simple Liturgy source](https://github.com/parksmithh/simple-liturgy): Production website source.
 - [Daily Office Reader staging source](https://github.com/parksmithh/daily-office-reader): Hardware, firmware, data, and staging web app development.
+- [Terms & Licensing](https://simpleliturgy.com/terms.html): Personal-use, contribution, trademark, and commercial-permission terms.
+- [Source license](https://simpleliturgy.com/LICENSE.md): PolyForm Noncommercial License 1.0.0 for covered web software.
+- [License notice](https://simpleliturgy.com/NOTICE): Copyright notice and repository scope exclusions.
+- [Contributing terms](https://simpleliturgy.com/CONTRIBUTING.md): Contributor rights and grant terms.
 
-Simple Liturgy is an independent project and is not an official publication of The Episcopal Church or Church Publishing Incorporated.
+Simple Liturgy is an independent project.

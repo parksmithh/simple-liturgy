@@ -31,6 +31,39 @@ export function noondayPreviewRelation(date = new Date()) {
   return date < noon ? "future" : "past";
 }
 
+export function noondayPreviewPeriodAt(date = new Date(), enabled = true) {
+  const hour = date.getHours();
+  if (enabled && hour >= 10 && hour < 14) return "noonday";
+  if (hour < 10 || (!enabled && hour < 12)) return "morning";
+  return "evening";
+}
+
+export function noondayPreviewMarkerAt(date = new Date(), enabled = true) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}:${noondayPreviewPeriodAt(date, enabled)}`;
+}
+
+export function shouldExitNoondayPreview(date, marker, enabled = true) {
+  return noondayPreviewMarkerAt(date, enabled) !== marker;
+}
+
+export function refreshNoondayPreview({
+  date,
+  marker,
+  enabled,
+  exit,
+  resetForNewLocalDate,
+  render,
+}) {
+  const exited = shouldExitNoondayPreview(date, marker, enabled);
+  if (exited) exit(date);
+  resetForNewLocalDate(date);
+  render();
+  return { exited };
+}
+
 export function shouldShowNoondayPreview(date = new Date(), enabled = true) {
   return noondayServiceAt(date, enabled) !== "noonday";
 }
@@ -46,7 +79,7 @@ export function millisecondsUntilNoondayBoundary(date = new Date()) {
     boundary.setHours(14, 0, 0, 0);
   } else {
     boundary.setDate(boundary.getDate() + 1);
-    boundary.setHours(10, 0, 0, 0);
+    boundary.setHours(0, 0, 0, 0);
   }
   return Math.max(1, boundary.getTime() - date.getTime());
 }

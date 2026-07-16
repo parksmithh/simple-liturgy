@@ -1,4 +1,4 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.69";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.73";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -162,7 +162,7 @@ export function paginateBlocksByFit(text, fits) {
   let page = [];
   for (const block of blocks) {
     const candidate = [...page, block].join("\n\n");
-    if (page.length > 0 && !fits(candidate)) {
+    if (page.length > 0 && !fits(candidate, pages.length)) {
       pages.push(page.join("\n\n"));
       page = [block];
     } else {
@@ -177,7 +177,7 @@ export function paginateBlocksByFit(text, fits) {
     const finalBlocks = pages[finalIndex].split(/\n{2,}/);
     if (previousBlocks.length >= 3 && finalBlocks.length === 1) {
       const balancedFinal = [previousBlocks.at(-1), ...finalBlocks].join("\n\n");
-      if (fits(balancedFinal)) {
+      if (fits(balancedFinal, finalIndex)) {
         pages[previousIndex] = previousBlocks.slice(0, -1).join("\n\n");
         pages[finalIndex] = balancedFinal;
       }
@@ -710,7 +710,9 @@ function compactYear(year) {
 
 function noondayFocusHtml(section, key) {
   const pageIndex = section.pages?.length > 1 ? ` (${section.page + 1}/${section.pages.length})` : "";
-  const citation = section.citation ? `<span class="focus-cite">${escapeHtml(section.citation)}</span>` : "";
+  const citation = section.citation && !(key === "NOONDAY_PSALM" && section.page > 0)
+    ? `<span class="focus-cite">${escapeHtml(section.citation)}</span>`
+    : "";
   const subtitle = section.subtitle ? `<span class="noonday-subtitle">${escapeHtml(section.subtitle)}</span>` : "";
   const pageText = section.pages ? section.pages[section.page] : section.text;
   const pageContent = key === "NOONDAY_PSALM" ? noondayPsalmHtml(pageText) : escapeHtml(pageText);

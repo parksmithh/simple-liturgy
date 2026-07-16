@@ -1,14 +1,15 @@
-import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.69";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.69";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewRelation, noondayServiceAt, refreshNoondayService, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.69";
-import { calendarEventIconAssetPath, renderPixelArtStack } from "./pixel-art.js?v=0.3.69";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.69";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.69";
-import { appVersionLabel } from "./version.js?v=0.3.69";
+import { initializeAnalytics } from "./analytics.js?v=0.3.73";
+import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.73";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.73";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, noondayServiceAt, refreshNoondayPreview, refreshNoondayService, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.73";
+import { calendarEventIconAssetPath, renderPixelArtStack } from "./pixel-art.js?v=0.3.73";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.73";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.73";
+import { appVersionLabel } from "./version.js?v=0.3.73";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.69", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.73", CONTENT_ROOT);
 const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -66,6 +67,7 @@ let activeLocalDate = null;
 let activePsalmOffice = null;
 let activeService = "daily";
 let noondayPreview = false;
+let noondayPreviewMarker = null;
 let lastVerticalKey = null;
 let lastVerticalKeyAt = -Infinity;
 
@@ -107,10 +109,10 @@ function syncNoondayPreviewButton(date = new Date()) {
   previewNoondayButton.hidden = !shouldShowNoondayPreview(date, noondayEnabled);
 }
 
-function exitNoondayPreview() {
+function exitNoondayPreview(now = new Date()) {
   if (!noondayPreview) return;
-  const now = new Date();
   noondayPreview = false;
+  noondayPreviewMarker = null;
   noondayBoundary.setEnabled(noondayEnabled, now);
   activateService(noondayServiceAt(now, noondayEnabled));
 }
@@ -345,6 +347,39 @@ function createMeasurementProbe(text, textStyle, width) {
   return probe;
 }
 
+function measuredNoondayTextArea(focus, text, focusStyle) {
+  const focusRect = focus.getBoundingClientRect();
+  const textRect = text.getBoundingClientRect();
+  return {
+    height: focusRect.bottom - parseFloat(focusStyle.paddingBottom) - textRect.top,
+    width: textRect.width,
+  };
+}
+
+function measuredPsalmTextAreas(focus, text, section, focusStyle) {
+  let citation = focus.querySelector(".focus-cite");
+  let temporaryCitation = null;
+  if (!citation && section.citation) {
+    temporaryCitation = document.createElement("span");
+    temporaryCitation.className = "focus-cite";
+    temporaryCitation.textContent = section.citation;
+    temporaryCitation.style.visibility = "hidden";
+    focus.insertBefore(temporaryCitation, focus.querySelector(".noonday-subtitle") || text);
+    citation = temporaryCitation;
+  }
+
+  const originalDisplay = citation?.style.display || "";
+  try {
+    if (citation) citation.style.display = originalDisplay;
+    const firstPage = measuredNoondayTextArea(focus, text, focusStyle);
+    if (citation) citation.style.display = "none";
+    return [firstPage, measuredNoondayTextArea(focus, text, focusStyle)];
+  } finally {
+    if (citation) citation.style.display = originalDisplay;
+    temporaryCitation?.remove();
+  }
+}
+
 function measuredNoondayLayout(view) {
   const section = view.noonday?.sections?.[view.focus];
   const focus = screen.querySelector(".noonday-focus");
@@ -353,30 +388,30 @@ function measuredNoondayLayout(view) {
 
   const focusStyle = getComputedStyle(focus);
   const textStyle = getComputedStyle(text);
-  const focusRect = focus.getBoundingClientRect();
-  const textRect = text.getBoundingClientRect();
-  const availableHeight = focusRect.bottom - parseFloat(focusStyle.paddingBottom) - textRect.top;
-  if (availableHeight <= 0 || textRect.width <= 0) return null;
-
-  const probe = createMeasurementProbe(text, textStyle, textRect.width);
   const isPsalm = view.focus === "NOONDAY_PSALM";
+  const textAreas = isPsalm
+    ? measuredPsalmTextAreas(focus, text, section, focusStyle)
+    : [measuredNoondayTextArea(focus, text, focusStyle)];
+  if (textAreas.some(area => area.height <= 0 || area.width <= 0)) return null;
+
+  const probe = createMeasurementProbe(text, textStyle, textAreas[0].width);
   const renderCandidate = (element, candidate) => renderNoondayCandidate(element, candidate, isPsalm);
   try {
     const preferredFontSize = parseFloat(textStyle.fontSize);
     if (section.preservePages) return { pages: section.pages, fontSize: preferredFontSize };
-    const pageHeight = isPsalm
-      ? Math.max(0, availableHeight - Math.ceil(preferredFontSize * 0.5))
-      : availableHeight;
+    const pageHeights = textAreas.map(area => isPsalm
+      ? Math.max(0, area.height - Math.ceil(preferredFontSize * 0.5))
+      : area.height);
 
     if (!isPsalm) {
-      const wholeTextFont = largestWholePrayerFont(probe, section.text, pageHeight, preferredFontSize, renderCandidate);
+      const wholeTextFont = largestWholePrayerFont(probe, section.text, pageHeights[0], preferredFontSize, renderCandidate);
       if (wholeTextFont !== null) return { pages: [section.text], fontSize: wholeTextFont };
     }
 
     probe.style.fontSize = `${preferredFontSize}px`;
-    const pages = paginateBlocksByFit(section.text, candidate => {
+    const pages = paginateBlocksByFit(section.text, (candidate, pageIndex) => {
       renderCandidate(probe, candidate);
-      return probe.scrollHeight <= pageHeight;
+      return probe.scrollHeight <= pageHeights[Math.min(pageIndex, pageHeights.length - 1)];
     });
     return { pages, fontSize: preferredFontSize };
   } finally {
@@ -592,6 +627,7 @@ function activateService(service) {
 function startNoondayPreview() {
   const now = new Date();
   noondayPreview = true;
+  noondayPreviewMarker = noondayPreviewMarkerAt(now, noondayEnabled);
   noondayBoundary.setEnabled(true, now);
   activeLocalDate = localIsoDate(now);
   state = createState();
@@ -697,8 +733,14 @@ function rescheduleTimeBoundaries(date) {
 function refreshAt(date, rescheduleTimer = true) {
   syncNoondayPreviewButton(date);
   if (noondayPreview) {
-    resetForNewLocalDate(date);
-    if (bundle && collects) render();
+    refreshNoondayPreview({
+      date,
+      marker: noondayPreviewMarker,
+      enabled: noondayEnabled,
+      exit: exitNoondayPreview,
+      resetForNewLocalDate,
+      render: () => { if (bundle && collects) render(); },
+    });
     if (rescheduleTimer) rescheduleTimeBoundaries(date);
     return;
   }
@@ -747,3 +789,4 @@ if ("serviceWorker" in navigator) {
 }
 
 loadPack();
+initializeAnalytics({ document, storage: window.localStorage, trackerWindow: window });

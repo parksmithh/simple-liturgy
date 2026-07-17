@@ -1,21 +1,20 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.78";
-import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.78";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.78";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, noondayServiceAt, refreshNoondayPreview, refreshNoondayService, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.78";
-import { calendarEventIconAssetPath, renderPixelArtStack } from "./pixel-art.js?v=0.3.78";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.78";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.78";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.78";
-import { appVersionLabel } from "./version.js?v=0.3.78";
+import { initializeAnalytics } from "./analytics.js?v=0.3.79";
+import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.79";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.79";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, noondayServiceAt, refreshNoondayPreview, refreshNoondayService, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.79";
+import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.79";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.79";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.79";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.79";
+import { appVersionLabel } from "./version.js?v=0.3.79";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.78", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.79", CONTENT_ROOT);
 const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
 const screen = document.querySelector("#screen");
-const artStack = document.querySelector("#pixel-art-stack");
 const installButton = document.querySelector("#install-button");
 const installDialog = document.querySelector("#install-dialog");
 const settingsPage = document.querySelector("#settings-page");
@@ -295,6 +294,7 @@ function paint(view) {
   deviceScreen.classList.toggle("has-feast", Boolean(view.feast));
   const feastLinksEnabled = feastLinksControl.checked;
   const psalmOffice = psalmOfficeAt();
+  const previousArtStack = screen.querySelector(".pixel-art-stack");
   screen.innerHTML = screenHtml(view, { feastLinksEnabled, psalmDisplayMode, psalmOffice });
   activeService = view.service || "daily";
   activePsalmOffice = view.service === "daily" ? psalmOffice : null;
@@ -302,7 +302,7 @@ function paint(view) {
   if (layout?.fontSize) {
     screen.querySelector(".prayer-text")?.style.setProperty("font-size", `${layout.fontSize}px`);
   }
-  renderPixelArtStack(artStack, view);
+  paintPixelArtStack(screen, view, previousArtStack);
   controlModel(view).forEach((control, index) => {
     const button = [previousControl, centerControl, nextControl][index];
     button.dataset.event = control.event;
@@ -626,7 +626,7 @@ deviceScreen.addEventListener("pointercancel", () => {
 themeControls.forEach(control => control.addEventListener("change", () => {
   if (!control.checked) return;
   setThemeMode(themeContext, control.value);
-  if (bundle && collects) renderPixelArtStack(artStack, currentView());
+  if (bundle && collects) paintPixelArtStack(screen, currentView());
 }));
 
 bindFeastLinksPreference({
@@ -677,7 +677,7 @@ bindNoondayPreference({
 
 themeContext.media.addEventListener?.("change", () => {
   if (!syncSystemTheme(themeContext)) return;
-  if (bundle && collects) renderPixelArtStack(artStack, currentView());
+  if (bundle && collects) paintPixelArtStack(screen, currentView());
 });
 
 if ("ResizeObserver" in window) {

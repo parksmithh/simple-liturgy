@@ -258,7 +258,9 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
   display: flex;
   align-items: flex-start;
   gap: 3px;
+  pointer-events: none;
 }
+.pixel-art-stack:empty { display: none; }
 
 .pixel-art {
   display: block;
@@ -433,6 +435,12 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
 }
 
 @media (orientation: portrait) {
+  .screen-copy { gap: var(--space-reader-section); }
+  .screen-header-copy,
+  .screen-header-copy.focus-header {
+    min-height: 0;
+    padding-right: clamp(52px, 15vw, 64px);
+  }
   .grid {
     grid-template-columns: 1fr;
     grid-template-rows: repeat(6, auto);
@@ -458,13 +466,12 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
   }
   .pixel-art-stack,
   .device-screen.has-feast .pixel-art-stack {
-    top: clamp(92px, 24vw, 126px);
-    right: auto;
-    left: clamp(13px, 3vw, 22px);
+    position: static;
     display: grid;
     grid-auto-columns: var(--size-reader-art-cell-portrait);
     grid-auto-flow: column;
     place-items: center;
+    align-self: flex-start;
     gap: clamp(10px, 3vw, 16px);
   }
   .pixel-art-stack .pixel-art {
@@ -475,6 +482,10 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
 
 @media (orientation: landscape) {
   .grid { align-content: center; }
+  .date-line { display: grid; gap: clamp(3px, .8vh, 6px); }
+  .header-primary, .header-secondary { display: flex; min-width: 0; align-items: center; gap: clamp(6px, 1.2vw, 12px); }
+  .weekday-line { display: flex; align-items: center; gap: 4px; }
+  .feast-banner { position: static; width: fit-content; max-width: min(45vw, 28em); margin: 0; }
   .screen-header-copy {
     padding-right: min(
       54vw,
@@ -488,8 +499,11 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
       )
     );
   }
-  .pixel-art-stack {
+  .pixel-art-stack,
+  .device-screen.has-feast .pixel-art-stack {
     top: max(clamp(14px, 2.3vh, 30px), calc(env(safe-area-inset-top) + 6px));
+  }
+  .pixel-art-stack {
     right: max(clamp(20px, 2.9vw, 56px), calc(env(safe-area-inset-right) + 16px));
     display: grid;
     grid-auto-columns: var(--size-reader-art-icon-landscape);
@@ -499,9 +513,6 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
   .pixel-art-stack .pixel-art {
     width: 100%;
     height: 100%;
-  }
-  .device-screen.has-feast .pixel-art-stack {
-    top: max(clamp(62px, 9vh, 112px), calc(env(safe-area-inset-top) + 48px));
   }
 }
 
@@ -537,10 +548,8 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
   .screen-header-copy.focus-header { min-height: min(10vh, 40px); }
   .header-summary { gap: 5px 10px; }
   .feast-banner {
-    top: max(26px, calc(env(safe-area-inset-top) + 6px));
-    right: max(44px, calc(env(safe-area-inset-right) + 16px));
     max-width: 45vw;
-    padding: clamp(4px, 1vh, 7px) 10px;
+    padding: 1px 4px;
   }
   .grid {
     gap: clamp(10px, 2.5vh, 18px) clamp(20px, 5vw, 56px);
@@ -562,6 +571,7 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
 @media (orientation: portrait) {
   .grid .cite { line-height: 1.05; }
   .focus .label { line-height: 1.2; }
+  .focus { justify-content: flex-start; margin-top: 0; }
   .reader {
     padding: max(8px, env(safe-area-inset-top)) 0 0;
     gap: 0;
@@ -628,23 +638,12 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
   .date-line { font-size: inherit; }
   .header-secondary { flex-direction: column; align-items: flex-start; gap: 3px; }
   .meta-separator { display: none; }
-  .screen-header-copy {
-    min-height: clamp(148px, 39vw, 176px);
-    padding-right: clamp(52px, 15vw, 64px);
-  }
-  .screen-header-copy.focus-header { min-height: clamp(140px, 37vw, 166px); }
   .screen-copy {
     padding:
       max(24px, calc(env(safe-area-inset-top) + 8px))
       max(18px, env(safe-area-inset-right))
       max(20px, calc(env(safe-area-inset-bottom) + 8px))
       max(18px, env(safe-area-inset-left));
-  }
-  .pixel-art-stack,
-  .device-screen.has-feast .pixel-art-stack {
-    top: max(112px, calc(env(safe-area-inset-top) + 96px));
-    right: auto;
-    left: max(18px, env(safe-area-inset-left));
   }
 }
 

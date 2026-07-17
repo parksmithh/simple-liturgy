@@ -287,3 +287,12 @@ export function renderPixelArtStack(container, view) {
   container.dataset.icons = iconKey;
   container.replaceChildren(...icons);
 }
+
+export function paintPixelArtStack(screen, view, previousArtStack = null) {
+  const nextArtStack = screen.querySelector(".pixel-art-stack");
+  if (!nextArtStack) return null;
+  const artStack = previousArtStack || nextArtStack;
+  if (previousArtStack && previousArtStack !== nextArtStack) nextArtStack.replaceWith(previousArtStack);
+  renderPixelArtStack(artStack, view);
+  return artStack;
+}

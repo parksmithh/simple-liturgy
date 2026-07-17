@@ -1,4 +1,4 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.78";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.79";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -769,7 +769,8 @@ export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = 
   const secondaryHeader = `<span class="header-secondary"><span class="date-value">${escapeHtml(mediumDate)}<span class="service-label">${serviceLabel}</span></span>${meta ? `<span class="meta"><span class="meta-separator" aria-hidden="true">· </span>${escapeHtml(meta)}</span>` : ""}</span>`;
   const dateLine = `<button class="date-line" data-event="TODAY" type="button" aria-label="Return to today.${relationLabel}">${primaryHeader}${secondaryHeader}</button>`;
   const headerCopy = `<div class="${headerClass}"><div class="header-summary">${dateLine}</div></div>`;
-  const heading = headerCopy;
+  const artStack = '<span class="pixel-art-stack" aria-label="Liturgical calendar artwork"></span>';
+  const screenLead = `${headerCopy}${artStack}`;
   if (view.service === "noonday" && view.noonday) {
     const sections = view.noonday.sections;
     const body = view.focus && sections[view.focus]
@@ -777,9 +778,9 @@ export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = 
       : noondayOverviewHtml(sections);
     const focusHint = view.focus ? '<span class="focus-next-hint" aria-hidden="true"></span>' : "";
     const overviewHint = view.focus ? "" : '<span class="overview-focus-hint">Tap to focus</span>';
-    return `${heading}${body}${focusHint}${overviewHint}`;
+    return `${screenLead}${body}${focusHint}${overviewHint}`;
   }
-  if (view.error && !(view.focus === "PRAYER" && view.prayer)) return `${heading}<h2 class="warning">${escapeHtml(view.error)}</h2>`;
+  if (view.error && !(view.focus === "PRAYER" && view.prayer)) return `${screenLead}<h2 class="warning">${escapeHtml(view.error)}</h2>`;
   const prayerIndex = view.prayer?.pages.length > 1 ? ` (${view.prayer.page + 1}/${view.prayer.pages.length})` : "";
   const prayerFocus = view.focus === "PRAYER" && view.prayer
     ? `<div class="reading focus prayer-focus"><button class="prayer-content" data-reading="PRAYER" type="button"><span class="label">${escapeHtml(prayerHeading(view.prayer))}${prayerIndex}</span><span class="prayer-text">${prayerPageHtml(view.prayer)}</span></button>${feastAboutHtml(view.feast, occasionType, feastLinksEnabled)}</div>`
@@ -794,5 +795,5 @@ export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = 
     : `<div class="grid">${openingPrayerOverview}${Object.keys(view.values).map(key => `<button class="reading" data-reading="${key}" type="button">${readingContentHtml(view, key, "cite", psalmPresentation)}</button>`).join("")}${gloriaOverview}</div>`;
   const focusHint = view.focus ? '<span class="focus-next-hint" aria-hidden="true"></span>' : "";
   const overviewHint = view.focus ? "" : '<span class="overview-focus-hint">Tap to focus</span>';
-  return `${heading}${body}${focusHint}${overviewHint}`;
+  return `${screenLead}${body}${focusHint}${overviewHint}`;
 }

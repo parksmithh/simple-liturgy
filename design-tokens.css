@@ -144,6 +144,9 @@
     --type-reader-label: clamp(13px, 3.5vw, 17px);
     --type-reader-citation: clamp(23px, 6.5vw, 34px);
     --type-reader-focus-label: clamp(16px, 4.8vw, 22px);
+    --type-reader-focus-citation: clamp(28px, 7.2vw, 48px);
+    --space-reader-section: 24px;
+    --space-reading-group: 24px;
   }
 }
 

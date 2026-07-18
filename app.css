@@ -184,7 +184,6 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
   min-height: clamp(46px, 11vw, 62px);
   padding-right: clamp(112px, 34%, 180px);
 }
-.screen-header-copy.focus-header { min-height: clamp(38px, 9vw, 52px); }
 .header-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 7px; font-size: var(--type-reader-header); line-height: 1.2; text-transform: uppercase; }
 .date-line { display: flex; width: fit-content; align-items: center; gap: 7px; border: 0; background: transparent; color: inherit; padding: 0; font-size: var(--type-reader-date); font-weight: var(--font-weight-bold); text-align: left; text-transform: uppercase; cursor: pointer; }
 .header-primary, .header-secondary { display: contents; }
@@ -197,6 +196,10 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .service-label { margin-left: .5em; color: var(--red); font-weight: var(--font-weight-bold); letter-spacing: .02em; text-transform: uppercase; }
 .meta { font-weight: var(--font-weight-regular); letter-spacing: .02em; }
 .feast-banner { position: absolute; z-index: 2; top: clamp(13px, 3vw, 22px); right: clamp(13px, 3vw, 22px); width: fit-content; max-width: 48%; overflow: hidden; border: 1px solid var(--red); background: var(--red); color: var(--color-white); padding: 1px 4px; font-size: var(--type-reader-banner); font-weight: var(--font-weight-bold); text-overflow: ellipsis; text-transform: uppercase; letter-spacing: normal; white-space: nowrap; }
+.focus-toolbar { display: grid; flex: none; min-height: 40px; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; }
+.focus-back { display: grid; width: 40px; height: 40px; place-items: center; border: 0; background: transparent; color: var(--ink); padding: 0; cursor: pointer; }
+.focus-back svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.25; stroke-linecap: square; stroke-linejoin: miter; }
+.focus-service-label { min-width: 0; overflow: hidden; color: var(--red); font-size: var(--type-reader-label); font-weight: var(--font-weight-regular); letter-spacing: .06em; text-align: center; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .grid {
   display: grid;
   flex: 1;
@@ -221,21 +224,23 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .focus .label { font-size: var(--type-reader-focus-label); }
 .focus-cite { margin-top: 7px; max-width: 100%; font-size: var(--type-reader-focus-citation); font-weight: var(--font-weight-reader-content); line-height: 1.05; }
 .focus-next-hint { position: absolute; z-index: 3; top: 50%; right: max(12px, env(safe-area-inset-right)); width: clamp(8px, 1.8vw, 13px); height: clamp(8px, 1.8vw, 13px); border-top: 2px solid var(--red); border-right: 2px solid var(--red); opacity: .82; pointer-events: none; transform: translateY(-50%) rotate(45deg); }
-.overview-focus-hint { position: absolute; z-index: 3; bottom: max(14px, calc(env(safe-area-inset-bottom) + 6px)); left: 50%; color: var(--ink); font-size: var(--type-reader-hint); font-weight: var(--font-weight-regular); letter-spacing: .08em; opacity: .72; pointer-events: none; transform: translateX(-50%); white-space: nowrap; }
+.overview-focus-hint, .focus-continue-hint { position: absolute; z-index: 3; bottom: max(14px, calc(env(safe-area-inset-bottom) + 6px)); left: 50%; color: var(--ink); font-size: var(--type-reader-hint); font-weight: var(--font-weight-regular); letter-spacing: .08em; opacity: .72; pointer-events: none; transform: translateX(-50%); white-space: nowrap; }
 .install-tooltip-active .overview-focus-hint { display: none; }
+.reader.focus-mode .install-tooltip { display: none !important; }
 .prayer-focus { justify-content: center; cursor: default; }
 .prayer-content { width: 100%; }
 .prayer-text { display: block !important; margin-top: 8px; max-width: 100%; overflow: hidden; font-size: var(--type-reader-prayer); font-weight: var(--font-weight-reader-content); line-height: 1.22; overflow-wrap: break-word; }
 .noonday-grid .cite { min-height: 0; }
 .noonday-focus { justify-content: flex-start; }
-.noonday-text { font-size: var(--type-reader-noonday); line-height: 1.16; white-space: pre-line; }
+.noonday-text { font-size: var(--type-reader-noonday); line-height: 1.16; white-space: normal; }
 .noonday-psalm-cite { font-size: var(--type-reader-noonday); }
-.noonday-opening-text { font-size: var(--type-reader-prayer); line-height: 1.22; }
-.noonday-prayer-text { font-size: var(--type-reader-prayer); line-height: 1.22; }
 .noonday-text .noonday-psalm-verses { display: grid; gap: .72em; white-space: normal; }
+.noonday-text .noonday-liturgical-blocks { display: grid; gap: .72em; }
+.noonday-prose-block { display: block; }
+.noonday-text .timed-office-aside { display: flex; width: 100%; max-width: 24em; min-height: 3em; align-items: center; justify-content: center; justify-self: center; padding: clamp(22px, 5vw, 32px) clamp(16px, 4vw, 28px); border: 1px solid color-mix(in srgb, var(--ink) 38%, transparent); border-radius: 2px; background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink); font-size: var(--type-reader-aside); font-weight: var(--font-weight-semibold); line-height: 1.25; text-align: center; }
 .noonday-text .noonday-psalm-verse { display: grid; grid-template-columns: 2.2em minmax(0, 1fr); align-items: start; }
 .noonday-psalm-number { color: var(--red); font-weight: var(--font-weight-bold); }
-.noonday-text .noonday-psalm-lines { display: grid; gap: .12em; min-width: 0; font-weight: var(--font-weight-regular); }
+.noonday-text .noonday-call-response { display: grid; gap: .12em; min-width: 0; font-weight: var(--font-weight-regular); }
 .noonday-psalm-call { font-weight: var(--font-weight-regular); }
 .noonday-psalm-response { padding-left: clamp(12px, 3vw, 22px); font-weight: var(--font-weight-reader-content); }
 .noonday-subtitle { margin-top: 4px; font-size: var(--type-reader-noonday); font-style: italic; }
@@ -302,10 +307,17 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .settings-options { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
 .theme-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .psalm-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.prayer-time-groups { display: grid; gap: 14px; }
-.prayer-time-options { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.timed-office-options { display: grid; gap: 18px; }
+.timed-office-option { display: grid; gap: 10px; }
+.timed-office-option + .timed-office-option { border-top: 1px solid var(--line); padding-top: 18px; }
+.prayer-time-groups { display: grid; gap: 10px; }
+.prayer-time-row { display: grid; min-height: 52px; grid-template-columns: minmax(0, 1fr) minmax(132px, 42%); align-items: center; gap: 14px; }
+.prayer-time-row[hidden] { display: none; }
+.prayer-time-row > label { color: var(--app-text); font-weight: var(--font-weight-bold); }
+.prayer-time-select { width: 100%; min-height: 48px; border: 2px solid var(--line); border-radius: 5px; background: var(--control); color: var(--control-text); padding: 8px 12px; font: var(--font-weight-bold) var(--type-footer) var(--font-family-ui); cursor: pointer; }
+.prayer-time-select:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+.prayer-time-select:disabled { cursor: default; opacity: .55; }
 .settings-options legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.prayer-time-options legend { position: static; width: auto; height: auto; grid-column: 1 / -1; overflow: visible; clip-path: none; color: var(--app-text); font-weight: var(--font-weight-bold); white-space: normal; }
 .settings-options label { position: relative; display: grid; min-height: 52px; place-items: center; border: 2px solid var(--line); border-radius: 5px; background: var(--control); color: var(--control-text); font-weight: var(--font-weight-bold); cursor: pointer; }
 .settings-options label:has(input:checked) { border-color: var(--red); box-shadow: inset 0 -4px var(--red); }
 .settings-options input { position: absolute; opacity: 0; pointer-events: none; }
@@ -324,6 +336,7 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .settings-action[aria-busy="true"] { cursor: wait; opacity: .72; }
 .settings-note { color: var(--eyebrow); }
 .settings-note a { color: inherit; font-weight: var(--font-weight-bold); text-underline-offset: 3px; }
+.settings-warning { margin: 0; border-left: 4px solid var(--red); background: color-mix(in srgb, var(--red) 10%, transparent); color: var(--app-text); padding: 8px 10px; font-weight: var(--font-weight-semibold); }
 .feast-browser-open > :not(.feast-browser) { display: none !important; }
 .feast-browser { display: grid; width: 100%; gap: 18px; }
 .feast-browser-header {
@@ -409,7 +422,6 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
   .device-screen { min-height: 0; }
   .screen-copy { padding: 10px; }
   .screen-header-copy { min-height: 46px; padding-right: 92px; }
-  .screen-header-copy.focus-header { min-height: 38px; }
   .header-summary { gap: 3px 6px; }
   .feast-banner { top: 10px; right: 10px; max-width: 48%; }
   .pixel-art-stack { top: 10px; right: 10px; }
@@ -417,7 +429,7 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
   .app-footer { font-size: var(--type-footer); }
   .platform-steps { grid-template-columns: 1fr; }
   .theme-options, .psalm-options { grid-template-columns: 1fr; }
-  .prayer-time-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .prayer-time-row { grid-template-columns: minmax(0, 1fr) 128px; gap: 10px; }
   .feast-browser-header { grid-template-columns: 1fr; }
   .feast-browser-back { width: fit-content; }
   .feast-list-item { grid-template-columns: 48px minmax(0, 1fr) auto; gap: 5px 12px; }
@@ -436,8 +448,7 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
 
 @media (orientation: portrait) {
   .screen-copy { gap: var(--space-reader-section); }
-  .screen-header-copy,
-  .screen-header-copy.focus-header {
+  .screen-header-copy {
     min-height: 0;
     padding-right: clamp(52px, 15vw, 64px);
   }
@@ -448,6 +459,7 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
     margin-top: 0;
   }
   .noonday-grid { grid-template-rows: repeat(5, auto); }
+  .compline-grid { grid-template-rows: repeat(7, auto); }
   .overview-marker { display: flex; }
   .grid .cite { min-height: 0; }
   .header-summary {
@@ -545,7 +557,6 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
       max(44px, calc(env(safe-area-inset-left) + 16px));
   }
   .screen-header-copy { min-height: min(12vh, 48px); }
-  .screen-header-copy.focus-header { min-height: min(10vh, 40px); }
   .header-summary { gap: 5px 10px; }
   .feast-banner {
     max-width: 45vw;
@@ -646,6 +657,19 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
       max(18px, env(safe-area-inset-left));
   }
 }
+
+.reader.focus-mode .device-screen { padding: 0; }
+.reader.focus-mode .screen-copy {
+  gap: clamp(6px, 1.5vh, 12px);
+  padding-top: max(12px, calc(env(safe-area-inset-top) + 6px));
+  padding-right: max(12px, env(safe-area-inset-right));
+  padding-bottom: max(12px, calc(env(safe-area-inset-bottom) + 6px));
+  padding-left: max(12px, env(safe-area-inset-left));
+}
+.reader.focus-mode .reader-menu {
+  display: none;
+}
+.reader.focus-mode .focus { margin-top: 0; padding-bottom: clamp(28px, 4vh, 34px); transform: none; }
 
 @media (prefers-reduced-motion: no-preference) {
   .device-screen { animation: eink-refresh .22s steps(2, end); }

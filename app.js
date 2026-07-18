@@ -1,16 +1,18 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.79";
-import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.79";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.79";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, noondayServiceAt, refreshNoondayPreview, refreshNoondayService, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.79";
-import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.79";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.79";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.79";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.79";
-import { appVersionLabel } from "./version.js?v=0.3.79";
+import { initializeAnalytics } from "./analytics.js?v=0.3.93";
+import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.93";
+import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.93";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.93";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.93";
+import { scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.93";
+import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.93";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.93";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.93";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.93";
+import { appVersionLabel } from "./version.js?v=0.3.93";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.79", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.93", CONTENT_ROOT);
 const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -25,9 +27,12 @@ const psalmControls = document.querySelectorAll('input[name="psalm-display"]');
 const prayerReminderControls = document.querySelectorAll("[data-prayer-office]");
 const createPrayerRemindersButton = document.querySelector("#create-prayer-reminders");
 const prayerReminderStatus = document.querySelector("#prayer-reminder-status");
+const prayerReminderConflict = document.querySelector("#prayer-reminder-conflict");
 const prayerImportHelp = document.querySelector("#prayer-import-help");
 const noondayControl = document.querySelector("#noonday-enabled");
 const previewNoondayButton = document.querySelector("#preview-noonday");
+const complineControl = document.querySelector("#compline-enabled");
+const previewComplineButton = document.querySelector("#preview-compline");
 const feastLinksControl = document.querySelector("#feast-links-enabled");
 const feastBrowser = document.querySelector("#feast-browser");
 const feastList = document.querySelector("#feast-list");
@@ -41,10 +46,11 @@ const shareStatus = document.querySelector("#share-status");
 const installTooltip = document.querySelector("#install-tooltip");
 const appVersion = document.querySelector("#app-version");
 const canonicalUrl = document.querySelector('link[rel="canonical"]')?.href || window.location.href;
-bindPrayerReminderSettings({
+const prayerSchedule = bindPrayerReminderSettings({
   controls: prayerReminderControls,
   button: createPrayerRemindersButton,
   status: prayerReminderStatus,
+  conflict: prayerReminderConflict,
   importHelp: prayerImportHelp,
   storage: window.localStorage,
   appUrl: canonicalUrl,
@@ -73,19 +79,21 @@ let pointerStart = null;
 let pointerActivated = false;
 let suppressReadingTap = false;
 let prayerLayout = null;
-let noondayLayout = null;
+let timedOfficeLayout = null;
 let observedDeviceSize = "";
 let activeLocalDate = null;
 let activePsalmOffice = null;
 let activeService = "daily";
 let noondayPreview = false;
 let noondayPreviewMarker = null;
+let complinePreview = false;
+let complinePreviewMarker = null;
 let lastVerticalKey = null;
 let lastVerticalKeyAt = -Infinity;
 
 function invalidateLayouts() {
   prayerLayout = null;
-  noondayLayout = null;
+  timedOfficeLayout = null;
 }
 
 const themeContext = {
@@ -99,10 +107,14 @@ const themeContext = {
 const feastLinksContext = { control: feastLinksControl, storage: window.localStorage };
 const psalmContext = { controls: psalmControls, storage: window.localStorage };
 const noondayContext = { control: noondayControl, storage: window.localStorage };
+const complineContext = { control: complineControl, storage: window.localStorage };
 const psalmBoundary = createPsalmBoundaryTimer({
   onBoundary: now => refreshAt(now, false),
 });
 const noondayBoundary = createNoondayBoundaryTimer({
+  onBoundary: now => refreshAt(now, false),
+});
+const complineBoundary = createComplineBoundaryTimer({
   onBoundary: now => refreshAt(now, false),
 });
 
@@ -112,13 +124,23 @@ appVersion.textContent = appVersionLabel();
 let psalmDisplayMode = initializePsalmPreference(psalmContext);
 psalmBoundary.setMode("by-time-of-day");
 let noondayEnabled = initializeNoondayPreference(noondayContext);
-const initialNoondayTime = new Date();
-activeService = noondayServiceAt(initialNoondayTime, noondayEnabled);
-syncNoondayPreviewButton(initialNoondayTime);
-noondayBoundary.setEnabled(noondayEnabled, initialNoondayTime);
+let complineEnabled = initializeComplinePreference(complineContext);
+prayerSchedule.setOfficeEnabled("noonday", noondayEnabled);
+prayerSchedule.setOfficeEnabled("compline", complineEnabled);
+
+const initialServiceTime = new Date();
+activeService = scheduledServiceAt(initialServiceTime, noondayEnabled, complineEnabled);
+syncNoondayPreviewButton(initialServiceTime);
+syncComplinePreviewButton(initialServiceTime);
+noondayBoundary.setEnabled(noondayEnabled, initialServiceTime);
+complineBoundary.setEnabled(complineEnabled, initialServiceTime);
 
 function syncNoondayPreviewButton(date = new Date()) {
   previewNoondayButton.hidden = !shouldShowNoondayPreview(date, noondayEnabled);
+}
+
+function syncComplinePreviewButton(date = new Date()) {
+  previewComplineButton.hidden = !shouldShowComplinePreview(date, complineEnabled);
 }
 
 function exitNoondayPreview(now = new Date()) {
@@ -126,13 +148,23 @@ function exitNoondayPreview(now = new Date()) {
   noondayPreview = false;
   noondayPreviewMarker = null;
   noondayBoundary.setEnabled(noondayEnabled, now);
-  activateService(noondayServiceAt(now, noondayEnabled));
+  activateService(scheduledServiceAt(now, noondayEnabled, complineEnabled));
+}
+
+function exitComplinePreview(now = new Date()) {
+  if (!complinePreview) return;
+  complinePreview = false;
+  complinePreviewMarker = null;
+  complineBoundary.setEnabled(complineEnabled, now);
+  activateService(scheduledServiceAt(now, noondayEnabled, complineEnabled));
 }
 
 function setSettingsOpen(open) {
   if (open) {
     exitNoondayPreview();
+    exitComplinePreview();
     syncNoondayPreviewButton();
+    syncComplinePreviewButton();
   }
   document.documentElement.classList.toggle("settings-open", open);
   settingsPage.hidden = !open;
@@ -251,12 +283,13 @@ function matchingPrayerLayout(view) {
   return prayerLayout;
 }
 
-function matchingNoondayLayout(view) {
-  if (view.service !== "noonday"
-    || noondayLayout?.date !== view.date
-    || noondayLayout.focus !== view.focus
-    || noondayLayout.deviceSize !== deviceSize()) return null;
-  return noondayLayout;
+function matchingTimedOfficeLayout(view) {
+  if ((view.service !== "noonday" && view.service !== "compline")
+    || timedOfficeLayout?.date !== view.date
+    || timedOfficeLayout.service !== view.service
+    || timedOfficeLayout.focus !== view.focus
+    || timedOfficeLayout.deviceSize !== deviceSize()) return null;
+  return timedOfficeLayout;
 }
 
 function resetForNewLocalDate(date = new Date()) {
@@ -276,21 +309,29 @@ function resetForNewLocalDate(date = new Date()) {
 function currentView() {
   const now = new Date();
   const today = localIsoDate(now);
-  const service = noondayPreview ? "noonday" : noondayServiceAt(now, noondayEnabled);
+  const service = noondayPreview ? "noonday" : complinePreview ? "compline" : scheduledServiceAt(now, noondayEnabled, complineEnabled);
   if (service !== activeService) activateService(service);
   const viewOptions = {
     service,
     noondayPreviewRelation: noondayPreview ? noondayPreviewRelation(now) : null,
+    complinePreviewRelation: complinePreview ? complinePreviewRelation(now) : null,
   };
   const baseView = model(bundle, state, today, collects, viewOptions);
   const prayer = matchingPrayerLayout(baseView);
   if (prayer) return model(bundle, state, today, collects, { ...viewOptions, prayerPages: prayer.pages });
-  const layout = matchingNoondayLayout(baseView);
-  if (layout) return model(bundle, state, today, collects, { ...viewOptions, noondayPages: { [baseView.focus]: layout.pages } });
+  const layout = matchingTimedOfficeLayout(baseView);
+  if (layout) {
+    const pageOption = service === "compline" ? "complinePages" : "noondayPages";
+    return model(bundle, state, today, collects, {
+      ...viewOptions,
+      [pageOption]: { [baseView.focus]: layout.pages },
+    });
+  }
   return baseView;
 }
 
 function paint(view) {
+  reader.classList.toggle("focus-mode", Boolean(view.focus));
   deviceScreen.classList.toggle("has-feast", Boolean(view.feast));
   const feastLinksEnabled = feastLinksControl.checked;
   const psalmOffice = psalmOfficeAt();
@@ -298,7 +339,7 @@ function paint(view) {
   screen.innerHTML = screenHtml(view, { feastLinksEnabled, psalmDisplayMode, psalmOffice });
   activeService = view.service || "daily";
   activePsalmOffice = view.service === "daily" ? psalmOffice : null;
-  const layout = matchingPrayerLayout(view) || matchingNoondayLayout(view);
+  const layout = matchingPrayerLayout(view) || matchingTimedOfficeLayout(view);
   if (layout?.fontSize) {
     screen.querySelector(".prayer-text")?.style.setProperty("font-size", `${layout.fontSize}px`);
   }
@@ -346,9 +387,9 @@ function largestWholePrayerFont(probe, prayer, availableHeight, preferredFontSiz
   return null;
 }
 
-function renderNoondayCandidate(probe, candidate, isPsalm) {
+function renderTimedOfficeCandidate(probe, candidate, isPsalm) {
   if (isPsalm) probe.innerHTML = noondayPsalmHtml(candidate);
-  else probe.textContent = candidate;
+  else probe.innerHTML = timedOfficeTextHtml(candidate);
 }
 
 function createMeasurementProbe(text, textStyle, width) {
@@ -360,11 +401,20 @@ function createMeasurementProbe(text, textStyle, width) {
   return probe;
 }
 
-function measuredNoondayTextArea(focus, text, focusStyle) {
+function measuredTimedOfficeTextArea(focus, text, focusStyle) {
   const focusRect = focus.getBoundingClientRect();
   const textRect = text.getBoundingClientRect();
+  const response = focus.querySelector(".noonday-response");
+  const responseStyle = response ? getComputedStyle(response) : null;
   return {
-    height: focusRect.bottom - parseFloat(focusStyle.paddingBottom) - textRect.top,
+    height: timedOfficeAvailableHeight({
+      focusBottom: focusRect.bottom,
+      paddingBottom: parseFloat(focusStyle.paddingBottom),
+      textTop: textRect.top,
+      responseHeight: response?.getBoundingClientRect().height || 0,
+      responseMarginTop: responseStyle ? parseFloat(responseStyle.marginTop || 0) : 0,
+      responseMarginBottom: responseStyle ? parseFloat(responseStyle.marginBottom || 0) : 0,
+    }),
     width: textRect.width,
   };
 }
@@ -396,10 +446,10 @@ function measuredPsalmTextAreas(focus, text, section, focusStyle) {
   try {
     if (citation) citation.style.display = originalCitationDisplay;
     if (subtitle) subtitle.style.display = originalSubtitleDisplay;
-    const firstPage = measuredNoondayTextArea(focus, text, focusStyle);
+    const firstPage = measuredTimedOfficeTextArea(focus, text, focusStyle);
     if (citation) citation.style.display = "none";
     if (subtitle) subtitle.style.display = "none";
-    return [firstPage, measuredNoondayTextArea(focus, text, focusStyle)];
+    return [firstPage, measuredTimedOfficeTextArea(focus, text, focusStyle)];
   } finally {
     if (citation) citation.style.display = originalCitationDisplay;
     if (subtitle) subtitle.style.display = originalSubtitleDisplay;
@@ -408,22 +458,34 @@ function measuredPsalmTextAreas(focus, text, section, focusStyle) {
   }
 }
 
-function measuredNoondayLayout(view) {
-  const section = view.noonday?.sections?.[view.focus];
+function measuredTimedOfficeLayout(view) {
+  const section = (view.noonday || view.compline)?.sections?.[view.focus];
   const focus = screen.querySelector(".noonday-focus");
   const text = screen.querySelector(".noonday-text");
   if (!section?.pages || !focus || !text) return null;
 
+  let temporaryResponse = null;
+  if (section.response && !focus.querySelector(".noonday-response")) {
+    temporaryResponse = document.createElement("span");
+    temporaryResponse.className = "noonday-response";
+    temporaryResponse.textContent = section.response;
+    temporaryResponse.style.visibility = "hidden";
+    focus.append(temporaryResponse);
+  }
+
   const focusStyle = getComputedStyle(focus);
   const textStyle = getComputedStyle(text);
-  const isPsalm = view.focus === "NOONDAY_PSALM";
+  const isPsalm = view.focus?.endsWith("_PSALM");
   const textAreas = isPsalm
     ? measuredPsalmTextAreas(focus, text, section, focusStyle)
-    : [measuredNoondayTextArea(focus, text, focusStyle)];
-  if (textAreas.some(area => area.height <= 0 || area.width <= 0)) return null;
+    : [measuredTimedOfficeTextArea(focus, text, focusStyle)];
+  if (textAreas.some(area => area.height <= 0 || area.width <= 0)) {
+    temporaryResponse?.remove();
+    return null;
+  }
 
   const probe = createMeasurementProbe(text, textStyle, textAreas[0].width);
-  const renderCandidate = (element, candidate) => renderNoondayCandidate(element, candidate, isPsalm);
+  const renderCandidate = (element, candidate) => renderTimedOfficeCandidate(element, candidate, isPsalm);
   try {
     const preferredFontSize = parseFloat(textStyle.fontSize);
     if (section.preservePages) return { pages: section.pages, fontSize: preferredFontSize };
@@ -431,19 +493,16 @@ function measuredNoondayLayout(view) {
       ? Math.max(0, area.height - Math.ceil(preferredFontSize * 0.5))
       : area.height);
 
-    if (!isPsalm) {
-      const wholeTextFont = largestWholePrayerFont(probe, section.text, pageHeights[0], preferredFontSize, renderCandidate);
-      if (wholeTextFont !== null) return { pages: [section.text], fontSize: wholeTextFont };
-    }
-
     probe.style.fontSize = `${preferredFontSize}px`;
-    const pages = paginateBlocksByFit(section.text, (candidate, pageIndex) => {
+    const textPages = paginateBlocksByFit(section.text, (candidate, pageIndex) => {
       renderCandidate(probe, candidate);
       return probe.scrollHeight <= pageHeights[Math.min(pageIndex, pageHeights.length - 1)];
     });
+    const pages = section.closingPage ? [...textPages, section.closingPage] : textPages;
     return { pages, fontSize: preferredFontSize };
   } finally {
     probe.remove();
+    temporaryResponse?.remove();
   }
 }
 
@@ -489,24 +548,29 @@ function measuredPrayerLayout(view) {
   }
 }
 
-function render() {
+function render({ previousTimedOfficePages = null } = {}) {
   if (!bundle || !collects) return;
   resetForNewLocalDate();
   let view = currentView();
   paint(view);
   const measuringPrayer = Boolean(view.focus === "PRAYER" && view.prayer);
-  const layout = measuringPrayer ? measuredPrayerLayout(view) : measuredNoondayLayout(view);
+  const layout = measuringPrayer ? measuredPrayerLayout(view) : measuredTimedOfficeLayout(view);
   if (!layout?.pages.length) return;
   const { pages } = layout;
-  const section = measuringPrayer ? view.prayer : view.noonday.sections[view.focus];
+  const section = measuringPrayer ? view.prayer : (view.noonday || view.compline).sections[view.focus];
   const changed = pages.length !== section.pages.length || pages.some((page, index) => page !== section.pages[index]);
-  const previousLayout = measuringPrayer ? prayerLayout : noondayLayout;
+  const previousLayout = measuringPrayer ? prayerLayout : timedOfficeLayout;
   const fontChanged = previousLayout?.fontSize !== layout.fontSize;
   const measuredLayout = { date: view.date, deviceSize: deviceSize(), ...layout };
   if (measuringPrayer) prayerLayout = measuredLayout;
-  else noondayLayout = { focus: view.focus, ...measuredLayout };
+  else timedOfficeLayout = { service: view.service, focus: view.focus, ...measuredLayout };
   if (!changed && !fontChanged) return;
-  state.focusPage = Math.min(state.focusPage, pages.length - 1);
+  state.focusPage = remapFocusPageAfterLayout(
+    state.focusPage,
+    previousTimedOfficePages || section.pages,
+    pages,
+    section.closingPage,
+  );
   view = currentView();
   paint(view);
 }
@@ -522,6 +586,7 @@ function dispatch(event) {
 }
 
 function showLoadError(error) {
+  reader.classList.remove("focus-mode");
   deviceScreen.classList.remove("has-feast");
   const title = document.createElement("b");
   const detail = document.createElement("div");
@@ -600,6 +665,7 @@ deviceScreen.addEventListener("click", event => {
   });
   if (decision.preventDefault) event.preventDefault();
   if (decision.action === "TODAY" && noondayPreview) exitNoondayPreview();
+  if (decision.action === "TODAY" && complinePreview) exitComplinePreview();
   if (decision.action) dispatch(decision.action);
 });
 
@@ -662,14 +728,40 @@ function startNoondayPreview() {
   setSettingsOpen(false);
 }
 
+function startComplinePreview() {
+  const now = new Date();
+  complinePreview = true;
+  complinePreviewMarker = complinePreviewMarkerAt(now, complineEnabled);
+  complineBoundary.setEnabled(true, now);
+  activeLocalDate = localIsoDate(now);
+  state = createState();
+  activateService("compline");
+  setSettingsOpen(false);
+}
+
 bindNoondayPreference({
   ...noondayContext,
   onChange: enabled => {
     const now = new Date();
-    const nextService = noondayServiceAt(now, enabled);
     noondayEnabled = enabled;
+    prayerSchedule.setOfficeEnabled("noonday", noondayEnabled);
+    const nextService = scheduledServiceAt(now, noondayEnabled, complineEnabled);
     syncNoondayPreviewButton(now);
     noondayBoundary.setEnabled(enabled, now);
+    activateService(nextService);
+    if (bundle && collects) render();
+  },
+});
+
+bindComplinePreference({
+  ...complineContext,
+  onChange: enabled => {
+    const now = new Date();
+    complineEnabled = enabled;
+    prayerSchedule.setOfficeEnabled("compline", complineEnabled);
+    const nextService = scheduledServiceAt(now, noondayEnabled, complineEnabled);
+    syncComplinePreviewButton(now);
+    complineBoundary.setEnabled(enabled, now);
     activateService(nextService);
     if (bundle && collects) render();
   },
@@ -686,14 +778,16 @@ if ("ResizeObserver" in window) {
     const nextSize = deviceSize();
     if (nextSize === observedDeviceSize) return;
     observedDeviceSize = nextSize;
+    const previousTimedOfficePages = timedOfficeLayout?.pages || null;
     invalidateLayouts();
-    render();
+    render({ previousTimedOfficePages });
   }).observe(deviceScreen);
 }
 
 readerMenu.addEventListener("click", () => setSettingsOpen(true));
 openReaderButton.addEventListener("click", () => setSettingsOpen(false));
 previewNoondayButton.addEventListener("click", startNoondayPreview);
+previewComplineButton.addEventListener("click", startComplinePreview);
 browseFeastDaysButton.addEventListener("click", () => setFeastBrowserOpen(true));
 closeFeastBrowserButton.addEventListener("click", () => setFeastBrowserOpen(false));
 feastList.addEventListener("click", event => {
@@ -756,9 +850,15 @@ window.addEventListener("appinstalled", () => { installButton.hidden = true; });
 function rescheduleTimeBoundaries(date) {
   psalmBoundary.reschedule(date);
   noondayBoundary.reschedule(date);
+  complineBoundary.reschedule(date);
 }
 function refreshAt(date, rescheduleTimer = true) {
   syncNoondayPreviewButton(date);
+  syncComplinePreviewButton(date);
+  const scheduledService = scheduledServiceAt(date, noondayEnabled, complineEnabled);
+  const previewToExit = timedOfficePreviewToExit({ noondayPreview, complinePreview, scheduledService });
+  if (previewToExit === "noonday") exitNoondayPreview(date);
+  if (previewToExit === "compline") exitComplinePreview(date);
   if (noondayPreview) {
     refreshNoondayPreview({
       date,
@@ -771,18 +871,27 @@ function refreshAt(date, rescheduleTimer = true) {
     if (rescheduleTimer) rescheduleTimeBoundaries(date);
     return;
   }
-  const noondayResult = refreshNoondayService({
-    date,
-    enabled: noondayEnabled,
-    activeService,
-    resetForNewLocalDate,
-    render: nextService => {
-      activateService(nextService);
-      render();
-    },
-  });
-  activeService = noondayResult.service;
-  if (noondayResult.service === "daily") {
+  if (complinePreview) {
+    refreshComplinePreview({
+      date,
+      marker: complinePreviewMarker,
+      enabled: complineEnabled,
+      exit: exitComplinePreview,
+      resetForNewLocalDate,
+      render: () => { if (bundle && collects) render(); },
+    });
+    if (rescheduleTimer) rescheduleTimeBoundaries(date);
+    return;
+  }
+  const dateChanged = resetForNewLocalDate(date);
+  const service = scheduledService;
+  const serviceChanged = service !== activeService;
+  if ((dateChanged || serviceChanged) && bundle && collects) {
+    activateService(service);
+    render();
+  }
+  activeService = service;
+  if (service === "daily") {
     refreshPsalmDisplay({
       date,
       activeOffice: activePsalmOffice,

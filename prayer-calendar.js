@@ -4,12 +4,14 @@ export const PRAYER_TIME_OPTIONS = Object.freeze({
   morning: Object.freeze(["off", "05:00", "06:00", "07:00"]),
   noonday: Object.freeze(["off", "11:00", "12:00", "13:00"]),
   evening: Object.freeze(["off", "19:00", "20:00", "21:00"]),
+  compline: Object.freeze(["off", "21:00", "22:00", "23:00"]),
 });
 
 const OFFICE_DETAILS = Object.freeze({
   morning: Object.freeze({ label: "Morning Prayer", storageKey: "simple-liturgy.prayer-reminders.morning" }),
   noonday: Object.freeze({ label: "Noonday Prayer", storageKey: "simple-liturgy.prayer-reminders.noonday" }),
   evening: Object.freeze({ label: "Evening Prayer", storageKey: "simple-liturgy.prayer-reminders.evening" }),
+  compline: Object.freeze({ label: "Compline", storageKey: "simple-liturgy.prayer-reminders.compline" }),
 });
 
 function validSelection(office, value) {
@@ -35,6 +37,20 @@ export function savePrayerSelection(storage, office, value) {
   } catch {
     return { value, persisted: false };
   }
+}
+
+export function prayerReminderConflict(selections) {
+  const evening = validSelection("evening", selections?.evening);
+  const compline = validSelection("compline", selections?.compline);
+  if (evening === "off" || evening !== compline) return null;
+  return { offices: [OFFICE_DETAILS.evening.label, OFFICE_DETAILS.compline.label], time: evening };
+}
+
+function prayerTimeLabel(time) {
+  const [hours, minutes] = time.split(":").map(Number);
+  const hour = hours % 12 || 12;
+  const minuteLabel = minutes ? `:${String(minutes).padStart(2, "0")}` : "";
+  return `${hour}${minuteLabel} ${hours >= 12 ? "p.m." : "a.m."}`;
 }
 
 export function escapeIcsText(value) {
@@ -160,6 +176,7 @@ export function bindPrayerReminderSettings({
   controls,
   button,
   status,
+  conflict,
   importHelp,
   storage,
   appUrl,
@@ -167,26 +184,37 @@ export function bindPrayerReminderSettings({
   handoffCalendar = handoffPrayerCalendar,
 }) {
   const controlList = Array.from(controls);
+  const controlsByOffice = new Map(controlList.map(control => [control.dataset.prayerOffice, control]));
+  const selectedValues = () => Object.fromEntries(controlList
+    .filter(control => !control.disabled)
+    .map(control => [control.dataset.prayerOffice, control.value]));
+  const syncConflict = () => {
+    if (!conflict) return;
+    const collision = prayerReminderConflict(selectedValues());
+    conflict.hidden = !collision;
+    conflict.textContent = collision
+      ? `${collision.offices.join(" and ")} are both set for ${prayerTimeLabel(collision.time)} Your calendar will remind you about both.`
+      : "";
+  };
   const savedSelections = loadPrayerSelections(storage);
   for (const control of controlList) {
-    control.checked = savedSelections[control.dataset.prayerOffice] === control.value;
+    control.value = savedSelections[control.dataset.prayerOffice];
     control.addEventListener("change", () => {
-      if (!control.checked) return;
       const result = savePrayerSelection(storage, control.dataset.prayerOffice, control.value);
+      syncConflict();
       importHelp.hidden = true;
       status.textContent = result?.persisted
         ? "Prayer times saved. Create a new calendar file when you’re ready."
         : "Prayer times are set for this session, but your browser couldn’t save them for next time.";
     });
   }
+  syncConflict();
 
   button.addEventListener("click", async () => {
     if (button.disabled) return;
     importHelp.hidden = true;
     const calendar = buildCalendar({
-      selections: Object.fromEntries(controlList
-        .filter(control => control.checked)
-        .map(control => [control.dataset.prayerOffice, control.value])),
+      selections: selectedValues(),
       appUrl,
     });
     if (!calendar) {
@@ -217,6 +245,18 @@ export function bindPrayerReminderSettings({
       button.textContent = "Create calendar reminders";
     }
   });
+
+  return {
+    setOfficeEnabled(office, enabled) {
+      const control = controlsByOffice.get(office);
+      const row = control?.closest("[data-prayer-reminder-row]");
+      if (!control || !row) return;
+      const visible = Boolean(enabled);
+      control.disabled = !visible;
+      row.hidden = !visible;
+      syncConflict();
+    },
+  };
 }
 
 function isShareCancellation(error) {

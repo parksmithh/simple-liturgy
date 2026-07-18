@@ -1,4 +1,4 @@
-export const APP_VERSION = "0.3.93";
+export const APP_VERSION = "0.3.94";
 export const APP_CHANNEL = "production";
 
 export function appVersionLabel() {

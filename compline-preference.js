@@ -1,4 +1,4 @@
-import { createBoundaryTimer } from "./boundary-timer.js?v=0.3.93";
+import { createBoundaryTimer } from "./boundary-timer.js?v=0.3.94";
 
 const STORAGE_KEY = "simple-liturgy.compline-enabled";
 
@@ -11,7 +11,9 @@ export function initializeComplinePreference({ control, storage }) {
 export function setComplineEnabled({ control, storage }, enabled) {
   const normalized = Boolean(enabled);
   control.checked = normalized;
-  storage.setItem(STORAGE_KEY, String(normalized));
+  try {
+    storage.setItem(STORAGE_KEY, String(normalized));
+  } catch {}
   return normalized;
 }
 

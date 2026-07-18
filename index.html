@@ -25,10 +25,10 @@
   <meta name="twitter:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=3">
   <meta name="twitter:image:alt" content="Simplified Simple Liturgy reader showing Psalms, Old Testament, New Testament, and Gospel citations">
   <title>Simple Liturgy | BCP 1979 Daily Office Reader</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=0.3.93">
-  <link rel="icon" href="./icon.svg?v=0.3.93" type="image/svg+xml">
-  <link rel="stylesheet" href="./design-tokens.css?v=0.3.93">
-  <link rel="stylesheet" href="./app.css?v=0.3.93">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.3.94">
+  <link rel="icon" href="./icon.svg?v=0.3.94" type="image/svg+xml">
+  <link rel="stylesheet" href="./design-tokens.css?v=0.3.94">
+  <link rel="stylesheet" href="./app.css?v=0.3.94">
 </head>
 <body>
   <svg class="reader-art-filters" width="0" height="0" aria-hidden="true" focusable="false">
@@ -134,6 +134,7 @@
             <option value="05:00">5 a.m.</option>
             <option value="06:00">6 a.m.</option>
             <option value="07:00">7 a.m.</option>
+            <option value="08:00">8 a.m.</option>
           </select>
         </div>
         <div class="prayer-time-row" data-prayer-reminder-row="noonday">
@@ -149,6 +150,7 @@
           <label for="prayer-reminder-evening">Evening Prayer</label>
           <select class="prayer-time-select" id="prayer-reminder-evening" data-prayer-office="evening">
             <option value="off">Off</option>
+            <option value="18:00">6 p.m.</option>
             <option value="19:00">7 p.m.</option>
             <option value="20:00">8 p.m.</option>
             <option value="21:00">9 p.m.</option>
@@ -164,7 +166,6 @@
           </select>
         </div>
       </div>
-      <p class="settings-warning" id="prayer-reminder-conflict" role="status" aria-live="polite" hidden></p>
       <p class="settings-note">Calendar owns these recurring events. Change or delete them there before importing a replacement. Importing another file can create duplicates.</p>
       <button class="settings-action" id="create-prayer-reminders" type="button">Create calendar reminders</button>
       <p class="settings-note" id="prayer-reminder-status" aria-live="polite">Your calendar may ask you to import the file separately.</p>
@@ -344,6 +345,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="./app.js?v=0.3.93"></script>
+  <script type="module" src="./app.js?v=0.3.94"></script>
 </body>
 </html>

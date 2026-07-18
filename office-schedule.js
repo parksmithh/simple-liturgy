@@ -1,5 +1,5 @@
-import { complineServiceAt } from "./compline-preference.js?v=0.3.93";
-import { noondayServiceAt } from "./noonday-preference.js?v=0.3.93";
+import { complineServiceAt } from "./compline-preference.js?v=0.3.94";
+import { noondayServiceAt } from "./noonday-preference.js?v=0.3.94";
 
 export function scheduledServiceAt(date = new Date(), noondayEnabled = true, complineEnabled = true) {
   const noondayService = noondayServiceAt(date, noondayEnabled);

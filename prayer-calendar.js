@@ -1,9 +1,9 @@
 export const CALENDAR_FILENAME = "simple-liturgy-prayer-reminders.ics";
 
 export const PRAYER_TIME_OPTIONS = Object.freeze({
-  morning: Object.freeze(["off", "05:00", "06:00", "07:00"]),
+  morning: Object.freeze(["off", "05:00", "06:00", "07:00", "08:00"]),
   noonday: Object.freeze(["off", "11:00", "12:00", "13:00"]),
-  evening: Object.freeze(["off", "19:00", "20:00", "21:00"]),
+  evening: Object.freeze(["off", "18:00", "19:00", "20:00", "21:00"]),
   compline: Object.freeze(["off", "21:00", "22:00", "23:00"]),
 });
 
@@ -37,20 +37,6 @@ export function savePrayerSelection(storage, office, value) {
   } catch {
     return { value, persisted: false };
   }
-}
-
-export function prayerReminderConflict(selections) {
-  const evening = validSelection("evening", selections?.evening);
-  const compline = validSelection("compline", selections?.compline);
-  if (evening === "off" || evening !== compline) return null;
-  return { offices: [OFFICE_DETAILS.evening.label, OFFICE_DETAILS.compline.label], time: evening };
-}
-
-function prayerTimeLabel(time) {
-  const [hours, minutes] = time.split(":").map(Number);
-  const hour = hours % 12 || 12;
-  const minuteLabel = minutes ? `:${String(minutes).padStart(2, "0")}` : "";
-  return `${hour}${minuteLabel} ${hours >= 12 ? "p.m." : "a.m."}`;
 }
 
 export function escapeIcsText(value) {
@@ -176,7 +162,6 @@ export function bindPrayerReminderSettings({
   controls,
   button,
   status,
-  conflict,
   importHelp,
   storage,
   appUrl,
@@ -188,27 +173,17 @@ export function bindPrayerReminderSettings({
   const selectedValues = () => Object.fromEntries(controlList
     .filter(control => !control.disabled)
     .map(control => [control.dataset.prayerOffice, control.value]));
-  const syncConflict = () => {
-    if (!conflict) return;
-    const collision = prayerReminderConflict(selectedValues());
-    conflict.hidden = !collision;
-    conflict.textContent = collision
-      ? `${collision.offices.join(" and ")} are both set for ${prayerTimeLabel(collision.time)} Your calendar will remind you about both.`
-      : "";
-  };
   const savedSelections = loadPrayerSelections(storage);
   for (const control of controlList) {
     control.value = savedSelections[control.dataset.prayerOffice];
     control.addEventListener("change", () => {
       const result = savePrayerSelection(storage, control.dataset.prayerOffice, control.value);
-      syncConflict();
       importHelp.hidden = true;
       status.textContent = result?.persisted
         ? "Prayer times saved. Create a new calendar file when you’re ready."
         : "Prayer times are set for this session, but your browser couldn’t save them for next time.";
     });
   }
-  syncConflict();
 
   button.addEventListener("click", async () => {
     if (button.disabled) return;
@@ -246,16 +221,39 @@ export function bindPrayerReminderSettings({
     }
   });
 
+  const setOfficeVisibility = (office, enabled) => {
+    const control = controlsByOffice.get(office);
+    const row = control?.closest("[data-prayer-reminder-row]");
+    if (!control || !row) return;
+    const visible = Boolean(enabled);
+    control.disabled = !visible;
+    row.hidden = !visible;
+  };
+
+  const setComplineEnabled = enabled => {
+    const complineEnabled = Boolean(enabled);
+    const evening = controlsByOffice.get("evening");
+    const ninePm = Array.from(evening?.options || []).find(option => option.value === "21:00");
+    const resetEvening = complineEnabled && evening?.value === "21:00";
+
+    if (resetEvening) evening.value = "off";
+    if (ninePm) {
+      ninePm.disabled = complineEnabled;
+      ninePm.hidden = complineEnabled;
+    }
+    setOfficeVisibility("compline", complineEnabled);
+
+    if (resetEvening) {
+      const result = savePrayerSelection(storage, "evening", "off");
+      importHelp.hidden = true;
+      status.textContent = "Evening Prayer was turned off because Compline begins at 9 p.m. If you previously imported that reminder, delete the old 9 p.m. event from your calendar before creating a replacement."
+        + (result?.persisted ? "" : " This change is only set for this session.");
+    }
+  };
+
   return {
-    setOfficeEnabled(office, enabled) {
-      const control = controlsByOffice.get(office);
-      const row = control?.closest("[data-prayer-reminder-row]");
-      if (!control || !row) return;
-      const visible = Boolean(enabled);
-      control.disabled = !visible;
-      row.hidden = !visible;
-      syncConflict();
-    },
+    setNoondayEnabled: enabled => setOfficeVisibility("noonday", enabled),
+    setComplineEnabled,
   };
 }
 

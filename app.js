@@ -1,19 +1,21 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.94";
-import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.94";
-import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.94";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.94";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.94";
-import { scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.94";
-import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.94";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.94";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.94";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.94";
-import { appVersionLabel } from "./version.js?v=0.3.94";
+import { initializeAnalytics } from "./analytics.js?v=0.3.96";
+import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.96";
+import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.96";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.96";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.96";
+import { scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.96";
+import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.96";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.96";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.96";
+import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.96";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.96";
+import { appVersionLabel } from "./version.js?v=0.3.96";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.94", CONTENT_ROOT);
-const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.96", CONTENT_ROOT);
+const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.96", CONTENT_ROOT);
+const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.96", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
 const screen = document.querySelector("#screen");
@@ -88,6 +90,12 @@ let complinePreview = false;
 let complinePreviewMarker = null;
 let lastVerticalKey = null;
 let lastVerticalKeyAt = -Infinity;
+let loadAttempt = 0;
+const readingPackLoader = createReadingPackLoader({
+  indexUrl: PACK_INDEX_URL,
+  packUrl: PACK_URL,
+  parseBundle,
+});
 
 function invalidateLayouts() {
   prayerLayout = null;
@@ -580,6 +588,22 @@ function dispatch(event) {
     focusPageCounts: focusPageCounts(view),
     focusOrder: view.focusOrder,
   });
+  const targetDate = dateWithOffset(localIsoDate(), state.offset);
+  if (!bundle.dates.has(targetDate)) {
+    const targetBundle = bundle;
+    const targetOffset = state.offset;
+    screen.textContent = "Loading readings…";
+    readingPackLoader.loadDay(targetDate)
+      .then(partial => {
+        if (bundle !== targetBundle) return;
+        mergeReadingBundle(bundle, partial);
+        if (state.offset === targetOffset) render();
+      })
+      .catch(error => {
+        if (bundle === targetBundle && state.offset === targetOffset) showLoadError(error);
+      });
+    return;
+  }
   render();
 }
 
@@ -600,18 +624,64 @@ function showLoadError(error) {
   screen.replaceChildren(title, detail, retry);
 }
 
+function cacheCompletePackForOfflineUse() {
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.ready
+    .then(registration => registration.active?.postMessage({ type: "CACHE_COMPLETE_READING_PACK" }))
+    .catch(() => {});
+}
+
 async function loadPack() {
+  const attempt = ++loadAttempt;
+  const today = localIsoDate();
   screen.textContent = "Loading readings…";
+  bundle = null;
+  collects = new Map();
+
+  fetch(COLLECTS_URL, { priority: "high" })
+    .then(response => {
+      if (!response.ok) throw new Error(`Prayers could not be loaded (${response.status})`);
+      return response.text();
+    })
+    .then(text => {
+      if (attempt !== loadAttempt) return;
+      collects = parseCollects(text);
+      invalidateLayouts();
+      if (bundle) render();
+    })
+    .catch(error => {
+      if (attempt !== loadAttempt) return;
+      collects = null;
+      showLoadError(error);
+    });
+
   try {
-    const [packResponse, collectsResponse] = await Promise.all([fetch(PACK_URL), fetch(COLLECTS_URL)]);
-    if (!packResponse.ok) throw new Error(`Readings could not be loaded (${packResponse.status})`);
-    if (!collectsResponse.ok) throw new Error(`Prayers could not be loaded (${collectsResponse.status})`);
-    bundle = parseBundle(await packResponse.text());
-    collects = parseCollects(await collectsResponse.text());
-    if (!feastBrowser.hidden) renderFeastList();
+    bundle = await readingPackLoader.loadDay(today);
+    if (attempt !== loadAttempt) return;
     render();
+
+    loadAroundToday(readingPackLoader, today, {
+      onDay: (date, partial) => {
+        if (attempt !== loadAttempt) return;
+        mergeReadingBundle(bundle, partial);
+        if (dateWithOffset(localIsoDate(), state.offset) === date) render();
+      },
+    }).then(completeBundle => {
+      if (attempt !== loadAttempt || !completeBundle) return;
+      bundle = completeBundle;
+      cacheCompletePackForOfflineUse();
+      if (!feastBrowser.hidden) renderFeastList();
+      render();
+    }).catch(() => {});
   } catch (error) {
-    showLoadError(error);
+    try {
+      bundle = await readingPackLoader.loadFullBundle();
+      if (attempt !== loadAttempt) return;
+      cacheCompletePackForOfflineUse();
+      render();
+    } catch (fullPackError) {
+      if (attempt === loadAttempt) showLoadError(fullPackError);
+    }
   }
 }
 
@@ -909,12 +979,6 @@ window.addEventListener("focus", refreshForCurrentTime);
 window.addEventListener("pageshow", refreshForCurrentTime);
 
 if ("serviceWorker" in navigator) {
-  let reloadingForUpdate = false;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (reloadingForUpdate) return;
-    reloadingForUpdate = true;
-    window.location.reload();
-  });
   navigator.serviceWorker
     .register("./service-worker.js", { updateViaCache: "none" })
     .then(registration => registration.update())

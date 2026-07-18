@@ -1,3 +1,5 @@
+import { createBoundaryTimer } from "./boundary-timer.js?v=0.3.93";
+
 const STORAGE_KEY = "simple-liturgy.noonday-enabled";
 
 export function initializeNoondayPreference({ control, storage }) {
@@ -105,34 +107,22 @@ export function createNoondayBoundaryTimer({
   onBoundary,
 }) {
   let enabled = false;
-  let timer = null;
-
-  function clear() {
-    if (timer !== null) clearTimer(timer);
-    timer = null;
-  }
-
-  function schedule(date = now()) {
-    clear();
-    if (!enabled) return;
-    timer = setTimer(() => {
-      timer = null;
-      const boundaryTime = now();
-      try {
-        onBoundary(boundaryTime);
-      } finally {
-        schedule(boundaryTime);
-      }
-    }, millisecondsUntilNoondayBoundary(date));
-  }
-
-  return {
-    reschedule: schedule,
-    setEnabled(nextEnabled, date = now()) {
+  const timer = createBoundaryTimer({
+    millisecondsUntilBoundary: millisecondsUntilNoondayBoundary,
+    isActive: () => enabled,
+    setState(nextEnabled) {
       enabled = Boolean(nextEnabled);
-      schedule(date);
       return enabled;
     },
-    stop: clear,
+    now,
+    setTimer,
+    clearTimer,
+    onBoundary,
+  });
+
+  return {
+    reschedule: timer.reschedule,
+    setEnabled: timer.setState,
+    stop: timer.stop,
   };
 }

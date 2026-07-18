@@ -1,3 +1,5 @@
+import { createBoundaryTimer } from "./boundary-timer.js?v=0.3.93";
+
 const STORAGE_KEY = "simple-liturgy.psalm-display";
 const BY_TIME_OF_DAY = "by-time-of-day";
 const MODES = new Set(["together", BY_TIME_OF_DAY]);
@@ -64,35 +66,26 @@ export function createPsalmBoundaryTimer({
   onBoundary,
 }) {
   let displayMode = "together";
-  let timer = null;
-
-  function clear() {
-    if (timer !== null) clearTimer(timer);
-    timer = null;
-  }
-
-  function schedule(date = now()) {
-    clear();
-    if (displayMode !== BY_TIME_OF_DAY) return;
-    timer = setTimer(() => {
-      timer = null;
-      const boundaryTime = now();
-      try {
-        onBoundary(boundaryTime);
-      } finally {
-        schedule(boundaryTime);
-      }
-    }, millisecondsUntilPsalmBoundary(date));
-  }
+  const timer = createBoundaryTimer({
+    millisecondsUntilBoundary: millisecondsUntilPsalmBoundary,
+    isActive: () => displayMode === BY_TIME_OF_DAY,
+    setState(mode) {
+      displayMode = mode;
+      return displayMode;
+    },
+    now,
+    setTimer,
+    clearTimer,
+    onBoundary,
+  });
 
   return {
-    reschedule: schedule,
+    reschedule: timer.reschedule,
     setMode(mode, date = now()) {
       if (!MODES.has(mode)) return false;
-      displayMode = mode;
-      schedule(date);
+      timer.setState(mode, date);
       return true;
     },
-    stop: clear,
+    stop: timer.stop,
   };
 }

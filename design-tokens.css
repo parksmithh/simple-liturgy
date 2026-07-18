@@ -25,9 +25,10 @@
   --type-reader-banner: var(--type-reader-date);
   --type-reader-citation: .92em;
   --type-reader-focus-label: var(--type-reader-label);
-  --type-reader-focus-citation: clamp(30px, 8vw, 56px);
+  --type-reader-focus-citation: clamp(30px, 8vw, 52px);
   --type-reader-prayer: clamp(20px, 4.8vw, 34px);
-  --type-reader-noonday: clamp(17px, 4vw, 30px);
+  --type-reader-noonday: clamp(20px, 4.8vw, 30px);
+  --type-reader-aside: .88em;
   --type-reader-symbol: .82em;
   --type-reader-warning: .62em;
   --type-reader-hint: .62em;
@@ -130,7 +131,7 @@
     --type-reader-label: .68em;
     --type-reader-banner: var(--type-reader-date);
     --type-reader-citation: 1.12em;
-    --type-reader-focus-citation: clamp(46px, 13vh, 82px);
+    --type-reader-focus-citation: clamp(46px, 13vh, 76px);
     --type-reader-prayer: clamp(20px, 5vh, 34px);
   }
 
@@ -144,7 +145,7 @@
     --type-reader-label: clamp(13px, 3.5vw, 17px);
     --type-reader-citation: clamp(23px, 6.5vw, 34px);
     --type-reader-focus-label: clamp(16px, 4.8vw, 22px);
-    --type-reader-focus-citation: clamp(28px, 7.2vw, 48px);
+    --type-reader-focus-citation: clamp(28px, 7.2vw, 44px);
     --space-reader-section: 24px;
     --space-reading-group: 24px;
   }

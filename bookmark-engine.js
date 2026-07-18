@@ -1,4 +1,4 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.93";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.94";
 
 export function parseBundle(text) {
   const readings = new Map();

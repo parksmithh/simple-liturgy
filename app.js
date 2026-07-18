@@ -1,18 +1,18 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.93";
-import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.93";
-import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.93";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.93";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.93";
-import { scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.93";
-import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.93";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.93";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.93";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.93";
-import { appVersionLabel } from "./version.js?v=0.3.93";
+import { initializeAnalytics } from "./analytics.js?v=0.3.94";
+import { controlModel, createState, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginateBlocksByFit, paginatePrayerByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.94";
+import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.94";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.94";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.94";
+import { scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.94";
+import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.94";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.94";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.94";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.94";
+import { appVersionLabel } from "./version.js?v=0.3.94";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.93", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.94", CONTENT_ROOT);
 const COLLECTS_URL = new URL("data/collects/collects.json", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -27,7 +27,6 @@ const psalmControls = document.querySelectorAll('input[name="psalm-display"]');
 const prayerReminderControls = document.querySelectorAll("[data-prayer-office]");
 const createPrayerRemindersButton = document.querySelector("#create-prayer-reminders");
 const prayerReminderStatus = document.querySelector("#prayer-reminder-status");
-const prayerReminderConflict = document.querySelector("#prayer-reminder-conflict");
 const prayerImportHelp = document.querySelector("#prayer-import-help");
 const noondayControl = document.querySelector("#noonday-enabled");
 const previewNoondayButton = document.querySelector("#preview-noonday");
@@ -50,7 +49,6 @@ const prayerSchedule = bindPrayerReminderSettings({
   controls: prayerReminderControls,
   button: createPrayerRemindersButton,
   status: prayerReminderStatus,
-  conflict: prayerReminderConflict,
   importHelp: prayerImportHelp,
   storage: window.localStorage,
   appUrl: canonicalUrl,
@@ -125,8 +123,8 @@ let psalmDisplayMode = initializePsalmPreference(psalmContext);
 psalmBoundary.setMode("by-time-of-day");
 let noondayEnabled = initializeNoondayPreference(noondayContext);
 let complineEnabled = initializeComplinePreference(complineContext);
-prayerSchedule.setOfficeEnabled("noonday", noondayEnabled);
-prayerSchedule.setOfficeEnabled("compline", complineEnabled);
+prayerSchedule.setNoondayEnabled(noondayEnabled);
+prayerSchedule.setComplineEnabled(complineEnabled);
 
 const initialServiceTime = new Date();
 activeService = scheduledServiceAt(initialServiceTime, noondayEnabled, complineEnabled);
@@ -744,7 +742,7 @@ bindNoondayPreference({
   onChange: enabled => {
     const now = new Date();
     noondayEnabled = enabled;
-    prayerSchedule.setOfficeEnabled("noonday", noondayEnabled);
+    prayerSchedule.setNoondayEnabled(noondayEnabled);
     const nextService = scheduledServiceAt(now, noondayEnabled, complineEnabled);
     syncNoondayPreviewButton(now);
     noondayBoundary.setEnabled(enabled, now);
@@ -758,7 +756,7 @@ bindComplinePreference({
   onChange: enabled => {
     const now = new Date();
     complineEnabled = enabled;
-    prayerSchedule.setOfficeEnabled("compline", complineEnabled);
+    prayerSchedule.setComplineEnabled(complineEnabled);
     const nextService = scheduledServiceAt(now, noondayEnabled, complineEnabled);
     syncComplinePreviewButton(now);
     complineBoundary.setEnabled(enabled, now);

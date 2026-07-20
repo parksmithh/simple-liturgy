@@ -202,13 +202,9 @@ export function bindPrayerReminderSettings({
     button.textContent = "Preparing…";
     try {
       const result = await handoffCalendar(calendar);
-      if (result.status === "shared") {
-        status.textContent = "Calendar file shared. Finish adding it in your calendar.";
-      } else if (result.status === "download_requested") {
+      if (result.status === "download_requested") {
         status.textContent = "Calendar file download requested. Check your downloads, then open it with a compatible calendar.";
         importHelp.hidden = false;
-      } else if (result.status === "cancelled") {
-        status.textContent = "Calendar file not shared. Your current prayer times are still selected.";
       } else {
         status.textContent = "The calendar file couldn’t be prepared. Please try again.";
       }
@@ -230,17 +226,15 @@ export function bindPrayerReminderSettings({
     row.hidden = !visible;
   };
 
+  const evening = controlsByOffice.get("evening");
+  const ninePm = Array.from(evening?.options || []).find(option => option.value === "21:00");
   const setComplineEnabled = enabled => {
     const complineEnabled = Boolean(enabled);
-    const evening = controlsByOffice.get("evening");
-    const ninePm = Array.from(evening?.options || []).find(option => option.value === "21:00");
     const resetEvening = complineEnabled && evening?.value === "21:00";
 
     if (resetEvening) evening.value = "off";
-    if (ninePm) {
-      ninePm.disabled = complineEnabled;
-      ninePm.hidden = complineEnabled;
-    }
+    if (complineEnabled) ninePm?.remove();
+    else if (ninePm && !Array.from(evening?.options || []).includes(ninePm)) evening.add(ninePm);
     setOfficeVisibility("compline", complineEnabled);
 
     if (resetEvening) {
@@ -257,43 +251,15 @@ export function bindPrayerReminderSettings({
   };
 }
 
-function isShareCancellation(error) {
-  return error?.name === "AbortError";
-}
-
 export async function handoffPrayerCalendar(calendarText, {
-  navigatorObject = globalThis.navigator,
   documentObject = globalThis.document,
   URLObject = globalThis.URL,
-  FileConstructor = globalThis.File,
   BlobConstructor = globalThis.Blob,
   setTimer = globalThis.setTimeout,
 } = {}) {
-  let file = null;
-  if (FileConstructor) {
-    try {
-      file = new FileConstructor([calendarText], CALENDAR_FILENAME, { type: "text/calendar;charset=utf-8" });
-    } catch {}
-  }
-
-  let canShareFile = false;
-  if (file && typeof navigatorObject?.share === "function" && typeof navigatorObject?.canShare === "function") {
-    try {
-      canShareFile = navigatorObject.canShare({ files: [file] });
-    } catch {}
-  }
-  if (canShareFile) {
-    try {
-      await navigatorObject.share({ files: [file], title: "Simple Liturgy prayer reminders" });
-      return { status: "shared" };
-    } catch (error) {
-      if (isShareCancellation(error)) return { status: "cancelled" };
-    }
-  }
-
   let objectUrl = null;
   try {
-    const blob = file || new BlobConstructor([calendarText], { type: "text/calendar;charset=utf-8" });
+    const blob = new BlobConstructor([calendarText], { type: "text/calendar;charset=utf-8" });
     objectUrl = URLObject.createObjectURL(blob);
     const link = documentObject.createElement("a");
     link.href = objectUrl;

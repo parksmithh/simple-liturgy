@@ -192,14 +192,18 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .today-chevron { color: var(--red); font-size: var(--type-today-chevron); font-weight: var(--font-weight-black); line-height: 1; }
 .today-chevron-before { margin-right: -3px; }
 .today-chevron-after { margin-left: -3px; }
-.date-value { display: inline-flex; align-items: baseline; white-space: nowrap; }
-.service-label { margin-left: .5em; color: var(--red); font-weight: var(--font-weight-bold); letter-spacing: .02em; text-transform: uppercase; }
+.date-value { display: inline-flex; max-width: 100%; align-items: baseline; column-gap: clamp(.3em, 1.2vw, .5em); white-space: nowrap; }
+.service-separator { flex: none; color: var(--ink); font-weight: var(--font-weight-regular); }
+.service-label { margin-left: 0; color: var(--red); font-weight: var(--font-weight-bold); letter-spacing: .02em; text-transform: uppercase; }
 .meta { font-weight: var(--font-weight-regular); letter-spacing: .02em; }
 .feast-banner { position: absolute; z-index: 2; top: clamp(13px, 3vw, 22px); right: clamp(13px, 3vw, 22px); width: fit-content; max-width: 48%; overflow: hidden; border: 1px solid var(--red); background: var(--red); color: var(--color-white); padding: 1px 4px; font-size: var(--type-reader-banner); font-weight: var(--font-weight-bold); text-overflow: ellipsis; text-transform: uppercase; letter-spacing: normal; white-space: nowrap; }
-.focus-toolbar { display: grid; flex: none; min-height: 40px; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; }
-.focus-back { display: grid; width: 40px; height: 40px; place-items: center; border: 0; background: transparent; color: var(--ink); padding: 0; cursor: pointer; }
-.focus-back svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.25; stroke-linecap: square; stroke-linejoin: miter; }
-.focus-service-label { min-width: 0; overflow: hidden; color: var(--red); font-size: var(--type-reader-label); font-weight: var(--font-weight-regular); letter-spacing: .06em; text-align: center; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.focus-toolbar { display: grid; flex: none; min-height: 44px; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; column-gap: 8px; }
+.focus-back, .focus-next { display: grid; width: 44px; height: 44px; place-items: center; border: 0; background: transparent; padding: 0; cursor: pointer; }
+.focus-back { justify-self: start; color: var(--ink); }
+.focus-next { justify-self: end; color: var(--red); }
+.focus-back svg, .focus-next svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.25; stroke-linecap: square; stroke-linejoin: miter; }
+.focus-service-label { display: flex; align-items: center; justify-content: center; justify-self: center; min-width: 0; max-width: 100%; min-height: 28px; overflow: hidden; border: 1px solid var(--red); border-radius: 999px; background: transparent; color: var(--red); padding: 4px clamp(10px, 3vw, 16px); font-size: var(--type-reader-label); font-weight: var(--font-weight-regular); letter-spacing: .06em; line-height: 1; text-align: center; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; cursor: pointer; }
+.focus-toolbar button:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .grid {
   display: grid;
   flex: 1;
@@ -223,7 +227,6 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .focus { min-height: 0; flex: 1; justify-content: center; margin-top: clamp(8px, 3vw, 18px); overflow: hidden; }
 .focus .label { font-size: var(--type-reader-focus-label); }
 .focus-cite { margin-top: 7px; max-width: 100%; font-size: var(--type-reader-focus-citation); font-weight: var(--font-weight-reader-content); line-height: 1.05; }
-.focus-next-hint { position: absolute; z-index: 3; top: 50%; right: max(12px, env(safe-area-inset-right)); width: clamp(8px, 1.8vw, 13px); height: clamp(8px, 1.8vw, 13px); border-top: 2px solid var(--red); border-right: 2px solid var(--red); opacity: .82; pointer-events: none; transform: translateY(-50%) rotate(45deg); }
 .overview-focus-hint, .focus-continue-hint { position: absolute; z-index: 3; bottom: max(14px, calc(env(safe-area-inset-bottom) + 6px)); left: 50%; color: var(--ink); font-size: var(--type-reader-hint); font-weight: var(--font-weight-regular); letter-spacing: .08em; opacity: .72; pointer-events: none; transform: translateX(-50%); white-space: nowrap; }
 .install-tooltip-active .overview-focus-hint { display: none; }
 .reader.focus-mode .install-tooltip { display: none !important; }

@@ -1,9 +1,9 @@
-const CACHE = "daily-office-reader-v0.3.97";
+const CACHE = "daily-office-reader-v0.3.99";
 const CACHE_PREFIX = "daily-office-reader-v";
 const CONTENT_ROOT = self.registration.scope.endsWith("/web/") ? "../" : "./";
-const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.97`;
-const PACK_INDEX_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.idx?v=0.3.97`;
-const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json?v=0.3.97`;
+const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.99`;
+const PACK_INDEX_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.idx?v=0.3.99`;
+const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json?v=0.3.99`;
 const PACK_PATH = new URL(PACK_URL, self.registration.scope).pathname;
 const PACK_INDEX_PATH = new URL(PACK_INDEX_URL, self.registration.scope).pathname;
 const COLLECTS_PATH = new URL(COLLECTS_URL, self.registration.scope).pathname;
@@ -15,28 +15,28 @@ const SHELL = [
   "./LICENSE.md",
   "./NOTICE",
   "./CONTRIBUTING.md",
-  "./design-tokens.css?v=0.3.97",
-  "./app.css?v=0.3.97",
-  "./app.js?v=0.3.97",
-  "./analytics.js?v=0.3.97",
-  "./bookmark-engine.js?v=0.3.97",
-  "./boundary-timer.js?v=0.3.97",
-  "./compline-preference.js?v=0.3.97",
-  "./feast-link-preference.js?v=0.3.97",
-  "./feast-wikipedia.js?v=0.3.97",
-  "./noonday-preference.js?v=0.3.97",
-  "./office-schedule.js?v=0.3.97",
-  "./pixel-art.js?v=0.3.97",
-  "./prayer-calendar.js?v=0.3.97",
-  "./psalm-preference.js?v=0.3.97",
-  "./reading-pack-loader.js?v=0.3.97",
-  "./theme.js?v=0.3.97",
-  "./version.js?v=0.3.97",
-  "./manifest.webmanifest?v=0.3.97",
-  "./icon.svg?v=0.3.97",
-  "./apple-touch-icon.png?v=0.3.97",
-  "./icon-192.png?v=0.3.97",
-  "./icon-512.png?v=0.3.97",
+  "./design-tokens.css?v=0.3.99",
+  "./app.css?v=0.3.99",
+  "./app.js?v=0.3.99",
+  "./analytics.js?v=0.3.99",
+  "./bookmark-engine.js?v=0.3.99",
+  "./boundary-timer.js?v=0.3.99",
+  "./compline-preference.js?v=0.3.99",
+  "./feast-link-preference.js?v=0.3.99",
+  "./feast-wikipedia.js?v=0.3.99",
+  "./noonday-preference.js?v=0.3.99",
+  "./office-schedule.js?v=0.3.99",
+  "./pixel-art.js?v=0.3.99",
+  "./prayer-calendar.js?v=0.3.99",
+  "./psalm-preference.js?v=0.3.99",
+  "./reading-pack-loader.js?v=0.3.99",
+  "./theme.js?v=0.3.99",
+  "./version.js?v=0.3.99",
+  "./manifest.webmanifest?v=0.3.99",
+  "./icon.svg?v=0.3.99",
+  "./apple-touch-icon.png?v=0.3.99",
+  "./icon-192.png?v=0.3.99",
+  "./icon-512.png?v=0.3.99",
   "./assets/og-simple-liturgy.png?v=3",
   "./assets/liturgical-icons/liturgical-calendar/lit-01-solemnity.svg",
   "./assets/liturgical-icons/liturgical-calendar/lit-02-feast.svg",

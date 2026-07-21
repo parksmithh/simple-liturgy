@@ -1,4 +1,4 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.97";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.99";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -288,24 +288,26 @@ function focusTargets(focusOrder = DAILY_FOCUS_ORDER, pageCounts = {}) {
   return targets;
 }
 
-function moveFocus(next, direction, context = {}, exitAtBoundary = true) {
+function moveFocus(next, direction, context = {}, exitAtEnd = true) {
   const focusOrder = Array.isArray(context.focusOrder) && context.focusOrder.length > 0
     ? context.focusOrder
     : DAILY_FOCUS_ORDER;
   const targets = focusTargets(focusOrder, context.focusPageCounts);
   const index = targets.findIndex(target => target.focus === next.focus && target.focusPage === (next.focusPage || 0));
-  if (index === -1) return;
+  if (index === -1) return false;
   const targetIndex = index + direction;
-  if (targetIndex < 0 || targetIndex >= targets.length) {
-    if (exitAtBoundary) {
+  if (targetIndex < 0) return false;
+  if (targetIndex >= targets.length) {
+    if (exitAtEnd) {
       next.focus = null;
       next.focusPage = 0;
     }
-    return;
+    return exitAtEnd;
   }
   const target = targets[targetIndex];
   next.focus = target.focus;
   next.focusPage = target.focusPage;
+  return true;
 }
 
 export function handle(state, event, context = {}) {
@@ -319,7 +321,7 @@ export function handle(state, event, context = {}) {
     next.focus = null;
     next.focusPage = 0;
   } else if (event === "NEXT_READING" || event === "PREV_READING") {
-    moveFocus(next, event === "NEXT_READING" ? 1 : -1, context);
+    if (!moveFocus(next, event === "NEXT_READING" ? 1 : -1, context)) return state;
   }
   else if (event === "FOCUS") {
     if (!next.focus) {
@@ -367,7 +369,7 @@ export function controlModel(viewOrFocus) {
     const pageCount = paginatedSection?.pages?.length || 1;
     const firstFocus = focus === focusOrder[0] && currentPage === 0;
     const lastFocus = focus === focusOrder[focusOrder.length - 1] && currentPage === pageCount - 1;
-    const previousLabel = firstFocus ? "exit focus" : currentPage > 0 ? "previous page" : "previous reading";
+    const previousLabel = firstFocus ? "start of focus" : currentPage > 0 ? "previous page" : "previous reading";
     const nextLabel = lastFocus ? "exit focus" : currentPage < pageCount - 1 ? "next page" : "next reading";
     const centerLabel = lastFocus ? "Overview" : nextLabel;
     return [
@@ -993,7 +995,7 @@ function timedOfficeOverviewHtml(sections, service = "noonday") {
 
 function readerLeadHtml(view, serviceLabel, occasionType) {
   if (view.focus) {
-    return `<div class="focus-toolbar"><button class="focus-back" data-event="OVERVIEW" type="button" aria-label="Exit focus mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><span class="focus-service-label">${escapeHtml(serviceLabel)}</span></div>`;
+    return `<div class="focus-toolbar" aria-label="Focus navigation"><button class="focus-back" data-event="PREV_READING" type="button" aria-label="Previous page or reading"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button class="focus-service-label" data-event="OVERVIEW" type="button" aria-label="Return to overview">${escapeHtml(serviceLabel)}</button><button class="focus-next" data-event="NEXT_READING" type="button" aria-label="Next page or reading"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>`;
   }
 
   const date = new Date(`${view.date}T12:00:00Z`);
@@ -1021,14 +1023,14 @@ function readerLeadHtml(view, serviceLabel, occasionType) {
     : "";
   const weekdayLine = `<span class="weekday-line">${beforeChevron}<span class="weekday">${escapeHtml(weekday)}</span>${afterChevron}</span>`;
   const primaryHeader = `<span class="header-primary">${weekdayLine}${feastBanner}</span>`;
-  const secondaryHeader = `<span class="header-secondary"><span class="date-value">${escapeHtml(mediumDate)}<span class="service-label">${serviceLabel}</span></span>${meta ? `<span class="meta"><span class="meta-separator" aria-hidden="true">· </span>${escapeHtml(meta)}</span>` : ""}</span>`;
+  const secondaryHeader = `<span class="header-secondary"><span class="date-value">${escapeHtml(mediumDate)}<span class="service-separator" aria-hidden="true">·</span><span class="service-label">${serviceLabel}</span></span>${meta ? `<span class="meta"><span class="meta-separator" aria-hidden="true">· </span>${escapeHtml(meta)}</span>` : ""}</span>`;
   const dateLine = `<button class="date-line" data-event="TODAY" type="button" aria-label="Return to today.${relationLabel}">${primaryHeader}${secondaryHeader}</button>`;
   return `<div class="screen-header-copy"><div class="header-summary">${dateLine}</div></div><span class="pixel-art-stack" aria-label="Liturgical calendar artwork"></span>`;
 }
 
 function readerProgressHintHtml(focus) {
   if (!focus) return '<span class="overview-focus-hint">Tap to focus</span>';
-  return '<span class="focus-next-hint" aria-hidden="true"></span><span class="focus-continue-hint">Continue</span>';
+  return '<span class="focus-continue-hint">Continue</span>';
 }
 
 export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = "together", psalmOffice = "morning" } = {}) {

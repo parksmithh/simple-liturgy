@@ -1,9 +1,9 @@
-const CACHE = "daily-office-reader-v0.3.99";
+const CACHE = "daily-office-reader-v0.3.100";
 const CACHE_PREFIX = "daily-office-reader-v";
 const CONTENT_ROOT = self.registration.scope.endsWith("/web/") ? "../" : "./";
-const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.99`;
-const PACK_INDEX_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.idx?v=0.3.99`;
-const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json?v=0.3.99`;
+const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.100`;
+const PACK_INDEX_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.idx?v=0.3.100`;
+const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json?v=0.3.100`;
 const PACK_PATH = new URL(PACK_URL, self.registration.scope).pathname;
 const PACK_INDEX_PATH = new URL(PACK_INDEX_URL, self.registration.scope).pathname;
 const COLLECTS_PATH = new URL(COLLECTS_URL, self.registration.scope).pathname;
@@ -15,28 +15,28 @@ const SHELL = [
   "./LICENSE.md",
   "./NOTICE",
   "./CONTRIBUTING.md",
-  "./design-tokens.css?v=0.3.99",
-  "./app.css?v=0.3.99",
-  "./app.js?v=0.3.99",
-  "./analytics.js?v=0.3.99",
-  "./bookmark-engine.js?v=0.3.99",
-  "./boundary-timer.js?v=0.3.99",
-  "./compline-preference.js?v=0.3.99",
-  "./feast-link-preference.js?v=0.3.99",
-  "./feast-wikipedia.js?v=0.3.99",
-  "./noonday-preference.js?v=0.3.99",
-  "./office-schedule.js?v=0.3.99",
-  "./pixel-art.js?v=0.3.99",
-  "./prayer-calendar.js?v=0.3.99",
-  "./psalm-preference.js?v=0.3.99",
-  "./reading-pack-loader.js?v=0.3.99",
-  "./theme.js?v=0.3.99",
-  "./version.js?v=0.3.99",
-  "./manifest.webmanifest?v=0.3.99",
-  "./icon.svg?v=0.3.99",
-  "./apple-touch-icon.png?v=0.3.99",
-  "./icon-192.png?v=0.3.99",
-  "./icon-512.png?v=0.3.99",
+  "./design-tokens.css?v=0.3.100",
+  "./app.css?v=0.3.100",
+  "./app.js?v=0.3.100",
+  "./analytics.js?v=0.3.100",
+  "./bookmark-engine.js?v=0.3.100",
+  "./boundary-timer.js?v=0.3.100",
+  "./compline-preference.js?v=0.3.100",
+  "./feast-link-preference.js?v=0.3.100",
+  "./feast-wikipedia.js?v=0.3.100",
+  "./noonday-preference.js?v=0.3.100",
+  "./office-schedule.js?v=0.3.100",
+  "./pixel-art.js?v=0.3.100",
+  "./prayer-calendar.js?v=0.3.100",
+  "./psalm-preference.js?v=0.3.100",
+  "./reading-pack-loader.js?v=0.3.100",
+  "./theme.js?v=0.3.100",
+  "./version.js?v=0.3.100",
+  "./manifest.webmanifest?v=0.3.100",
+  "./icon.svg?v=0.3.100",
+  "./apple-touch-icon.png?v=0.3.100",
+  "./icon-192.png?v=0.3.100",
+  "./icon-512.png?v=0.3.100",
   "./assets/og-simple-liturgy.png?v=3",
   "./assets/liturgical-icons/liturgical-calendar/lit-01-solemnity.svg",
   "./assets/liturgical-icons/liturgical-calendar/lit-02-feast.svg",
@@ -146,8 +146,12 @@ async function fetchAndCache(request) {
   const response = await fetch(request);
   if (!response.ok && response.type !== "opaque") throw new Error(`Request failed with ${response.status}`);
   if (response.ok && new URL(request.url).origin === self.location.origin) {
-    const cache = await caches.open(CACHE);
-    await cache.put(request, response.clone());
+    try {
+      const cache = await caches.open(CACHE);
+      await cache.put(request, response.clone());
+    } catch {
+      // A healthy network response should still render if Cache Storage is unavailable.
+    }
   }
   return response;
 }
@@ -155,6 +159,18 @@ async function fetchAndCache(request) {
 async function cacheFirst(request) {
   const cached = await caches.match(request);
   return cached || fetchAndCache(request);
+}
+
+async function currentVersionCacheFirst(request, fallback = null) {
+  try {
+    const cache = await caches.open(CACHE);
+    const cached = (await cache.match(request, { ignoreSearch: true }))
+      || (fallback ? await cache.match(fallback) : null);
+    if (cached) return cached;
+  } catch {
+    // Fall through to the network when Cache Storage is unavailable.
+  }
+  return fetchAndCache(request);
 }
 
 async function networkFirst(request, fallback = null) {
@@ -195,7 +211,7 @@ self.addEventListener("fetch", event => {
   }
 
   if (event.request.mode === "navigate") {
-    event.respondWith(networkFirst(event.request, "./"));
+    event.respondWith(currentVersionCacheFirst(event.request, "./"));
     return;
   }
 

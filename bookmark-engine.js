@@ -1,4 +1,4 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.100";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.99";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -321,10 +321,7 @@ export function handle(state, event, context = {}) {
     next.focus = null;
     next.focusPage = 0;
   } else if (event === "NEXT_READING" || event === "PREV_READING") {
-    if (event === "PREV_READING" && next.focus === "PRAYER" && (next.focusPage || 0) === 0) {
-      next.focus = null;
-      next.focusPage = 0;
-    } else if (!moveFocus(next, event === "NEXT_READING" ? 1 : -1, context)) return state;
+    if (!moveFocus(next, event === "NEXT_READING" ? 1 : -1, context)) return state;
   }
   else if (event === "FOCUS") {
     if (!next.focus) {
@@ -372,9 +369,7 @@ export function controlModel(viewOrFocus) {
     const pageCount = paginatedSection?.pages?.length || 1;
     const firstFocus = focus === focusOrder[0] && currentPage === 0;
     const lastFocus = focus === focusOrder[focusOrder.length - 1] && currentPage === pageCount - 1;
-    const previousLabel = firstFocus && focus === "PRAYER"
-      ? "Overview"
-      : firstFocus ? "start of focus" : currentPage > 0 ? "previous page" : "previous reading";
+    const previousLabel = firstFocus ? "start of focus" : currentPage > 0 ? "previous page" : "previous reading";
     const nextLabel = lastFocus ? "exit focus" : currentPage < pageCount - 1 ? "next page" : "next reading";
     const centerLabel = lastFocus ? "Overview" : nextLabel;
     return [
@@ -1000,10 +995,7 @@ function timedOfficeOverviewHtml(sections, service = "noonday") {
 
 function readerLeadHtml(view, serviceLabel, occasionType) {
   if (view.focus) {
-    const backLabel = view.focus === "PRAYER" && (view.prayer?.page || 0) === 0
-      ? "Return to overview"
-      : "Previous page or reading";
-    return `<div class="focus-toolbar" aria-label="Focus navigation"><button class="focus-back" data-event="PREV_READING" type="button" aria-label="${backLabel}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button class="focus-service-label" data-event="OVERVIEW" type="button" aria-label="Return to overview">${escapeHtml(serviceLabel)}</button><button class="focus-next" data-event="NEXT_READING" type="button" aria-label="Next page or reading"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>`;
+    return `<div class="focus-toolbar" aria-label="Focus navigation"><button class="focus-back" data-event="PREV_READING" type="button" aria-label="Previous page or reading"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button class="focus-service-label" data-event="OVERVIEW" type="button" aria-label="Return to overview">${escapeHtml(serviceLabel)}</button><button class="focus-next" data-event="NEXT_READING" type="button" aria-label="Next page or reading"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>`;
   }
 
   const date = new Date(`${view.date}T12:00:00Z`);

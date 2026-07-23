@@ -51,7 +51,7 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
   justify-content: center;
   min-height: 34px;
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: 0;
   background: var(--control);
   color: var(--control-text);
   padding: 8px 10px;
@@ -202,7 +202,7 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .focus-back { justify-self: start; color: var(--ink); }
 .focus-next { justify-self: end; color: var(--red); }
 .focus-back svg, .focus-next svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.25; stroke-linecap: square; stroke-linejoin: miter; }
-.focus-service-label { display: flex; align-items: center; justify-content: center; justify-self: center; min-width: 0; max-width: 100%; min-height: 28px; overflow: hidden; border: 1px solid var(--red); border-radius: 999px; background: transparent; color: var(--red); padding: 4px clamp(10px, 3vw, 16px); font-size: var(--type-reader-label); font-weight: var(--font-weight-regular); letter-spacing: .06em; line-height: 1; text-align: center; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; cursor: pointer; }
+.focus-service-label { display: flex; align-items: center; justify-content: center; justify-self: center; min-width: 0; max-width: 100%; min-height: 28px; overflow: hidden; border: 1px solid var(--red); border-radius: 0; background: transparent; color: var(--red); padding: 4px clamp(10px, 3vw, 16px); font-size: var(--type-reader-label); font-weight: var(--font-weight-regular); letter-spacing: .06em; line-height: 1; text-align: center; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; cursor: pointer; }
 .focus-toolbar button:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .grid {
   display: grid;
@@ -302,7 +302,7 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .navigation-controls span { margin-top: clamp(5px, 1vw, 9px); overflow: visible; color: var(--control-text); font-size: var(--type-control-label); font-weight: var(--font-weight-bold); line-height: 1.05; text-overflow: clip; white-space: normal; }
 
 .settings-card, .app-footer { color: var(--app-text); font-size: var(--type-footer); line-height: 1.55; }
-.settings-card, .install-guide, .faq-guide { border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--shell-raised) 78%, transparent); padding: clamp(16px, 4vw, 24px); }
+.settings-card, .install-guide, .faq-guide { border: 1px solid var(--line); border-radius: 0; background: color-mix(in srgb, var(--shell-raised) 78%, transparent); padding: clamp(16px, 4vw, 24px); }
 .settings-card { display: grid; gap: 12px; }
 .settings-card h2, .settings-card p { margin: 0; }
 .settings-card h2 { font: var(--font-weight-semibold) var(--type-section-title) var(--font-family-display); }
@@ -317,11 +317,11 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .prayer-time-row { display: grid; min-height: 52px; grid-template-columns: minmax(0, 1fr) minmax(132px, 42%); align-items: center; gap: 14px; }
 .prayer-time-row[hidden] { display: none; }
 .prayer-time-row > label { color: var(--app-text); font-weight: var(--font-weight-bold); }
-.prayer-time-select { width: 100%; min-height: 48px; border: 2px solid var(--line); border-radius: 5px; background: var(--control); color: var(--control-text); padding: 8px 12px; font: var(--font-weight-bold) var(--type-footer) var(--font-family-ui); cursor: pointer; }
+.prayer-time-select { width: 100%; min-height: 48px; border: 2px solid var(--line); border-radius: 0; background: var(--control); color: var(--control-text); padding: 8px 12px; font: var(--font-weight-bold) var(--type-footer) var(--font-family-ui); cursor: pointer; }
 .prayer-time-select:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
 .prayer-time-select:disabled { cursor: default; opacity: .55; }
 .settings-options legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.settings-options label { position: relative; display: grid; min-height: 52px; place-items: center; border: 2px solid var(--line); border-radius: 5px; background: var(--control); color: var(--control-text); font-weight: var(--font-weight-bold); cursor: pointer; }
+.settings-options label { position: relative; display: grid; min-height: 52px; place-items: center; border: 2px solid var(--line); border-radius: 0; background: var(--control); color: var(--control-text); font-weight: var(--font-weight-bold); cursor: pointer; }
 .settings-options label:has(input:checked) { border-color: var(--red); box-shadow: inset 0 -4px var(--red); }
 .settings-options input { position: absolute; opacity: 0; pointer-events: none; }
 .settings-options label:has(input:focus-visible) { outline: 3px solid var(--red); outline-offset: 3px; }
@@ -329,12 +329,12 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .settings-switch-copy { display: grid; gap: 2px; }
 .settings-switch-copy strong { color: var(--app-text); }
 .settings-switch-copy span { color: var(--eyebrow); }
-.settings-switch input { appearance: none; position: relative; width: 54px; height: 32px; margin: 0; border: 2px solid var(--line); border-radius: 999px; background: var(--shell); cursor: pointer; transition: background .15s ease, border-color .15s ease; }
-.settings-switch input::before { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--app-text); content: ""; transition: transform .15s ease, background .15s ease; }
+.settings-switch input { appearance: none; position: relative; width: 54px; height: 32px; margin: 0; border: 2px solid var(--line); border-radius: 0; background: var(--shell); cursor: pointer; transition: background .15s ease, border-color .15s ease; }
+.settings-switch input::before { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 0; background: var(--app-text); content: ""; transition: transform .15s ease, background .15s ease; }
 .settings-switch input:checked { border-color: var(--red); background: var(--red); }
 .settings-switch input:checked::before { background: var(--paper); transform: translateX(22px); }
 .settings-switch input:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
-.settings-action { display: inline-flex; width: fit-content; min-height: 48px; align-items: center; justify-content: center; gap: 9px; border: 2px solid var(--line); border-radius: 5px; background: var(--control); color: var(--control-text); padding: 10px 14px; font-weight: var(--font-weight-bold); cursor: pointer; }
+.settings-action { display: inline-flex; width: fit-content; min-height: 48px; align-items: center; justify-content: center; gap: 9px; border: 2px solid var(--line); border-radius: 0; background: var(--control); color: var(--control-text); padding: 10px 14px; font-weight: var(--font-weight-bold); cursor: pointer; }
 .settings-action:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
 .settings-action[aria-busy="true"] { cursor: wait; opacity: .72; }
 .settings-note { color: var(--eyebrow); }
@@ -369,7 +369,7 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
   align-items: center;
   gap: 14px;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 0;
   background: color-mix(in srgb, var(--shell-raised) 78%, transparent);
   color: var(--app-text);
   padding: 12px 14px;
@@ -386,7 +386,7 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .feast-list-arrow { color: var(--red); font-size: var(--type-section-title); font-weight: var(--font-weight-bold); }
 .desktop-shortcuts, .mobile-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .desktop-shortcuts > div, .mobile-shortcuts > div { display: grid; grid-template-columns: minmax(52px, auto) 1fr; align-items: center; gap: 12px; min-height: 54px; border-top: 1px solid var(--line); padding: 9px 0; }
-.desktop-shortcuts kbd { width: fit-content; min-width: 42px; border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 4px; background: var(--control); color: var(--control-text); padding: 5px 8px; font-weight: var(--font-weight-bold); text-align: center; }
+.desktop-shortcuts kbd { width: fit-content; min-width: 42px; border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 0; background: var(--control); color: var(--control-text); padding: 5px 8px; font-weight: var(--font-weight-bold); text-align: center; }
 .mobile-shortcuts { display: none; }
 .mobile-shortcuts > div { grid-template-columns: 1fr; gap: 2px; }
 .mobile-shortcuts span { color: var(--eyebrow); }

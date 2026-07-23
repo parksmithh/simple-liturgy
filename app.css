@@ -240,6 +240,7 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .noonday-text .noonday-psalm-verses { display: grid; gap: .72em; white-space: normal; }
 .noonday-text .noonday-liturgical-blocks { display: grid; gap: .72em; }
 .noonday-prose-block { display: block; }
+.timed-office-amen { display: inline !important; }
 .noonday-text .timed-office-aside { display: flex; width: 100%; max-width: 24em; min-height: 3em; align-items: center; justify-content: center; justify-self: center; padding: clamp(22px, 5vw, 32px) clamp(16px, 4vw, 28px); border: 1px solid color-mix(in srgb, var(--ink) 38%, transparent); border-radius: 2px; background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink); font-size: var(--type-reader-aside); font-weight: var(--font-weight-semibold); line-height: 1.25; text-align: center; }
 .noonday-text .noonday-psalm-verse { display: grid; grid-template-columns: 2.2em minmax(0, 1fr); align-items: start; }
 .noonday-psalm-number { color: var(--red); font-weight: var(--font-weight-bold); }

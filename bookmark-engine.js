@@ -1,4 +1,4 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.103";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.104";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -216,6 +216,22 @@ export function paginateBlocksByFit(text, fits) {
         pages[finalIndex] = balancedFinal;
       }
     }
+  }
+  return pages;
+}
+
+export function paginateTimedOfficeByFit(pageGroups, fits) {
+  const groups = Array.isArray(pageGroups) ? pageGroups.filter(group => group?.text) : [];
+  const pages = [];
+  for (const group of groups) {
+    if (group.standalone) {
+      pages.push(group.text);
+      continue;
+    }
+    const groupPages = paginateBlocksByFit(group.text, (candidate, pageIndex) => (
+      fits(candidate, pages.length + pageIndex)
+    ));
+    pages.push(...groupPages);
   }
   return pages;
 }
@@ -581,6 +597,15 @@ const NOONDAY_PSALMS = [
   },
 ].map(psalm => ({ ...psalm, pages: [psalm.text] }));
 
+const TIMED_OFFICE_GLORIA = "Glory to the Father, and to the Son, and to the Holy Spirit: as it was in the beginning, is now, and will be for ever.\n\nAmen.";
+const TIMED_OFFICE_OPENING_VERSICLE = "O God, make speed to save us. *\nO Lord, make haste to help us.";
+const TIMED_OFFICE_KYRIE = "Lord, have mercy. *\nChrist, have mercy.\n\nLord, have mercy.";
+const TIMED_OFFICE_LORDS_PRAYER = "Our Father in heaven, hallowed be your Name, your kingdom come, your will be done, on earth as in heaven. Give us today our daily bread. Forgive us our sins as we forgive those who sin against us. Save us from the time of trial, and deliver us from evil.";
+
+function timedOfficeGloria(withAlleluia = false) {
+  return `${TIMED_OFFICE_GLORIA}${withAlleluia ? "\nAlleluia." : ""}`;
+}
+
 const NOONDAY_CLOSING_PRAYERS = [
   "Heavenly Father, send your Holy Spirit into our hearts, to direct and rule us according to your will, to comfort us in all our afflictions, to defend us from all error, and to lead us into all truth; through Jesus Christ our Lord. Amen.",
   "Blessed Savior, at this hour you hung upon the cross, stretching out your loving arms: Grant that all the peoples of the earth may look to you and be saved; for your tender mercies’ sake. Amen.",
@@ -602,16 +627,19 @@ function noondayClosingPrayer(date) {
 
 function noondayOffice(day) {
   const inLent = /ash-wednesday|lent|holy-week/i.test(`${day.label} ${day.key}`);
-  const opening = [
-    "O God, make speed to save us.",
-    "O Lord, make haste to help us.",
-    "Glory to the Father, and to the Son, and to the Holy Spirit: as it was in the beginning, is now, and will be for ever. Amen.",
+  const openingPageGroups = [
+    { text: TIMED_OFFICE_OPENING_VERSICLE },
+    { text: timedOfficeGloria(!inLent), standalone: true },
   ];
-  if (!inLent) opening.push("Alleluia.");
-  const openingText = opening.join("\n\n");
+  const openingPages = openingPageGroups.map(group => group.text);
+  const openingText = openingPages.join("\n\n");
   const psalm = noondayPsalm(day.date);
-  const kyrie = "[Moment of prayer.]\n\nLord, have mercy. Christ, have mercy. Lord, have mercy.";
-  const lordsPrayer = "Our Father in heaven, hallowed be your Name, your kingdom come, your will be done, on earth as in heaven. Give us today our daily bread. Forgive us our sins as we forgive those who sin against us. Save us from the time of trial, and deliver us from evil.";
+  const kyriePageGroups = [
+    { text: "[Moment of prayer.]" },
+    { text: TIMED_OFFICE_KYRIE, standalone: true },
+  ];
+  const kyriePages = kyriePageGroups.map(group => group.text);
+  const kyrie = kyriePages.join("\n\n");
   const closingPrayerText = noondayClosingPrayer(day.date);
 
   return {
@@ -619,7 +647,8 @@ function noondayOffice(day) {
       NOONDAY_OPENING: {
         label: "Noonday Prayer",
         text: openingText,
-        pages: [openingText],
+        pageGroups: openingPageGroups,
+        pages: openingPages,
         page: 0,
       },
       NOONDAY_PSALM: {
@@ -631,14 +660,14 @@ function noondayOffice(day) {
       NOONDAY_KYRIE: {
         label: "Kyrie",
         text: kyrie,
-        pages: [kyrie],
-        preservePages: true,
+        pageGroups: kyriePageGroups,
+        pages: kyriePages,
         page: 0,
       },
       NOONDAY_LORDS_PRAYER: {
         label: "The Lord’s Prayer",
-        text: lordsPrayer,
-        pages: [lordsPrayer],
+        text: TIMED_OFFICE_LORDS_PRAYER,
+        pages: [TIMED_OFFICE_LORDS_PRAYER],
         preservePages: true,
         page: 0,
       },
@@ -736,57 +765,73 @@ const COMPLINE_COLLECTS = [
   "Visit this place, O Lord, and drive far from it all snares of the enemy; let your holy angels dwell with us to preserve us in peace; and let your blessing be upon us always; through Jesus Christ our Lord. Amen.",
 ];
 const COMPLINE_SATURDAY_COLLECT = "We give you thanks, O God, for revealing your Son Jesus Christ to us by the light of his resurrection: Grant that as we sing your glory at the close of this day, our joy may abound in the morning as we celebrate the Paschal mystery; through Jesus Christ our Lord. Amen.";
-const COMPLINE_GLORIA = "Glory to the Father, and to the Son, and to the Holy Spirit: as it was in the beginning, is now, and will be for ever. Amen.";
 
 function complineOffice(day) {
   const inLent = /ash-wednesday|lent|holy-week/i.test(`${day.label} ${day.key}`);
   const inEaster = /easter/i.test(`${day.label} ${day.key}`);
   const opening = [
     "The Lord Almighty grant us a peaceful night and a perfect end. Amen.",
-    "Our help is in the Name of the Lord.",
-    "The maker of heaven and earth.",
+    "Our help is in the Name of the Lord. *\nThe maker of heaven and earth.",
   ].join("\n\n");
-  const confession = [
+  const confessionBeforeGloria = [
     "Let us confess our sins to God.",
     "[Silence may be kept.]",
     "Almighty God, our heavenly Father: We have sinned against you, through our own fault, in thought, and word, and deed, and in what we have left undone. For the sake of your Son our Lord Jesus Christ, forgive us all our offenses; and grant that we may serve you in newness of life, to the glory of your Name. Amen.",
     "May the Almighty God grant us forgiveness of all our sins, and the grace and comfort of the Holy Spirit. Amen.",
-    "O God, make speed to save us.",
-    "O Lord, make haste to help us.",
-    COMPLINE_GLORIA,
+    TIMED_OFFICE_OPENING_VERSICLE,
+  ].join("\n\n");
+  const confessionPageGroups = [
+    { text: confessionBeforeGloria },
+    { text: timedOfficeGloria(!inLent), standalone: true },
   ];
-  if (!inLent) confession.push("Alleluia.");
+  const confession = confessionPageGroups.map(group => group.text).join("\n\n");
   const psalm = COMPLINE_PSALMS[dailyRotationIndex(day.date, COMPLINE_PSALMS.length)];
   const reading = COMPLINE_READINGS[dailyRotationIndex(day.date, COMPLINE_READINGS.length)];
   const weekday = new Date(`${day.date}T12:00:00Z`).getUTCDay();
   const collect = weekday === 6
     ? COMPLINE_SATURDAY_COLLECT
     : COMPLINE_COLLECTS[dailyRotationIndex(day.date, COMPLINE_COLLECTS.length)];
-  const prayers = [
-    "Into your hands, O Lord, I commend my spirit.",
-    "For you have redeemed me, O Lord, O God of truth.",
-    "Keep us, O Lord, as the apple of your eye.",
-    "Hide us under the shadow of your wings.",
-    "Lord, have mercy. Christ, have mercy. Lord, have mercy.",
-    "Our Father in heaven, hallowed be your Name, your kingdom come, your will be done, on earth as in heaven. Give us today our daily bread. Forgive us our sins as we forgive those who sin against us. Save us from the time of trial, and deliver us from evil.",
-    "Lord, hear our prayer.",
-    "And let our cry come to you.",
-    "Let us pray.",
-  ].join("\n\n");
+  const prayerPageGroups = [
+    {
+      text: [
+        "Into your hands, O Lord, I commend my spirit. *\nFor you have redeemed me, O Lord, O God of truth.",
+        "Keep us, O Lord, as the apple of your eye. *\nHide us under the shadow of your wings.",
+      ].join("\n\n"),
+    },
+    { text: TIMED_OFFICE_KYRIE, standalone: true },
+    { text: TIMED_OFFICE_LORDS_PRAYER, standalone: true },
+    {
+      text: [
+        "Lord, hear our prayer. *\nAnd let our cry come to you.",
+        "Let us pray.",
+      ].join("\n\n"),
+    },
+  ];
+  const prayers = prayerPageGroups.map(group => group.text).join("\n\n");
   const antiphon = `Guide us waking, O Lord, and guard us sleeping; that awake we may watch with Christ, and asleep we may rest in peace.${inEaster ? " Alleluia, alleluia, alleluia." : ""}`;
-  const conclusion = [
-    antiphon,
-    "Lord, you now have set your servant free *\nto go in peace as you have promised;\n\nFor these eyes of mine have seen the Savior, *\nwhom you have prepared for all the world to see:\n\nA Light to enlighten the nations, *\nand the glory of your people Israel.",
-    COMPLINE_GLORIA,
-    antiphon,
-    "Let us bless the Lord.",
-    "Thanks be to God.",
-    "The almighty and merciful Lord, Father, Son, and Holy Spirit, bless us and keep us. Amen.",
-  ].join("\n\n");
+  const conclusionPageGroups = [
+    {
+      text: [
+        antiphon,
+        "Lord, you now have set your servant free *\nto go in peace as you have promised;\n\nFor these eyes of mine have seen the Savior, *\nwhom you have prepared for all the world to see:\n\nA Light to enlighten the nations, *\nand the glory of your people Israel.",
+      ].join("\n\n"),
+    },
+    { text: TIMED_OFFICE_GLORIA, standalone: true },
+    {
+      text: [
+        antiphon,
+        "Let us bless the Lord. *\nThanks be to God.",
+        "The almighty and merciful Lord, Father, Son, and Holy Spirit, bless us and keep us. Amen.",
+      ].join("\n\n"),
+    },
+  ];
+  const conclusion = conclusionPageGroups.map(group => group.text).join("\n\n");
   const section = (label, text, details = {}) => ({
     label,
     text,
-    pages: details.closingPage ? [text, details.closingPage] : [text],
+    pages: details.closingPage
+      ? [text, details.closingPage]
+      : details.pageGroups?.map(group => group.text) || [text],
     page: 0,
     ...details,
   });
@@ -794,20 +839,26 @@ function complineOffice(day) {
   return {
     sections: {
       COMPLINE_OPENING: section("Compline", opening),
-      COMPLINE_CONFESSION: section("Confession", confession.join("\n\n")),
+      COMPLINE_CONFESSION: section("Confession", confession, {
+        pageGroups: confessionPageGroups,
+      }),
       COMPLINE_PSALM: section("Psalm", psalm.text, {
         ...psalm,
         summary: psalm.citation.replace("Psalm ", ""),
-        closingPage: COMPLINE_GLORIA,
+        closingPage: TIMED_OFFICE_GLORIA,
       }),
       COMPLINE_READING: section("Reading", reading.text, {
         ...reading,
         summary: reading.citation,
         response: "Thanks be to God.",
       }),
-      COMPLINE_PRAYERS: section("Prayers", prayers),
+      COMPLINE_PRAYERS: section("Prayers", prayers, {
+        pageGroups: prayerPageGroups,
+      }),
       COMPLINE_COLLECT: section("Collect", collect),
-      COMPLINE_CONCLUSION: section("Song of Simeon", conclusion),
+      COMPLINE_CONCLUSION: section("Song of Simeon", conclusion, {
+        pageGroups: conclusionPageGroups,
+      }),
     },
   };
 }
@@ -882,6 +933,9 @@ export function focusPageCounts(view) {
 
 export function remapFocusPageAfterLayout(page, previousPages, nextPages, closingPage = null) {
   const lastPage = Math.max(0, nextPages.length - 1);
+  const previousPage = previousPages?.[page];
+  const matchingPage = previousPage ? nextPages.indexOf(previousPage) : -1;
+  if (matchingPage >= 0) return matchingPage;
   const wasOnClosingPage = Boolean(closingPage && previousPages?.[page] === closingPage);
   return wasOnClosingPage ? lastPage : Math.min(page, lastPage);
 }
@@ -904,6 +958,31 @@ function normalizedLiturgicalText(value) {
   return String(value || "").trim().replace(/\s+/g, " ");
 }
 
+function timedOfficeAmenParts(value) {
+  const match = String(value || "").trim().match(/^([\s\S]*?)(?:\s+|^)(Amen\.?)(?:[ \t]*\n[ \t]*(Alleluia\.?))?$/i);
+  if (!match) return null;
+  return {
+    lead: normalizedLiturgicalText(match[1]),
+    amen: match[2],
+    continuation: normalizedLiturgicalText(match[3]),
+  };
+}
+
+function timedOfficeAmenParagraphHtml(parts, emphasized = false) {
+  const tag = emphasized ? "strong" : "span";
+  const continuation = parts.continuation
+    ? `<br class="timed-office-soft-break">${escapeHtml(parts.continuation)}`
+    : "";
+  return `<${tag} class="noonday-prose-block timed-office-amen-paragraph"><span class="timed-office-amen">${escapeHtml(parts.amen)}</span>${continuation}</${tag}>`;
+}
+
+function timedOfficeProseHtml(value) {
+  const amen = timedOfficeAmenParts(value);
+  if (!amen) return `<span class="noonday-prose-block">${escapeHtml(normalizedLiturgicalText(value))}</span>`;
+  const lead = amen.lead ? `<span class="noonday-prose-block">${escapeHtml(amen.lead)}</span>` : "";
+  return `${lead}${timedOfficeAmenParagraphHtml(amen)}`;
+}
+
 function callResponseParts(value) {
   const text = String(value || "");
   const marker = text.indexOf("*");
@@ -922,8 +1001,12 @@ export function timedOfficeTextHtml(text) {
       return `<span class="timed-office-aside">${escapeHtml(normalizedLiturgicalText(asideMatch[1]))}</span>`;
     }
     const { call, response } = callResponseParts(block);
-    if (!response) return `<span class="noonday-prose-block">${escapeHtml(call)}</span>`;
-    return `<span class="noonday-call-response"><span class="noonday-psalm-call">${escapeHtml(call)}</span><strong class="noonday-psalm-response">${escapeHtml(response)}</strong></span>`;
+    if (!response) return timedOfficeProseHtml(block);
+    const responseAmen = timedOfficeAmenParts(response);
+    const responseText = responseAmen ? responseAmen.lead : response;
+    const responseLine = responseText ? `<strong class="noonday-psalm-response">${escapeHtml(responseText)}</strong>` : "";
+    const callResponse = `<span class="noonday-call-response"><span class="noonday-psalm-call">${escapeHtml(call)}</span>${responseLine}</span>`;
+    return `${callResponse}${responseAmen ? timedOfficeAmenParagraphHtml(responseAmen, true) : ""}`;
   }).join("")}</span>`;
 }
 

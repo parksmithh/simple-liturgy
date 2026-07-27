@@ -1,4 +1,4 @@
-import { createBoundaryTimer } from "./boundary-timer.js?v=0.3.112";
+import { createBoundaryTimer } from "./boundary-timer.js?v=0.3.104";
 
 const STORAGE_KEY = "simple-liturgy.noonday-enabled";
 
@@ -11,9 +11,7 @@ export function initializeNoondayPreference({ control, storage }) {
 export function setNoondayEnabled({ control, storage }, enabled) {
   const normalized = Boolean(enabled);
   control.checked = normalized;
-  try {
-    storage.setItem(STORAGE_KEY, String(normalized));
-  } catch {}
+  storage.setItem(STORAGE_KEY, String(normalized));
   return normalized;
 }
 

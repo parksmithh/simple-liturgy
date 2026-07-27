@@ -1,22 +1,21 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.112";
-import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.112";
-import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.112";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.112";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.112";
-import { localIsoDate, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.112";
-import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.112";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.112";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.112";
-import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.112";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.112";
-import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.112";
-import { appVersionLabel } from "./version.js?v=0.3.112";
+import { initializeAnalytics } from "./analytics.js?v=0.3.104";
+import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.104";
+import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.104";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.104";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.104";
+import { scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.104";
+import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.104";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.104";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.104";
+import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.104";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.104";
+import { appVersionLabel } from "./version.js?v=0.3.104";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.112", CONTENT_ROOT);
-const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.112", CONTENT_ROOT);
-const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.112", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.104", CONTENT_ROOT);
+const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.104", CONTENT_ROOT);
+const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.104", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
 const screen = document.querySelector("#screen");
@@ -139,22 +138,8 @@ const initialServiceTime = new Date();
 activeService = scheduledServiceAt(initialServiceTime, noondayEnabled, complineEnabled);
 syncNoondayPreviewButton(initialServiceTime);
 syncComplinePreviewButton(initialServiceTime);
-noondayBoundary.setEnabled(true, initialServiceTime);
-complineBoundary.setEnabled(true, initialServiceTime);
-const timedOfficeOnboarding = createTimedOfficeOnboardingController({
-  document,
-  storage: window.sessionStorage,
-  getEnabled: office => office === "noonday" ? noondayEnabled : complineEnabled,
-  canOfferAutomatically: () => settingsPage.hidden && !noondayPreview && !complinePreview,
-  enableOffice: enableTimedOffice,
-});
-let initialTimedOfficeOfferConsumed = false;
-
-function offerInitialTimedOfficeOnboarding() {
-  if (initialTimedOfficeOfferConsumed) return false;
-  initialTimedOfficeOfferConsumed = true;
-  return timedOfficeOnboarding.offerAutomatic(initialServiceTime);
-}
+noondayBoundary.setEnabled(noondayEnabled, initialServiceTime);
+complineBoundary.setEnabled(complineEnabled, initialServiceTime);
 
 function syncNoondayPreviewButton(date = new Date()) {
   previewNoondayButton.hidden = !shouldShowNoondayPreview(date, noondayEnabled);
@@ -168,6 +153,7 @@ function exitNoondayPreview(now = new Date()) {
   if (!noondayPreview) return;
   noondayPreview = false;
   noondayPreviewMarker = null;
+  noondayBoundary.setEnabled(noondayEnabled, now);
   activateService(scheduledServiceAt(now, noondayEnabled, complineEnabled));
 }
 
@@ -175,6 +161,7 @@ function exitComplinePreview(now = new Date()) {
   if (!complinePreview) return;
   complinePreview = false;
   complinePreviewMarker = null;
+  complineBoundary.setEnabled(complineEnabled, now);
   activateService(scheduledServiceAt(now, noondayEnabled, complineEnabled));
 }
 
@@ -197,6 +184,13 @@ function setSettingsOpen(open) {
   }
   render();
   readerMenu.focus({ preventScroll: true });
+}
+
+export function localIsoDate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 const feastDateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -670,7 +664,6 @@ async function loadPack() {
     bundle = await readingPackLoader.loadDay(today);
     if (attempt !== loadAttempt) return;
     render();
-    offerInitialTimedOfficeOnboarding();
 
     loadAroundToday(readingPackLoader, today, {
       onDay: (date, partial) => {
@@ -684,7 +677,6 @@ async function loadPack() {
       cacheCompletePackForOfflineUse();
       if (!feastBrowser.hidden) renderFeastList();
       render();
-      offerInitialTimedOfficeOnboarding();
     }).catch(() => {});
   } catch (error) {
     try {
@@ -692,7 +684,6 @@ async function loadPack() {
       if (attempt !== loadAttempt) return;
       cacheCompletePackForOfflineUse();
       render();
-      offerInitialTimedOfficeOnboarding();
     } catch (fullPackError) {
       if (attempt === loadAttempt) showLoadError(fullPackError);
     }
@@ -706,7 +697,7 @@ async function loadPack() {
 centerControl.addEventListener("click", () => dispatch(centerControl.dataset.event));
 
 window.addEventListener("keydown", event => {
-  if (!settingsPage.hidden || !bundle || !collects || installDialog.open || timedOfficeOnboarding.isOpen() || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+  if (!settingsPage.hidden || !bundle || !collects || installDialog.open || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
   if (event.target instanceof Element && event.target.closest("input, textarea, select, [contenteditable]")) return;
   if (event.key === "Enter" && event.target instanceof Element && event.target.closest("button, a")) return;
   const verticalKey = event.key === "ArrowUp" || event.key === "ArrowDown";
@@ -799,45 +790,55 @@ function activateService(service) {
   invalidateLayouts();
 }
 
-function activateTimedOfficePreview(office, now = new Date()) {
-  if (office === "noonday") {
-    noondayPreview = true;
-    noondayPreviewMarker = noondayPreviewMarkerAt(now, noondayEnabled);
-  } else {
-    complinePreview = true;
-    complinePreviewMarker = complinePreviewMarkerAt(now, complineEnabled);
-  }
+function startNoondayPreview() {
+  const now = new Date();
+  noondayPreview = true;
+  noondayPreviewMarker = noondayPreviewMarkerAt(now, noondayEnabled);
+  noondayBoundary.setEnabled(true, now);
   activeLocalDate = localIsoDate(now);
   state = createState();
-  activateService(office);
+  activateService("noonday");
   setSettingsOpen(false);
 }
 
-function applyTimedOfficePreference(office, enabled, now = new Date()) {
-  if (office === "noonday") {
-    noondayEnabled = Boolean(enabled);
+function startComplinePreview() {
+  const now = new Date();
+  complinePreview = true;
+  complinePreviewMarker = complinePreviewMarkerAt(now, complineEnabled);
+  complineBoundary.setEnabled(true, now);
+  activeLocalDate = localIsoDate(now);
+  state = createState();
+  activateService("compline");
+  setSettingsOpen(false);
+}
+
+bindNoondayPreference({
+  ...noondayContext,
+  onChange: enabled => {
+    const now = new Date();
+    noondayEnabled = enabled;
     prayerSchedule.setNoondayEnabled(noondayEnabled);
+    const nextService = scheduledServiceAt(now, noondayEnabled, complineEnabled);
     syncNoondayPreviewButton(now);
-  } else {
-    complineEnabled = Boolean(enabled);
+    noondayBoundary.setEnabled(enabled, now);
+    activateService(nextService);
+    if (bundle && collects) render();
+  },
+});
+
+bindComplinePreference({
+  ...complineContext,
+  onChange: enabled => {
+    const now = new Date();
+    complineEnabled = enabled;
     prayerSchedule.setComplineEnabled(complineEnabled);
+    const nextService = scheduledServiceAt(now, noondayEnabled, complineEnabled);
     syncComplinePreviewButton(now);
-  }
-  const nextService = scheduledServiceAt(now, noondayEnabled, complineEnabled);
-  activateService(nextService);
-  if (bundle && collects) render();
-}
-
-function enableTimedOffice(office, now) {
-  const enabled = office === "noonday"
-    ? setNoondayEnabled(noondayContext, true)
-    : setComplineEnabled(complineContext, true);
-  applyTimedOfficePreference(office, enabled, now);
-}
-
-bindNoondayPreference({ ...noondayContext, onChange: enabled => applyTimedOfficePreference("noonday", enabled) });
-
-bindComplinePreference({ ...complineContext, onChange: enabled => applyTimedOfficePreference("compline", enabled) });
+    complineBoundary.setEnabled(enabled, now);
+    activateService(nextService);
+    if (bundle && collects) render();
+  },
+});
 
 themeContext.media.addEventListener?.("change", () => {
   if (!syncSystemTheme(themeContext)) return;
@@ -858,8 +859,8 @@ if ("ResizeObserver" in window) {
 
 readerMenu.addEventListener("click", () => setSettingsOpen(true));
 openReaderButton.addEventListener("click", () => setSettingsOpen(false));
-previewNoondayButton.addEventListener("click", () => activateTimedOfficePreview("noonday"));
-previewComplineButton.addEventListener("click", () => activateTimedOfficePreview("compline"));
+previewNoondayButton.addEventListener("click", startNoondayPreview);
+previewComplineButton.addEventListener("click", startComplinePreview);
 browseFeastDaysButton.addEventListener("click", () => setFeastBrowserOpen(true));
 closeFeastBrowserButton.addEventListener("click", () => setFeastBrowserOpen(false));
 feastList.addEventListener("click", event => {
@@ -971,7 +972,6 @@ function refreshAt(date, rescheduleTimer = true) {
       render,
     });
   }
-  timedOfficeOnboarding.refresh(date);
   if (rescheduleTimer) rescheduleTimeBoundaries(date);
 }
 function refreshForCurrentTime() {

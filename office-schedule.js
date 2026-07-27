@@ -1,5 +1,12 @@
-import { complineServiceAt } from "./compline-preference.js?v=0.3.104";
-import { noondayServiceAt } from "./noonday-preference.js?v=0.3.104";
+import { complineServiceAt } from "./compline-preference.js?v=0.3.112";
+import { noondayServiceAt } from "./noonday-preference.js?v=0.3.112";
+
+export function localIsoDate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 export function scheduledServiceAt(date = new Date(), noondayEnabled = true, complineEnabled = true) {
   const noondayService = noondayServiceAt(date, noondayEnabled);

@@ -25,11 +25,11 @@
   <meta name="twitter:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=3">
   <meta name="twitter:image:alt" content="Simplified Simple Liturgy reader showing Psalms, Old Testament, New Testament, and Gospel citations">
   <title>Simple Liturgy | BCP 1979 Daily Office Reader</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=0.3.104">
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=0.3.104">
-  <link rel="icon" href="./icon.svg?v=0.3.104" type="image/svg+xml">
-  <link rel="stylesheet" href="./design-tokens.css?v=0.3.104">
-  <link rel="stylesheet" href="./app.css?v=0.3.104">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.3.112">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=0.3.112">
+  <link rel="icon" href="./icon.svg?v=0.3.112" type="image/svg+xml">
+  <link rel="stylesheet" href="./design-tokens.css?v=0.3.112">
+  <link rel="stylesheet" href="./app.css?v=0.3.112">
 </head>
 <body>
   <svg class="reader-art-filters" width="0" height="0" aria-hidden="true" focusable="false">
@@ -333,6 +333,17 @@
     </div>
   </section>
 
+  <dialog class="onboarding-sheet" id="timed-office-onboarding" aria-labelledby="timed-office-onboarding-title" aria-describedby="timed-office-onboarding-description">
+    <form method="dialog">
+      <h2 id="timed-office-onboarding-title"></h2>
+      <p id="timed-office-onboarding-description"></p>
+      <div class="onboarding-sheet-actions">
+        <button class="onboarding-sheet-enable" id="enable-timed-office" value="enable" type="submit"></button>
+        <button id="dismiss-timed-office" value="dismiss" type="submit">Not now</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="install-dialog" aria-labelledby="install-dialog-title">
     <form method="dialog">
       <p class="eyebrow">Save to your phone</p>
@@ -346,6 +357,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="./app.js?v=0.3.104"></script>
+  <script type="module" src="./app.js?v=0.3.112"></script>
 </body>
 </html>

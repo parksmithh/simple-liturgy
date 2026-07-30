@@ -1,4 +1,4 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.112";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.113";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -244,7 +244,7 @@ export function stateAfterDateChange(state, previousDate, currentDate) {
   return previousDate === currentDate ? state : createState();
 }
 
-const DAILY_FOCUS_ORDER = ["PRAYER", "PS", "OT", "NT", "GS", "GLORIA"];
+const DAILY_FOCUS_ORDER = ["PRAYER", "PS", "OT", "NT", "GS", "LORDS_PRAYER", "GLORIA"];
 const NOONDAY_FOCUS_ORDER = [
   "NOONDAY_OPENING",
   "NOONDAY_PSALM",
@@ -262,7 +262,8 @@ const COMPLINE_FOCUS_ORDER = [
   "COMPLINE_CONCLUSION",
 ];
 const GLORIA_TEXT = "Glory to the Father, to the Son, and to the Holy Spirit. Amen.";
-const READING_LABELS = { OT: "Old Testament", PS: "Psalms", NT: "New Testament", GS: "Gospel", PRAYER: "Prayer", GLORIA: "Gloria" };
+const LORDS_PRAYER_TEXT = "Our Father in heaven, hallowed be your Name, your kingdom come, your will be done, on earth as in heaven. Give us today our daily bread. Forgive us our sins as we forgive those who sin against us. Save us from the time of trial, and deliver us from evil. For the kingdom, the power, and the glory are yours, now and for ever. Amen.";
+const READING_LABELS = { OT: "Old Testament", PS: "Psalms", NT: "New Testament", GS: "Gospel", PRAYER: "Prayer", LORDS_PRAYER: "Lord's Prayer", GLORIA: "Gloria" };
 const PSALM_OFFICE_LABELS = { morning: "Morning", evening: "Evening" };
 const GOSPEL_BOOKS = ["matthew", "mark", "luke", "john"];
 const NEW_TESTAMENT_BOOKS = [
@@ -1036,6 +1037,12 @@ function prayerHeading(prayer, includeArticle = false) {
   return `${includeArticle ? "A " : ""}Prayer for ${prayer.title}`;
 }
 
+function prayerWithFinalAmenHtml(text) {
+  const finalAmen = " Amen.";
+  if (!text.endsWith(finalAmen)) return escapeHtml(text);
+  return `${escapeHtml(text.slice(0, -finalAmen.length))} <span class="prayer-amen">Amen.</span>`;
+}
+
 function feastAboutHtml(feast, occasionType, enabled) {
   if (!enabled || occasionType !== "church") return "";
   const wikipediaUrl = wikipediaUrlForFeast(feast);
@@ -1146,13 +1153,17 @@ export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = 
   const prayerFocus = view.focus === "PRAYER" && view.prayer
     ? `<div class="reading focus prayer-focus"><button class="prayer-content" data-reading="PRAYER" type="button"><span class="label">${escapeHtml(prayerHeading(view.prayer))}${prayerIndex}</span><span class="prayer-text">${prayerPageHtml(view.prayer)}</span></button>${feastAboutHtml(view.feast, occasionType, feastLinksEnabled)}</div>`
     : null;
+  const lordsPrayerFocus = view.focus === "LORDS_PRAYER"
+    ? `<button class="reading focus prayer-focus" data-reading="LORDS_PRAYER" type="button"><span class="label">Lord's Prayer</span><span class="prayer-text lords-prayer-text">${prayerWithFinalAmenHtml(LORDS_PRAYER_TEXT)}</span></button>`
+    : null;
   const gloriaFocus = view.focus === "GLORIA"
     ? `<button class="reading focus prayer-focus" data-reading="GLORIA" type="button"><span class="label">Gloria</span><span class="prayer-text gloria-text">${escapeHtml(GLORIA_TEXT)}</span></button>`
     : null;
   const openingPrayerOverview = '<div class="reading overview-marker opening-prayer-marker"><span class="label">Opening Prayer</span></div>';
+  const lordsPrayerOverview = "<div class=\"reading overview-marker lords-prayer-marker\"><span class=\"label\">Lord's Prayer</span></div>";
   const gloriaOverview = '<div class="reading overview-marker gloria-marker"><span class="label">Gloria</span></div>';
   const body = view.focus
-    ? prayerFocus || gloriaFocus || `<button class="reading focus" data-reading="${view.focus}" type="button">${readingContentHtml(view, view.focus, "focus-cite", psalmPresentation)}</button>`
-    : `<div class="grid">${openingPrayerOverview}${Object.keys(view.values).map(key => `<button class="reading" data-reading="${key}" type="button">${readingContentHtml(view, key, "cite", psalmPresentation)}</button>`).join("")}${gloriaOverview}</div>`;
+    ? prayerFocus || lordsPrayerFocus || gloriaFocus || `<button class="reading focus" data-reading="${view.focus}" type="button">${readingContentHtml(view, view.focus, "focus-cite", psalmPresentation)}</button>`
+    : `<div class="grid">${openingPrayerOverview}${Object.keys(view.values).map(key => `<button class="reading" data-reading="${key}" type="button">${readingContentHtml(view, key, "cite", psalmPresentation)}</button>`).join("")}${lordsPrayerOverview}${gloriaOverview}</div>`;
   return `${screenLead}${body}${readerProgressHintHtml(view.focus)}`;
 }

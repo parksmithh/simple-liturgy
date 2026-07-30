@@ -102,7 +102,7 @@
 
 .reader .device-screen {
   --type-reader-base: clamp(18px, 2vw, 30px);
-  --type-reader-prayer: clamp(24px, 3.4vw, 42px);
+  --type-reader-prayer: clamp(26px, 3.4vw, 42px);
 }
 
 @media (max-width: 470px) {

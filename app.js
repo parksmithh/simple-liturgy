@@ -1,22 +1,22 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.113";
-import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.113";
-import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.113";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.113";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.113";
-import { localIsoDate, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.113";
-import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.113";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.113";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.113";
-import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.113";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.113";
-import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.113";
-import { appVersionLabel } from "./version.js?v=0.3.113";
+import { initializeAnalytics } from "./analytics.js?v=0.3.114";
+import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.114";
+import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.114";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.114";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.114";
+import { localIsoDate, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.114";
+import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.114";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.114";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.114";
+import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.114";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.114";
+import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.114";
+import { appVersionLabel } from "./version.js?v=0.3.114";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.113", CONTENT_ROOT);
-const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.113", CONTENT_ROOT);
-const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.113", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.114", CONTENT_ROOT);
+const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.114", CONTENT_ROOT);
+const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.114", CONTENT_ROOT);
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
 const screen = document.querySelector("#screen");
@@ -352,8 +352,12 @@ function paint(view) {
   activeService = view.service || "daily";
   activePsalmOffice = view.service === "daily" ? psalmOffice : null;
   const layout = matchingPrayerLayout(view) || matchingTimedOfficeLayout(view);
-  if (layout?.fontSize) {
+  if (view.focus !== "LORDS_PRAYER" && layout?.fontSize) {
     screen.querySelector(".prayer-text")?.style.setProperty("font-size", `${layout.fontSize}px`);
+  }
+  const lordsPrayerFontSize = measuredLordsPrayerFont(view);
+  if (lordsPrayerFontSize !== null) {
+    screen.querySelector(".lords-prayer-text")?.style.setProperty("font-size", `${lordsPrayerFontSize}px`);
   }
   paintPixelArtStack(screen, view, previousArtStack);
   controlModel(view).forEach((control, index) => {
@@ -411,6 +415,39 @@ function createMeasurementProbe(text, textStyle, width) {
   probe.style.fontFamily = textStyle.fontFamily;
   deviceScreen.append(probe);
   return probe;
+}
+
+function measuredLordsPrayerFont(view) {
+  if (view.service !== "daily" || view.focus !== "LORDS_PRAYER") return null;
+  const focus = screen.querySelector(".prayer-focus");
+  const text = screen.querySelector(".lords-prayer-text");
+  const label = focus?.querySelector(".label");
+  if (!focus || !text || !label) return null;
+
+  const focusStyle = getComputedStyle(focus);
+  const textStyle = getComputedStyle(text);
+  const availableHeight = prayerAvailableHeight({
+    focusHeight: focus.getBoundingClientRect().height,
+    paddingTop: parseFloat(focusStyle.paddingTop),
+    paddingBottom: parseFloat(focusStyle.paddingBottom),
+    labelHeight: label.getBoundingClientRect().height,
+    textMarginTop: parseFloat(textStyle.marginTop),
+  });
+  const textWidth = text.getBoundingClientRect().width;
+  if (availableHeight <= 0 || textWidth <= 0) return null;
+
+  const probe = createMeasurementProbe(text, textStyle, textWidth);
+  try {
+    return largestWholePrayerFont(
+      probe,
+      text.innerHTML,
+      availableHeight,
+      parseFloat(textStyle.fontSize),
+      (element, markup) => { element.innerHTML = markup; },
+    );
+  } finally {
+    probe.remove();
+  }
 }
 
 function measuredTimedOfficeTextArea(focus, text, focusStyle) {

@@ -1,4 +1,4 @@
-import { localIsoDate, scheduledServiceAt } from "./office-schedule.js?v=0.3.113";
+import { localIsoDate, scheduledServiceAt } from "./office-schedule.js?v=0.3.114";
 
 const DISMISSAL_KEY_PREFIX = "simple-liturgy.timed-office-onboarding";
 

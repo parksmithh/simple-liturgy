@@ -1,5 +1,5 @@
-import { complineServiceAt } from "./compline-preference.js?v=0.3.114";
-import { noondayServiceAt } from "./noonday-preference.js?v=0.3.114";
+import { complineServiceAt } from "./compline-preference.js?v=0.3.141";
+import { noondayServiceAt } from "./noonday-preference.js?v=0.3.141";
 
 export function localIsoDate(date = new Date()) {
   const year = date.getFullYear();
@@ -8,10 +8,39 @@ export function localIsoDate(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-export function scheduledServiceAt(date = new Date(), noondayEnabled = true, complineEnabled = true) {
-  const noondayService = noondayServiceAt(date, noondayEnabled);
+export function officePeriodAt(date = new Date()) {
+  const hour = date.getHours();
+  if (hour < 10) return "morning";
+  if (hour < 14) return "midday";
+  if (hour < 21) return "evening";
+  return "night";
+}
+
+function scheduleOptions(optionsOrNoondayEnabled, complineEnabled) {
+  if (optionsOrNoondayEnabled && typeof optionsOrNoondayEnabled === "object") {
+    return {
+      format: optionsOrNoondayEnabled.format === "full" ? "full" : "simple",
+      noondayEnabled: Boolean(optionsOrNoondayEnabled.noondayEnabled),
+      complineEnabled: Boolean(optionsOrNoondayEnabled.complineEnabled),
+    };
+  }
+  return {
+    format: "simple",
+    noondayEnabled: optionsOrNoondayEnabled ?? true,
+    complineEnabled: complineEnabled ?? true,
+  };
+}
+
+export function scheduledServiceAt(date = new Date(), optionsOrNoondayEnabled = true, legacyComplineEnabled = true) {
+  const options = scheduleOptions(optionsOrNoondayEnabled, legacyComplineEnabled);
+  const noondayService = noondayServiceAt(date, options.noondayEnabled);
   if (noondayService !== "daily") return noondayService;
-  return complineServiceAt(date, complineEnabled);
+  const complineService = complineServiceAt(date, options.complineEnabled);
+  if (complineService !== "daily") return complineService;
+  if (options.format !== "full") return "daily";
+  const period = officePeriodAt(date);
+  if (period === "morning" || period === "midday") return "morning";
+  return "evening";
 }
 
 export function timedOfficePreviewToExit({ noondayPreview, complinePreview, scheduledService }) {

@@ -1,13 +1,26 @@
-const CACHE = "daily-office-reader-v0.3.114";
+const CACHE = "daily-office-reader-v0.3.141";
 const CACHE_PREFIX = "daily-office-reader-v";
 const RELEASE_MARKER = `?v=${CACHE.slice(CACHE_PREFIX.length)}`;
 const CONTENT_ROOT = self.registration.scope.endsWith("/web/") ? "../" : "./";
-const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.114`;
-const PACK_INDEX_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.idx?v=0.3.114`;
-const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json?v=0.3.114`;
+const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.141`;
+const PACK_INDEX_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.idx?v=0.3.141`;
+const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json?v=0.3.141`;
+const RITE_TWO_URL = `${CONTENT_ROOT}data/daily-office/rite-two.json?v=0.3.141`;
+const FULL_OFFICE_INDEX_URL = "./dor-engine/daily-office-content.index.json?v=0.3.141";
+const FULL_OFFICE_PACK_URL = "./dor-engine/daily-office-content.active.jsonl?v=0.3.141";
+const FULL_OFFICE_CONTENT = [
+  RITE_TWO_URL,
+  FULL_OFFICE_INDEX_URL,
+  FULL_OFFICE_PACK_URL,
+];
+const FULL_OFFICE_PATHS = new Set(FULL_OFFICE_CONTENT.map(
+  url => new URL(url, self.registration.scope).pathname,
+));
 const PACK_PATH = new URL(PACK_URL, self.registration.scope).pathname;
+const FULL_OFFICE_PACK_PATH = new URL(FULL_OFFICE_PACK_URL, self.registration.scope).pathname;
 const PACK_INDEX_PATH = new URL(PACK_INDEX_URL, self.registration.scope).pathname;
 const COLLECTS_PATH = new URL(COLLECTS_URL, self.registration.scope).pathname;
+const rangedPackBytes = new Map();
 const SHELL = [
   "./",
   "./index.html",
@@ -16,29 +29,34 @@ const SHELL = [
   "./LICENSE.md",
   "./NOTICE",
   "./CONTRIBUTING.md",
-  "./design-tokens.css?v=0.3.114",
-  "./app.css?v=0.3.114",
-  "./app.js?v=0.3.114",
-  "./analytics.js?v=0.3.114",
-  "./bookmark-engine.js?v=0.3.114",
-  "./boundary-timer.js?v=0.3.114",
-  "./compline-preference.js?v=0.3.114",
-  "./feast-link-preference.js?v=0.3.114",
-  "./feast-wikipedia.js?v=0.3.114",
-  "./noonday-preference.js?v=0.3.114",
-  "./office-schedule.js?v=0.3.114",
-  "./pixel-art.js?v=0.3.114",
-  "./prayer-calendar.js?v=0.3.114",
-  "./psalm-preference.js?v=0.3.114",
-  "./reading-pack-loader.js?v=0.3.114",
-  "./theme.js?v=0.3.114",
-  "./timed-office-onboarding.js?v=0.3.114",
-  "./version.js?v=0.3.114",
-  "./manifest.webmanifest?v=0.3.114",
-  "./icon.svg?v=0.3.114",
-  "./apple-touch-icon.png?v=0.3.114",
-  "./icon-192.png?v=0.3.114",
-  "./icon-512.png?v=0.3.114",
+  "./design-tokens.css?v=0.3.141",
+  "./app.css?v=0.3.141",
+  "./app.js?v=0.3.141",
+  "./analytics.js?v=0.3.141",
+  "./bookmark-engine.js?v=0.3.141",
+  "./boundary-timer.js?v=0.3.141",
+  "./compline-preference.js?v=0.3.141",
+  "./daily-office-content.js?v=0.3.141",
+  "./daily-office.js?v=0.3.141",
+  "./feast-link-preference.js?v=0.3.141",
+  "./feast-wikipedia.js?v=0.3.141",
+  "./full-office-lifecycle.js?v=0.3.141",
+  "./noonday-preference.js?v=0.3.141",
+  "./office-schedule.js?v=0.3.141",
+  "./office-document.js?v=0.3.141",
+  "./pixel-art.js?v=0.3.141",
+  "./prayer-calendar.js?v=0.3.141",
+  "./prayer-format-preference.js?v=0.3.141",
+  "./psalm-preference.js?v=0.3.141",
+  "./reading-pack-loader.js?v=0.3.141",
+  "./theme.js?v=0.3.141",
+  "./timed-office-onboarding.js?v=0.3.141",
+  "./version.js?v=0.3.141",
+  "./manifest.webmanifest?v=0.3.141",
+  "./icon.svg?v=0.3.141",
+  "./apple-touch-icon.png?v=0.3.141",
+  "./icon-192.png?v=0.3.141",
+  "./icon-512.png?v=0.3.141",
   "./assets/og-simple-liturgy.png?v=3",
   "./assets/liturgical-icons/liturgical-calendar/lit-01-solemnity.svg",
   "./assets/liturgical-icons/liturgical-calendar/lit-02-feast.svg",
@@ -138,10 +156,30 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("message", event => {
-  if (event.data?.type !== "CACHE_COMPLETE_READING_PACK") return;
-  event.waitUntil(
-    caches.match(PACK_URL).then(cached => cached || caches.open(CACHE).then(cache => cache.add(PACK_URL))),
-  );
+  if (event.data?.type === "CACHE_COMPLETE_READING_PACK") {
+    event.waitUntil(
+      caches.match(PACK_URL).then(cached => cached || caches.open(CACHE).then(cache => cache.add(PACK_URL))),
+    );
+  } else if (event.data?.type === "CACHE_FULL_DAILY_OFFICE") {
+    const caching = caches.open(CACHE)
+      .then(async cache => {
+        const cached = await Promise.all(FULL_OFFICE_CONTENT.map(url => cache.match(url)));
+        if (cached.some(response => !response)) {
+          await cache.addAll(FULL_OFFICE_CONTENT);
+          for (const url of FULL_OFFICE_CONTENT) {
+            rangedPackBytes.delete(new URL(url, self.registration.scope).href);
+          }
+        }
+      })
+      .then(
+        () => event.ports[0]?.postMessage({ ok: true }),
+        error => {
+          event.ports[0]?.postMessage({ ok: false, message: String(error?.message || error) });
+          throw error;
+        },
+      );
+    event.waitUntil(caching);
+  }
 });
 
 async function fetchAndCache(request) {
@@ -151,6 +189,7 @@ async function fetchAndCache(request) {
     try {
       const cache = await caches.open(CACHE);
       await cache.put(request, response.clone());
+      rangedPackBytes.delete(request.url);
     } catch {
       // A healthy network response should still render if Cache Storage is unavailable.
     }
@@ -199,9 +238,29 @@ async function networkFirst(request, fallback = null) {
 async function rangedPackResponse(request) {
   const range = request.headers.get("range")?.match(/^bytes=(\d+)-(\d*)$/);
   if (!range) return fetch(request);
-  const cached = await caches.match(request.url);
-  if (!cached) return fetch(request);
-  const bytes = await cached.arrayBuffer();
+  if (request.cache === "reload") {
+    rangedPackBytes.delete(request.url);
+    return fetch(request);
+  }
+  if (!rangedPackBytes.has(request.url)) {
+    const loading = caches.match(request.url).then(async cached => {
+      if (!cached) return null;
+      return {
+        bytes: await cached.arrayBuffer(),
+        headers: new Headers(cached.headers),
+      };
+    });
+    rangedPackBytes.set(request.url, loading);
+    loading.catch(() => {
+      if (rangedPackBytes.get(request.url) === loading) rangedPackBytes.delete(request.url);
+    });
+  }
+  const cached = await rangedPackBytes.get(request.url);
+  if (!cached) {
+    rangedPackBytes.delete(request.url);
+    return fetch(request);
+  }
+  const { bytes } = cached;
   const start = Number(range[1]);
   const requestedEnd = range[2] ? Number(range[2]) : bytes.byteLength - 1;
   if (start >= bytes.byteLength || requestedEnd < start) {
@@ -220,7 +279,8 @@ self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
 
-  if (url.pathname === PACK_PATH && event.request.headers.has("range")) {
+  if ((url.pathname === PACK_PATH || url.pathname === FULL_OFFICE_PACK_PATH)
+    && event.request.headers.has("range")) {
     event.respondWith(rangedPackResponse(event.request));
     return;
   }
@@ -228,6 +288,13 @@ self.addEventListener("fetch", event => {
   if (event.request.mode === "navigate") {
     event.waitUntil(refreshCurrentVersionShell(event.request));
     event.respondWith(currentVersionCacheFirst(event.request, "./"));
+    return;
+  }
+
+  if (url.origin === self.location.origin
+    && FULL_OFFICE_PATHS.has(url.pathname)
+    && event.request.cache === "reload") {
+    event.respondWith(fetchAndCache(event.request));
     return;
   }
 

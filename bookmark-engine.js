@@ -1,4 +1,8 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.114";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.141";
+import {
+  adaptLegacyTimedOffice,
+  officeDocumentToViewSections,
+} from "./office-document.js?v=0.3.141";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -155,7 +159,30 @@ export function paginatePrayerByFit(text, fits) {
   return pages;
 }
 
-export function paginateBlocksByFit(text, fits) {
+const RESPONSE_FRAGMENT_MARKER = "\u001e";
+
+function numberedVerseParts(value) {
+  return String(value || "").match(
+    /^(\d+(?::\d+)?[a-z]?(?:(?:[-–—]|,)\d+(?::\d+)?[a-z]?)*)(?:\s+([\s\S]*))?$/i,
+  );
+}
+
+function markedNumberedResponseWords(block) {
+  if (!block.includes("*")) return block;
+  let inResponse = false;
+  return block.split(/(\s+)/).map(token => {
+    if (!token || /^\s+$/.test(token)) return token;
+    if (inResponse) return `${RESPONSE_FRAGMENT_MARKER}${token}`;
+    const marker = token.indexOf("*");
+    if (marker < 0) return token;
+    inResponse = true;
+    return marker === token.length - 1
+      ? token
+      : `${token.slice(0, marker + 1)}${RESPONSE_FRAGMENT_MARKER}${token.slice(marker + 1)}`;
+  }).join("");
+}
+
+export function paginateBlocksByFit(text, fits, options = {}) {
   const blocks = String(text || "").trim().split(/\n{2,}/).filter(Boolean);
   if (blocks.length === 0) return [];
   const pages = [];
@@ -177,7 +204,10 @@ export function paginateBlocksByFit(text, fits) {
       continue;
     }
 
-    for (const line of block.split("\n")) {
+    const splittableBlock = options.preserveNumberedCallResponse
+      ? markedNumberedResponseWords(block)
+      : block;
+    for (const line of splittableBlock.split("\n")) {
       const lineCandidate = page ? `${page}\n${line}` : line;
       if (fits(lineCandidate, pages.length)) {
         page = lineCandidate;
@@ -220,7 +250,7 @@ export function paginateBlocksByFit(text, fits) {
   return pages;
 }
 
-export function paginateTimedOfficeByFit(pageGroups, fits) {
+export function paginateTimedOfficeByFit(pageGroups, fits, options = {}) {
   const groups = Array.isArray(pageGroups) ? pageGroups.filter(group => group?.text) : [];
   const pages = [];
   for (const group of groups) {
@@ -230,7 +260,7 @@ export function paginateTimedOfficeByFit(pageGroups, fits) {
     }
     const groupPages = paginateBlocksByFit(group.text, (candidate, pageIndex) => (
       fits(candidate, pages.length + pageIndex)
-    ));
+    ), options);
     pages.push(...groupPages);
   }
   return pages;
@@ -244,7 +274,7 @@ export function stateAfterDateChange(state, previousDate, currentDate) {
   return previousDate === currentDate ? state : createState();
 }
 
-const DAILY_FOCUS_ORDER = ["PRAYER", "PS", "OT", "NT", "GS", "LORDS_PRAYER", "GLORIA"];
+const DAILY_FOCUS_ORDER = ["PRAYER", "PS", "OT", "NT", "GS", "GLORIA"];
 const NOONDAY_FOCUS_ORDER = [
   "NOONDAY_OPENING",
   "NOONDAY_PSALM",
@@ -262,8 +292,7 @@ const COMPLINE_FOCUS_ORDER = [
   "COMPLINE_CONCLUSION",
 ];
 const GLORIA_TEXT = "Glory to the Father, to the Son, and to the Holy Spirit. Amen.";
-const LORDS_PRAYER_TEXT = "Our Father in heaven, hallowed be your Name, your kingdom come, your will be done, on earth as in heaven. Give us today our daily bread. Forgive us our sins as we forgive those who sin against us. Save us from the time of trial, and deliver us from evil. For the kingdom, the power, and the glory are yours, now and for ever. Amen.";
-const READING_LABELS = { OT: "Old Testament", PS: "Psalms", NT: "New Testament", GS: "Gospel", PRAYER: "Prayer", LORDS_PRAYER: "Lord's Prayer", GLORIA: "Gloria" };
+const READING_LABELS = { OT: "Old Testament", PS: "Psalms", NT: "New Testament", GS: "Gospel", PRAYER: "Prayer", GLORIA: "Gloria" };
 const PSALM_OFFICE_LABELS = { morning: "Morning", evening: "Evening" };
 const GOSPEL_BOOKS = ["matthew", "mark", "luke", "john"];
 const NEW_TESTAMENT_BOOKS = [
@@ -278,20 +307,30 @@ function normalizedCitation(citation) {
   return String(citation).trim().replace(/^or\s+/i, "").replace(/--+/g, "-");
 }
 
-function startsWithBook(citation, books) {
-  const normalized = normalizedCitation(citation).toLowerCase();
+export function scriptureCitationPresentation(citation) {
+  const normalized = normalizedCitation(citation || "");
+  if (!normalized.includes(":")) return normalized ? "heading" : null;
+  const versePart = normalized.slice(normalized.lastIndexOf(":") + 1).trim();
+  return /^\d+[a-z]?$/i.test(versePart) ? "footnote" : "heading";
+}
+
+function normalizedCitationStartsWithBook(citation, books) {
+  const normalized = citation.toLowerCase();
   return books.some(book => normalized === book || normalized.startsWith(`${book} `) || normalized.startsWith(`${book},`));
+}
+
+function scriptureKeyForNormalizedCitation(citation) {
+  if (normalizedCitationStartsWithBook(citation, GOSPEL_BOOKS)) return "GS";
+  if (normalizedCitationStartsWithBook(citation, NEW_TESTAMENT_BOOKS)) return "NT";
+  return "OT";
 }
 
 export function lessonValues(lessons = []) {
   const values = { OT: "-", NT: "-", GS: "-" };
   for (const citation of lessons) {
     const normalized = normalizedCitation(citation);
-    if (startsWithBook(normalized, GOSPEL_BOOKS)) {
-      if (values.GS === "-") values.GS = normalized;
-    } else if (startsWithBook(normalized, NEW_TESTAMENT_BOOKS)) {
-      if (values.NT === "-") values.NT = normalized;
-    } else if (values.OT === "-") values.OT = normalized;
+    const key = scriptureKeyForNormalizedCitation(normalized);
+    if (values[key] === "-") values[key] = normalized;
   }
   return values;
 }
@@ -379,7 +418,12 @@ export function controlModel(viewOrFocus) {
   if (focus) {
     const prayer = typeof viewOrFocus === "object" ? viewOrFocus.prayer : null;
     const timedOfficeSection = typeof viewOrFocus === "object"
-      ? (viewOrFocus.noonday || viewOrFocus.compline)?.sections?.[focus]
+      ? (
+        viewOrFocus[viewOrFocus.service]
+        || viewOrFocus.office
+        || viewOrFocus.noonday
+        || viewOrFocus.compline
+      )?.sections?.[focus]
       : null;
     const paginatedSection = focus === "PRAYER" ? prayer : timedOfficeSection;
     const focusOrder = typeof viewOrFocus === "object" && Array.isArray(viewOrFocus.focusOrder)
@@ -482,12 +526,10 @@ export function timedOfficeAvailableHeight({
   focusBottom,
   paddingBottom,
   textTop,
-  responseHeight = 0,
-  responseMarginTop = 0,
-  responseMarginBottom = 0,
+  reservedFooterHeight = 0,
 }) {
   return focusBottom - paddingBottom - textTop
-    - responseHeight - responseMarginTop - responseMarginBottom;
+    - reservedFooterHeight;
 }
 
 export function dateWithOffset(isoDate, offset) {
@@ -869,12 +911,38 @@ export function model(bundle, state, today, collects = null, options = {}) {
   const todayRelation = state.offset < 0 ? "past" : state.offset > 0 ? "future" : "today";
   const day = bundle.dates.get(date);
   if (!day) return { date, todayRelation, error: "DATE OUTSIDE INSTALLED PACK" };
-  if (options.service === "noonday" || options.service === "compline") {
+  if (["morning", "evening", "noonday", "compline"].includes(options.service)) {
     const service = options.service;
-    const office = service === "compline" ? complineOffice(day) : noondayOffice(day);
+    const fullOffice = service === "morning" || service === "evening";
+    let document = options.officeDocument;
+    if (!fullOffice) {
+      const legacyOffice = service === "compline" ? complineOffice(day) : noondayOffice(day);
+      const legacyFocusOrder = service === "compline" ? COMPLINE_FOCUS_ORDER : NOONDAY_FOCUS_ORDER;
+      document = adaptLegacyTimedOffice({
+        service,
+        date,
+        title: service === "compline" ? "Compline" : "Noonday Prayer",
+        source: {
+          id: service,
+          locator: service === "compline"
+            ? "https://www.bcponline.org/DailyOffice/compline.html"
+            : "https://www.bcponline.org/DailyOffice/noonday.html",
+        },
+        focusOrder: legacyFocusOrder,
+        sections: legacyOffice.sections,
+      });
+    }
+    if (!document) return { date, todayRelation, service, error: "FULL DAILY OFFICE UNAVAILABLE" };
+    const office = { sections: officeDocumentToViewSections(document) };
     const focusedSection = office.sections[state.focus];
     if (focusedSection?.pages) {
-      const measuredPages = (service === "compline" ? options.complinePages : options.noondayPages)?.[state.focus];
+      const measuredPages = (
+        fullOffice
+          ? options.officePages
+          : service === "compline"
+            ? options.complinePages
+            : options.noondayPages
+      )?.[state.focus];
       if (Array.isArray(measuredPages) && measuredPages.length > 0) focusedSection.pages = measuredPages;
       focusedSection.page = Math.min(state.focusPage || 0, focusedSection.pages.length - 1);
     }
@@ -886,10 +954,12 @@ export function model(bundle, state, today, collects = null, options = {}) {
       feast: day.feast,
       occasionType: day.occasion_type || null,
       focus: state.focus,
-      focusOrder: service === "compline" ? COMPLINE_FOCUS_ORDER : NOONDAY_FOCUS_ORDER,
+      focusOrder: document.sections.map(section => section.key || section.id),
       service,
+      officeDocument: document,
       noondayPreviewRelation: options.noondayPreviewRelation || null,
       complinePreviewRelation: options.complinePreviewRelation || null,
+      office,
       [service]: office,
     };
   }
@@ -923,11 +993,12 @@ export function model(bundle, state, today, collects = null, options = {}) {
   };
 }
 
-export function focusPageCounts(view) {
+export function focusPageCounts(view, measuredPages = {}) {
   const pageCounts = { PRAYER: view.prayer?.pages.length || 1 };
-  const timedOffice = view.noonday || view.compline;
+  const timedOffice = view[view.service] || view.office || view.noonday || view.compline;
   for (const [focus, section] of Object.entries(timedOffice?.sections || {})) {
-    if (section.pages?.length) pageCounts[focus] = section.pages.length;
+    if (measuredPages[focus]?.length) pageCounts[focus] = measuredPages[focus].length;
+    else if (section.pages?.length) pageCounts[focus] = section.pages.length;
   }
   return pageCounts;
 }
@@ -945,14 +1016,27 @@ function escapeHtml(value) {
   return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 }
 
-export function noondayPsalmHtml(text) {
+export function numberedLiturgicalTextHtml(text) {
   const verses = String(text || "").trim().split(/\n{2,}/).filter(Boolean);
   return `<span class="noonday-psalm-verses">${verses.map(verse => {
-    const match = verse.match(/^(\d+)\s+([\s\S]*)$/);
+    const heading = verse.match(/^Psalm\s+([\d:–—-]+)(?:\s+·\s+(.+))?$/);
+    if (heading) {
+      const subtitle = heading[2]
+        ? `<span class="timed-office-psalm-subtitle">${escapeHtml(heading[2])}</span>`
+        : "";
+      return `<span class="timed-office-psalm-heading"><span>Psalm ${escapeHtml(heading[1])}</span>${subtitle}</span>`;
+    }
+    const match = numberedVerseParts(verse);
     const number = match?.[1] || "";
     const { call, response } = callResponseParts(match?.[2] || verse);
     return `<span class="noonday-psalm-verse"><span class="noonday-psalm-number">${escapeHtml(number)}</span><span class="noonday-call-response"><span class="noonday-psalm-call">${escapeHtml(call)}</span><strong class="noonday-psalm-response">${escapeHtml(response)}</strong></span></span>`;
   }).join("")}</span>`;
+}
+
+export const noondayPsalmHtml = numberedLiturgicalTextHtml;
+
+export function usesNumberedVerseLayout(section, key) {
+  return /_PSALMS?$/.test(key) || Boolean(section.numberedVerses);
 }
 
 function normalizedLiturgicalText(value) {
@@ -960,7 +1044,9 @@ function normalizedLiturgicalText(value) {
 }
 
 function timedOfficeAmenParts(value) {
-  const match = String(value || "").trim().match(/^([\s\S]*?)(?:\s+|^)(Amen\.?)(?:[ \t]*\n[ \t]*(Alleluia\.?))?$/i);
+  const match = String(value || "").trim().match(
+    /^([\s\S]*?)(?:\s+|^)(Amen\.?)(?:\s+(Alleluia(?:,\s*alleluia)*\.?))?$/i,
+  );
   if (!match) return null;
   return {
     lead: normalizedLiturgicalText(match[1]),
@@ -979,18 +1065,25 @@ function timedOfficeAmenParagraphHtml(parts, emphasized = false) {
 
 function timedOfficeProseHtml(value) {
   const amen = timedOfficeAmenParts(value);
-  if (!amen) return `<span class="noonday-prose-block">${escapeHtml(normalizedLiturgicalText(value))}</span>`;
+  if (!amen) {
+    const text = normalizedLiturgicalText(value);
+    const leaderCue = /^Let us pray\.$/i.test(text) ? " timed-office-leader-cue" : "";
+    return `<span class="noonday-prose-block${leaderCue}">${escapeHtml(text)}</span>`;
+  }
   const lead = amen.lead ? `<span class="noonday-prose-block">${escapeHtml(amen.lead)}</span>` : "";
   return `${lead}${timedOfficeAmenParagraphHtml(amen)}`;
 }
 
 function callResponseParts(value) {
   const text = String(value || "");
-  const marker = text.indexOf("*");
-  if (marker < 0) return { call: normalizedLiturgicalText(text), response: "" };
+  const explicitResponse = text.startsWith(RESPONSE_FRAGMENT_MARKER);
+  const cleanText = text.replaceAll(RESPONSE_FRAGMENT_MARKER, "");
+  if (explicitResponse) return { call: "", response: normalizedLiturgicalText(cleanText) };
+  const marker = cleanText.indexOf("*");
+  if (marker < 0) return { call: normalizedLiturgicalText(cleanText), response: "" };
   return {
-    call: normalizedLiturgicalText(text.slice(0, marker)),
-    response: normalizedLiturgicalText(text.slice(marker + 1)),
+    call: normalizedLiturgicalText(cleanText.slice(0, marker)),
+    response: normalizedLiturgicalText(cleanText.slice(marker + 1)),
   };
 }
 
@@ -1037,12 +1130,6 @@ function prayerHeading(prayer, includeArticle = false) {
   return `${includeArticle ? "A " : ""}Prayer for ${prayer.title}`;
 }
 
-function prayerWithFinalAmenHtml(text) {
-  const finalAmen = " Amen.";
-  if (!text.endsWith(finalAmen)) return escapeHtml(text);
-  return `${escapeHtml(text.slice(0, -finalAmen.length))} <span class="prayer-amen">Amen.</span>`;
-}
-
 function feastAboutHtml(feast, occasionType, enabled) {
   if (!enabled || occasionType !== "church") return "";
   const wikipediaUrl = wikipediaUrlForFeast(feast);
@@ -1056,35 +1143,72 @@ function compactYear(year) {
   return year;
 }
 
+function isScriptureLesson(key, section) {
+  return /_LESSON_\d+$/.test(key) && Boolean(section.citation);
+}
+
 function timedOfficeFocusHtml(section, key) {
   const pageIndex = section.pages?.length > 1 ? ` (${section.page + 1}/${section.pages.length})` : "";
-  const isPsalm = key.endsWith("_PSALM");
-  const isPsalmContinuation = isPsalm && section.page > 0;
-  const citation = section.citation && !isPsalmContinuation
-    ? `<span class="focus-cite${isPsalm ? " noonday-psalm-cite" : ""}">${escapeHtml(section.citation)}</span>`
+  const isPsalm = /_PSALMS?$/.test(key);
+  const hasNumberedVerses = usesNumberedVerseLayout(section, key);
+  const isScriptureCitation = isScriptureLesson(key, section);
+  const isContinuation = section.page > 0;
+  const citation = section.citation && !key.endsWith("_PSALMS") && !isContinuation
+    ? `<span class="focus-cite${isPsalm ? " noonday-psalm-cite" : section.heading ? " timed-office-section-cite" : ""}">${escapeHtml(normalizedCitation(section.citation))}</span>`
     : "";
-  const subtitle = section.subtitle && !isPsalmContinuation
-    ? `<span class="noonday-subtitle">${escapeHtml(section.subtitle)}</span>`
+  const heading = section.heading && !isContinuation
+    ? `<span class="timed-office-section-title">${escapeHtml(section.heading)}</span>`
+    : "";
+  const subtitle = section.subtitle && !isContinuation
+    ? `<span class="noonday-subtitle${section.heading ? " timed-office-section-subtitle" : ""}">${escapeHtml(section.subtitle)}</span>`
     : "";
   const pageText = section.pages ? section.pages[section.page] : section.text;
   const isClosingPage = Boolean(section.closingPage && section.page === section.pages.length - 1);
-  const pageContent = isPsalm && !isClosingPage ? noondayPsalmHtml(pageText) : timedOfficeTextHtml(pageText);
+  const lastPage = !section.pages || section.page === section.pages.length - 1;
+  const isGloriaPage = isClosingPage && /^Glory to the Father\b/i.test(pageText.trim());
+  const isConclusionClosingPage = key.endsWith("_CONCLUSION") && lastPage;
   let textClass = "prayer-text noonday-text";
   if (key.endsWith("_OPENING")) textClass += " noonday-opening-text";
-  else if (!isPsalm || isClosingPage) textClass += " noonday-prayer-text";
-  const content = `<span class="${textClass}">${pageContent}</span>`;
-  const lastPage = !section.pages || section.page === section.pages.length - 1;
+  else if (!hasNumberedVerses || isClosingPage) textClass += " noonday-prayer-text";
+  if (section.numberedVerses && !isClosingPage) textClass += " timed-office-numbered-verses";
+  if (isGloriaPage) textClass += " timed-office-gloria-text";
+  if (isConclusionClosingPage) textClass += " timed-office-closing-text";
+  const renderedPageText = isGloriaPage ? pageText.replace(/\s*\*\s*/g, " ") : pageText;
+  const content = isScriptureCitation
+    ? ""
+    : `<span class="${textClass}">${hasNumberedVerses && !isClosingPage ? numberedLiturgicalTextHtml(renderedPageText) : timedOfficeTextHtml(renderedPageText)}</span>`;
+  const scripturePresentation = scriptureCitationPresentation(section.footnote);
+  const scriptureCitationPage = key.endsWith("_OPENING")
+    ? scripturePresentation === "footnote" ? lastPage : !isContinuation
+    : lastPage;
+  const scriptureHeading = section.footnote && scriptureCitationPage && scripturePresentation === "heading"
+    ? `<span class="focus-cite timed-office-scripture-heading">${escapeHtml(normalizedCitation(section.footnote))}</span>`
+    : "";
+  const scriptureFootnote = section.footnote && scriptureCitationPage && scripturePresentation === "footnote"
+    ? `<span class="focus-cite timed-office-scripture-footnote">${escapeHtml(`– ${normalizedCitation(section.footnote)}`)}</span>`
+    : "";
   const response = section.response && lastPage
     ? `<span class="noonday-response">${escapeHtml(section.response)}</span>`
     : "";
-  return `<button class="reading focus prayer-focus noonday-focus" data-reading="${key}" type="button"><span class="label">${escapeHtml(section.label)}${pageIndex}</span>${citation}${subtitle}${content}${response}</button>`;
+  const header = heading ? `${heading}${subtitle}${citation}` : `${citation}${subtitle}`;
+  const pageLabel = isGloriaPage ? "Gloria" : `${section.label}${pageIndex}`;
+  return `<button class="reading focus prayer-focus noonday-focus" data-reading="${key}" type="button"><span class="label">${escapeHtml(pageLabel)}</span>${header}${scriptureHeading}${content}${scriptureFootnote}${response}</button>`;
 }
 
 function timedOfficeOverviewHtml(sections, service = "noonday") {
-  const serviceClass = service === "compline" ? " compline-grid" : "";
+  const fullOffice = ["morning", "evening"].includes(service);
+  const serviceClass = service === "compline"
+    ? " compline-grid"
+    : fullOffice
+      ? " full-office-grid"
+      : "";
   return `<div class="grid noonday-grid${serviceClass}">${Object.entries(sections).map(([key, section]) => {
-    const summary = section.summary ? `<span class="cite">${escapeHtml(section.summary)}</span>` : "";
-    return `<button class="reading" data-reading="${key}" type="button"><span class="label">${escapeHtml(section.label)}</span>${summary}</button>`;
+    const lesson = fullOffice && isScriptureLesson(key, section);
+    const lessonCitation = lesson ? normalizedCitation(section.citation) : "";
+    const label = lesson ? READING_LABELS[scriptureKeyForNormalizedCitation(lessonCitation)] : section.label;
+    const summaryText = fullOffice ? "" : lesson ? lessonCitation : section.summary;
+    const summary = summaryText ? `<span class="cite">${escapeHtml(summaryText)}</span>` : "";
+    return `<button class="reading" data-reading="${key}" type="button"><span class="label">${escapeHtml(label)}</span>${summary}</button>`;
   }).join("")}</div>`;
 }
 
@@ -1137,11 +1261,16 @@ export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = 
     office: psalmOffice === "evening" ? "evening" : "morning",
   };
   const occasionType = view.occasionType || null;
-  const timedOfficeLabel = { noonday: "Noonday", compline: "Compline" }[view.service];
+  const timedOfficeLabel = {
+    morning: "Morning Prayer",
+    evening: "Evening Prayer",
+    noonday: "Noonday",
+    compline: "Compline",
+  }[view.service];
   const serviceLabel = timedOfficeLabel || (psalmPresentation.office === "evening" ? "Evening" : "Morning");
   const screenLead = readerLeadHtml(view, serviceLabel, occasionType);
-  const timedOffice = view.noonday || view.compline;
-  if ((view.service === "noonday" || view.service === "compline") && timedOffice) {
+  const timedOffice = view[view.service] || view.office || view.noonday || view.compline;
+  if (["morning", "evening", "noonday", "compline"].includes(view.service) && timedOffice) {
     const sections = timedOffice.sections;
     const body = view.focus && sections[view.focus]
       ? timedOfficeFocusHtml(sections[view.focus], view.focus)
@@ -1153,17 +1282,13 @@ export function screenHtml(view, { feastLinksEnabled = true, psalmDisplayMode = 
   const prayerFocus = view.focus === "PRAYER" && view.prayer
     ? `<div class="reading focus prayer-focus"><button class="prayer-content" data-reading="PRAYER" type="button"><span class="label">${escapeHtml(prayerHeading(view.prayer))}${prayerIndex}</span><span class="prayer-text">${prayerPageHtml(view.prayer)}</span></button>${feastAboutHtml(view.feast, occasionType, feastLinksEnabled)}</div>`
     : null;
-  const lordsPrayerFocus = view.focus === "LORDS_PRAYER"
-    ? `<button class="reading focus prayer-focus" data-reading="LORDS_PRAYER" type="button"><span class="label">Lord's Prayer</span><span class="prayer-text lords-prayer-text">${prayerWithFinalAmenHtml(LORDS_PRAYER_TEXT)}</span></button>`
-    : null;
   const gloriaFocus = view.focus === "GLORIA"
     ? `<button class="reading focus prayer-focus" data-reading="GLORIA" type="button"><span class="label">Gloria</span><span class="prayer-text gloria-text">${escapeHtml(GLORIA_TEXT)}</span></button>`
     : null;
   const openingPrayerOverview = '<div class="reading overview-marker opening-prayer-marker"><span class="label">Opening Prayer</span></div>';
-  const lordsPrayerOverview = "<div class=\"reading overview-marker lords-prayer-marker\"><span class=\"label\">Lord's Prayer</span></div>";
   const gloriaOverview = '<div class="reading overview-marker gloria-marker"><span class="label">Gloria</span></div>';
   const body = view.focus
-    ? prayerFocus || lordsPrayerFocus || gloriaFocus || `<button class="reading focus" data-reading="${view.focus}" type="button">${readingContentHtml(view, view.focus, "focus-cite", psalmPresentation)}</button>`
-    : `<div class="grid">${openingPrayerOverview}${Object.keys(view.values).map(key => `<button class="reading" data-reading="${key}" type="button">${readingContentHtml(view, key, "cite", psalmPresentation)}</button>`).join("")}${lordsPrayerOverview}${gloriaOverview}</div>`;
+    ? prayerFocus || gloriaFocus || `<button class="reading focus" data-reading="${view.focus}" type="button">${readingContentHtml(view, view.focus, "focus-cite", psalmPresentation)}</button>`
+    : `<div class="grid">${openingPrayerOverview}${Object.keys(view.values).map(key => `<button class="reading" data-reading="${key}" type="button">${readingContentHtml(view, key, "cite", psalmPresentation)}</button>`).join("")}${gloriaOverview}</div>`;
   return `${screenLead}${body}${readerProgressHintHtml(view.focus)}`;
 }

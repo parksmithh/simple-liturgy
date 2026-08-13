@@ -1,22 +1,31 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.114";
-import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, model, noondayPsalmHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, screenClickDecision, screenHtml, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays } from "./bookmark-engine.js?v=0.3.114";
-import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.114";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.114";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.114";
-import { localIsoDate, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.114";
-import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.114";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.114";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.114";
-import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.114";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.114";
-import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.114";
-import { appVersionLabel } from "./version.js?v=0.3.114";
+import { initializeAnalytics } from "./analytics.js?v=0.3.141";
+import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, lessonValues, model, numberedLiturgicalTextHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, resolvePrayer, screenClickDecision, screenHtml, scriptureCitationPresentation, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays, usesNumberedVerseLayout } from "./bookmark-engine.js?v=0.3.141";
+import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.141";
+import { createDailyOfficeDayLoader, mergeDailyOfficeContent } from "./daily-office-content.js?v=0.3.141";
+import { composeDailyOffice } from "./daily-office.js?v=0.3.141";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.141";
+import { createFullOfficePreviewController, fullOfficeLoadingHtml, fullOfficeLoadingService, isFullOfficeService } from "./full-office-lifecycle.js?v=0.3.141";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.141";
+import { localIsoDate, officePeriodAt, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.141";
+import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.141";
+import { bindPrayerFormatPreference, initializePrayerFormatPreference } from "./prayer-format-preference.js?v=0.3.141";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.141";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.141";
+import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.141";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.141";
+import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.141";
+import { appVersionLabel } from "./version.js?v=0.3.141";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.114", CONTENT_ROOT);
-const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.114", CONTENT_ROOT);
-const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.114", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.141", CONTENT_ROOT);
+const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.141", CONTENT_ROOT);
+const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.141", CONTENT_ROOT);
+const FULL_OFFICE_URLS = {
+  riteTwo: new URL("data/daily-office/rite-two.json?v=0.3.141", CONTENT_ROOT),
+  index: new URL("dor-engine/daily-office-content.index.json?v=0.3.141", APP_ROOT),
+  pack: new URL("dor-engine/daily-office-content.active.jsonl?v=0.3.141", APP_ROOT),
+};
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
 const screen = document.querySelector("#screen");
@@ -27,6 +36,13 @@ const reader = document.querySelector(".reader");
 const deviceScreen = document.querySelector("#device-screen");
 const themeControls = document.querySelectorAll('input[name="theme"]');
 const psalmControls = document.querySelectorAll('input[name="psalm-display"]');
+const prayerFormatControl = document.querySelector("#full-daily-office-enabled");
+const previewMorningButton = document.querySelector("#preview-morning");
+const previewEveningButton = document.querySelector("#preview-evening");
+const prayerFormatPreviews = document.querySelector(".prayer-format-previews");
+const prayerFormatPreviewLabel = document.querySelector(".prayer-format-preview-label");
+const prayerFormatStatus = document.querySelector("#prayer-format-status");
+const retryFullOfficeButton = document.querySelector("#retry-full-office");
 const prayerReminderControls = document.querySelectorAll("[data-prayer-office]");
 const createPrayerRemindersButton = document.querySelector("#create-prayer-reminders");
 const prayerReminderStatus = document.querySelector("#prayer-reminder-status");
@@ -85,6 +101,19 @@ let observedDeviceSize = "";
 let activeLocalDate = null;
 let activePsalmOffice = null;
 let activeService = "daily";
+let prayerFormat = "simple";
+let fullOfficeContent = null;
+let fullOfficeLoad = null;
+let fullOfficeHydration = null;
+let fullOfficeHydrated = false;
+let fullOfficeError = null;
+let fullOfficeOfflineError = null;
+let fullOfficeOfflineState = "idle";
+let fullOfficePreview = null;
+let fullOfficePreviewMarker = null;
+let simpleOfficePreview = null;
+let simpleOfficePreviewMarker = null;
+const fullOfficeDocumentCache = new Map();
 let noondayPreview = false;
 let noondayPreviewMarker = null;
 let complinePreview = false;
@@ -96,6 +125,11 @@ const readingPackLoader = createReadingPackLoader({
   indexUrl: PACK_INDEX_URL,
   packUrl: PACK_URL,
   parseBundle,
+});
+const dailyOfficeLoader = createDailyOfficeDayLoader({
+  indexUrl: FULL_OFFICE_URLS.index,
+  packUrl: FULL_OFFICE_URLS.pack,
+  riteTwoUrl: FULL_OFFICE_URLS.riteTwo,
 });
 
 function invalidateLayouts() {
@@ -115,6 +149,7 @@ const feastLinksContext = { control: feastLinksControl, storage: window.localSto
 const psalmContext = { controls: psalmControls, storage: window.localStorage };
 const noondayContext = { control: noondayControl, storage: window.localStorage };
 const complineContext = { control: complineControl, storage: window.localStorage };
+const prayerFormatContext = { control: prayerFormatControl, storage: window.localStorage };
 const psalmBoundary = createPsalmBoundaryTimer({
   onBoundary: now => refreshAt(now, false),
 });
@@ -132,11 +167,20 @@ let psalmDisplayMode = initializePsalmPreference(psalmContext);
 psalmBoundary.setMode("by-time-of-day");
 let noondayEnabled = initializeNoondayPreference(noondayContext);
 let complineEnabled = initializeComplinePreference(complineContext);
+prayerFormat = initializePrayerFormatPreference(prayerFormatContext);
 prayerSchedule.setNoondayEnabled(noondayEnabled);
 prayerSchedule.setComplineEnabled(complineEnabled);
 
+function scheduleAt(date = new Date()) {
+  return scheduledServiceAt(date, {
+    format: prayerFormat,
+    noondayEnabled,
+    complineEnabled,
+  });
+}
+
 const initialServiceTime = new Date();
-activeService = scheduledServiceAt(initialServiceTime, noondayEnabled, complineEnabled);
+activeService = scheduleAt(initialServiceTime);
 syncNoondayPreviewButton(initialServiceTime);
 syncComplinePreviewButton(initialServiceTime);
 noondayBoundary.setEnabled(true, initialServiceTime);
@@ -145,7 +189,7 @@ const timedOfficeOnboarding = createTimedOfficeOnboardingController({
   document,
   storage: window.sessionStorage,
   getEnabled: office => office === "noonday" ? noondayEnabled : complineEnabled,
-  canOfferAutomatically: () => settingsPage.hidden && !noondayPreview && !complinePreview,
+  canOfferAutomatically: () => settingsPage.hidden && !fullOfficePreview && !simpleOfficePreview && !noondayPreview && !complinePreview,
   enableOffice: enableTimedOffice,
 });
 let initialTimedOfficeOfferConsumed = false;
@@ -154,6 +198,172 @@ function offerInitialTimedOfficeOnboarding() {
   if (initialTimedOfficeOfferConsumed) return false;
   initialTimedOfficeOfferConsumed = true;
   return timedOfficeOnboarding.offerAutomatic(initialServiceTime);
+}
+
+function hasFullOfficeDate(date) {
+  const context = fullOfficeContent?.appointments.contexts[date];
+  if (!context) return false;
+  return [context.morning_key, context.evening_key].every(key => (
+    fullOfficeContent.appointments.appointments[key]
+    || fullOfficeContent.appointments.eves[key]
+  ));
+}
+
+function serviceWithContentFallback(service, date = localIsoDate()) {
+  return isFullOfficeService(service) && !hasFullOfficeDate(date) ? "daily" : service;
+}
+
+function fullOfficeMarkerAt(date = new Date()) {
+  return `${localIsoDate(date)}:${officePeriodAt(date)}`;
+}
+
+function syncPrayerFormatStatus() {
+  if (fullOfficeLoad) {
+    prayerFormatStatus.textContent = "Preparing the Traditional Rite II offices…";
+    retryFullOfficeButton.hidden = true;
+    return;
+  }
+  if (fullOfficeError) {
+    prayerFormatStatus.textContent = "Traditional Prayer is temporarily unavailable. Simple Prayer will remain active.";
+    retryFullOfficeButton.hidden = false;
+    return;
+  }
+  if (fullOfficeOfflineState === "preparing") {
+    prayerFormatStatus.textContent = "Traditional Prayer is active; finishing its offline copy…";
+    retryFullOfficeButton.hidden = true;
+    return;
+  }
+  if (fullOfficeOfflineError) {
+    prayerFormatStatus.textContent = "Traditional Prayer is active online, but its offline copy could not be completed.";
+    retryFullOfficeButton.hidden = false;
+    return;
+  }
+  prayerFormatStatus.textContent = prayerFormat === "full"
+    ? `Traditional follows the complete Rite II office automatically${
+      fullOfficeOfflineState === "ready" ? ", with the offices ready offline." : "."
+    }`
+    : "Simple keeps the concise prayer-and-readings backbone.";
+  retryFullOfficeButton.hidden = true;
+}
+
+function syncPrayerFormatPreviews() {
+  const target = prayerFormat === "full" ? "Simple" : "Traditional";
+  prayerFormatPreviews.hidden = false;
+  prayerFormatPreviews.setAttribute("aria-label", `Preview ${target} Morning and Evening Prayer`);
+  prayerFormatPreviewLabel.textContent = `Preview ${target}`;
+}
+
+async function ensureFullOfficeContentForDate(
+  date = new Date(),
+  { forceRefresh = false } = {},
+) {
+  const dateString = typeof date === "string" ? date : localIsoDate(date);
+  if (hasFullOfficeDate(dateString) && !forceRefresh) return fullOfficeContent;
+  const requestCache = forceRefresh || fullOfficeError ? "reload" : "default";
+  fullOfficeError = null;
+  fullOfficeOfflineError = null;
+  if (forceRefresh) fullOfficeHydrated = false;
+  const load = dailyOfficeLoader.loadDay(dateString, { requestCache })
+    .then(partial => {
+      if (fullOfficeContent) mergeDailyOfficeContent(fullOfficeContent, partial);
+      else fullOfficeContent = partial;
+      fullOfficeError = null;
+      fullOfficeDocumentCache.clear();
+      return fullOfficeContent;
+    })
+    .catch(error => {
+      fullOfficeError = error;
+      syncPrayerFormatStatus();
+      throw error;
+    });
+  fullOfficeLoad = load;
+  syncPrayerFormatStatus();
+  try {
+    return await load;
+  } catch {
+    return null;
+  } finally {
+    if (fullOfficeLoad === load) {
+      fullOfficeLoad = null;
+      syncPrayerFormatStatus();
+    }
+  }
+}
+
+function beginFullOfficeHydration(today) {
+  if (fullOfficeHydrated) return Promise.resolve(fullOfficeContent);
+  if (fullOfficeHydration) return fullOfficeHydration;
+  fullOfficeOfflineError = null;
+  fullOfficeOfflineState = "preparing";
+  syncPrayerFormatStatus();
+  fullOfficeHydration = loadAroundToday(dailyOfficeLoader, today, {
+    onDay: (date, partial) => {
+      if (fullOfficeContent) mergeDailyOfficeContent(fullOfficeContent, partial);
+      else fullOfficeContent = partial;
+      fullOfficeDocumentCache.clear();
+      if (dateWithOffset(localIsoDate(), state.offset) === date && bundle && collects) render();
+    },
+  }).then(async completeContent => {
+    if (completeContent) {
+      fullOfficeContent = completeContent;
+      fullOfficeHydrated = true;
+      fullOfficeDocumentCache.clear();
+      if (bundle && collects) render();
+    }
+    try {
+      const offlineReady = await cacheFullOfficeForOfflineUse();
+      fullOfficeOfflineState = offlineReady ? "ready" : "unsupported";
+    } catch (error) {
+      fullOfficeOfflineState = "error";
+      fullOfficeOfflineError = error;
+    }
+    return fullOfficeContent;
+  }).catch(error => {
+    fullOfficeOfflineState = "error";
+    fullOfficeOfflineError = error;
+    return fullOfficeContent;
+  }).finally(() => {
+    fullOfficeHydration = null;
+    syncPrayerFormatStatus();
+  });
+  return fullOfficeHydration;
+}
+
+function prepareScheduledFullOffice(date = new Date()) {
+  if (!isFullOfficeService(scheduleAt(date))) return;
+  const today = localIsoDate(date);
+  ensureFullOfficeContentForDate(today).then(content => {
+    if (bundle && collects) render();
+    if (!content) return;
+    beginFullOfficeHydration(today);
+  });
+}
+
+function fullOfficeDocument(service, date) {
+  const cacheKey = `${service}:${date}`;
+  if (fullOfficeDocumentCache.has(cacheKey)) return fullOfficeDocumentCache.get(cacheKey);
+  const day = bundle?.dates.get(date);
+  const reading = day ? bundle?.readings.get(day.key) : null;
+  const collect = resolvePrayer(collects, day);
+  if (!day || !reading || !collect || !hasFullOfficeDate(date)) return null;
+  const dailyLessons = lessonValues(reading.lessons);
+  const morningLessonCitations = [dailyLessons.OT, dailyLessons.NT, dailyLessons.GS]
+    .filter(citation => citation && citation !== "-");
+  const document = composeDailyOffice({
+    service,
+    date,
+    day,
+    collect,
+    riteTwo: fullOfficeContent.riteTwo,
+    psalter: fullOfficeContent.psalter,
+    appointments: fullOfficeContent.appointments,
+    lessonCitations: service === "morning" ? morningLessonCitations : null,
+  });
+  fullOfficeDocumentCache.set(cacheKey, document);
+  while (fullOfficeDocumentCache.size > 8) {
+    fullOfficeDocumentCache.delete(fullOfficeDocumentCache.keys().next().value);
+  }
+  return document;
 }
 
 function syncNoondayPreviewButton(date = new Date()) {
@@ -168,22 +378,41 @@ function exitNoondayPreview(now = new Date()) {
   if (!noondayPreview) return;
   noondayPreview = false;
   noondayPreviewMarker = null;
-  activateService(scheduledServiceAt(now, noondayEnabled, complineEnabled));
+  activateService(scheduleAt(now));
 }
 
 function exitComplinePreview(now = new Date()) {
   if (!complinePreview) return;
   complinePreview = false;
   complinePreviewMarker = null;
-  activateService(scheduledServiceAt(now, noondayEnabled, complineEnabled));
+  activateService(scheduleAt(now));
+}
+
+function exitFullOfficePreview(now = new Date()) {
+  if (!fullOfficePreview) return;
+  fullOfficePreview = null;
+  fullOfficePreviewMarker = null;
+  activateService(scheduleAt(now));
+}
+
+function exitSimpleOfficePreview(now = new Date()) {
+  if (!simpleOfficePreview) return;
+  simpleOfficePreview = null;
+  simpleOfficePreviewMarker = null;
+  activateService(scheduleAt(now));
 }
 
 function setSettingsOpen(open) {
   if (open) {
+    fullOfficePreviewController.cancel();
+    exitFullOfficePreview();
+    exitSimpleOfficePreview();
     exitNoondayPreview();
     exitComplinePreview();
     syncNoondayPreviewButton();
     syncComplinePreviewButton();
+    syncPrayerFormatStatus();
+    syncPrayerFormatPreviews();
   }
   document.documentElement.classList.toggle("settings-open", open);
   settingsPage.hidden = !open;
@@ -198,6 +427,10 @@ function setSettingsOpen(open) {
   render();
   readerMenu.focus({ preventScroll: true });
 }
+
+syncPrayerFormatStatus();
+syncPrayerFormatPreviews();
+prepareScheduledFullOffice(initialServiceTime);
 
 const feastDateFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
@@ -295,13 +528,16 @@ function matchingPrayerLayout(view) {
   return prayerLayout;
 }
 
-function matchingTimedOfficeLayout(view) {
-  if ((view.service !== "noonday" && view.service !== "compline")
+function measuredTimedOfficePages(view) {
+  if (!["morning", "evening", "noonday", "compline"].includes(view.service)
     || timedOfficeLayout?.date !== view.date
     || timedOfficeLayout.service !== view.service
-    || timedOfficeLayout.focus !== view.focus
-    || timedOfficeLayout.deviceSize !== deviceSize()) return null;
-  return timedOfficeLayout;
+    || timedOfficeLayout.deviceSize !== deviceSize()) return {};
+  return { [timedOfficeLayout.focus]: timedOfficeLayout.pages };
+}
+
+function matchingTimedOfficeLayout(view) {
+  return measuredTimedOfficePages(view)[view.focus] ? timedOfficeLayout : null;
 }
 
 function resetForNewLocalDate(date = new Date()) {
@@ -321,10 +557,15 @@ function resetForNewLocalDate(date = new Date()) {
 function currentView() {
   const now = new Date();
   const today = localIsoDate(now);
-  const service = noondayPreview ? "noonday" : complinePreview ? "compline" : scheduledServiceAt(now, noondayEnabled, complineEnabled);
+  const requestedService = requestedServiceAt(now);
+  const selectedDate = dateWithOffset(today, state.offset);
+  const service = serviceWithContentFallback(requestedService, selectedDate);
   if (service !== activeService) activateService(service);
   const viewOptions = {
     service,
+    officeDocument: isFullOfficeService(service)
+      ? fullOfficeDocument(service, selectedDate)
+      : null,
     noondayPreviewRelation: noondayPreview ? noondayPreviewRelation(now) : null,
     complinePreviewRelation: complinePreview ? complinePreviewRelation(now) : null,
   };
@@ -333,7 +574,11 @@ function currentView() {
   if (prayer) return model(bundle, state, today, collects, { ...viewOptions, prayerPages: prayer.pages });
   const layout = matchingTimedOfficeLayout(baseView);
   if (layout) {
-    const pageOption = service === "compline" ? "complinePages" : "noondayPages";
+    const pageOption = isFullOfficeService(service)
+      ? "officePages"
+      : service === "compline"
+        ? "complinePages"
+        : "noondayPages";
     return model(bundle, state, today, collects, {
       ...viewOptions,
       [pageOption]: { [baseView.focus]: layout.pages },
@@ -342,22 +587,41 @@ function currentView() {
   return baseView;
 }
 
+function requestedServiceAt(date = new Date()) {
+  return fullOfficePreview || (simpleOfficePreview
+    ? "daily"
+    : noondayPreview
+      ? "noonday"
+      : complinePreview
+        ? "compline"
+        : scheduleAt(date));
+}
+
 function paint(view) {
   reader.classList.toggle("focus-mode", Boolean(view.focus));
   deviceScreen.classList.toggle("has-feast", Boolean(view.feast));
   const feastLinksEnabled = feastLinksControl.checked;
-  const psalmOffice = psalmOfficeAt();
+  const psalmOffice = simpleOfficePreview || psalmOfficeAt();
   const previousArtStack = screen.querySelector(".pixel-art-stack");
   screen.innerHTML = screenHtml(view, { feastLinksEnabled, psalmDisplayMode, psalmOffice });
+  const loadingService = fullOfficeLoadingService({
+    focus: view.focus,
+    requestedService: requestedServiceAt(),
+    hasContent: hasFullOfficeDate(view.date),
+    loading: Boolean(fullOfficeLoad),
+  });
+  reader.classList.toggle("full-office-loading-active", Boolean(loadingService));
+  [previousControl, centerControl, nextControl].forEach(button => {
+    button.disabled = Boolean(loadingService);
+  });
+  if (loadingService) {
+    screen.insertAdjacentHTML("beforeend", fullOfficeLoadingHtml(loadingService));
+  }
   activeService = view.service || "daily";
   activePsalmOffice = view.service === "daily" ? psalmOffice : null;
   const layout = matchingPrayerLayout(view) || matchingTimedOfficeLayout(view);
-  if (view.focus !== "LORDS_PRAYER" && layout?.fontSize) {
+  if (layout?.fontSize) {
     screen.querySelector(".prayer-text")?.style.setProperty("font-size", `${layout.fontSize}px`);
-  }
-  const lordsPrayerFontSize = measuredLordsPrayerFont(view);
-  if (lordsPrayerFontSize !== null) {
-    screen.querySelector(".lords-prayer-text")?.style.setProperty("font-size", `${lordsPrayerFontSize}px`);
   }
   paintPixelArtStack(screen, view, previousArtStack);
   controlModel(view).forEach((control, index) => {
@@ -403,8 +667,8 @@ function largestWholePrayerFont(probe, prayer, availableHeight, preferredFontSiz
   return null;
 }
 
-function renderTimedOfficeCandidate(probe, candidate, isPsalm) {
-  if (isPsalm) probe.innerHTML = noondayPsalmHtml(candidate);
+function renderTimedOfficeCandidate(probe, candidate, hasNumberedVerses) {
+  if (hasNumberedVerses) probe.innerHTML = numberedLiturgicalTextHtml(candidate);
   else probe.innerHTML = timedOfficeTextHtml(candidate);
 }
 
@@ -417,101 +681,90 @@ function createMeasurementProbe(text, textStyle, width) {
   return probe;
 }
 
-function measuredLordsPrayerFont(view) {
-  if (view.service !== "daily" || view.focus !== "LORDS_PRAYER") return null;
-  const focus = screen.querySelector(".prayer-focus");
-  const text = screen.querySelector(".lords-prayer-text");
-  const label = focus?.querySelector(".label");
-  if (!focus || !text || !label) return null;
-
-  const focusStyle = getComputedStyle(focus);
-  const textStyle = getComputedStyle(text);
-  const availableHeight = prayerAvailableHeight({
-    focusHeight: focus.getBoundingClientRect().height,
-    paddingTop: parseFloat(focusStyle.paddingTop),
-    paddingBottom: parseFloat(focusStyle.paddingBottom),
-    labelHeight: label.getBoundingClientRect().height,
-    textMarginTop: parseFloat(textStyle.marginTop),
-  });
-  const textWidth = text.getBoundingClientRect().width;
-  if (availableHeight <= 0 || textWidth <= 0) return null;
-
-  const probe = createMeasurementProbe(text, textStyle, textWidth);
-  try {
-    return largestWholePrayerFont(
-      probe,
-      text.innerHTML,
-      availableHeight,
-      parseFloat(textStyle.fontSize),
-      (element, markup) => { element.innerHTML = markup; },
-    );
-  } finally {
-    probe.remove();
-  }
-}
-
-function measuredTimedOfficeTextArea(focus, text, focusStyle) {
+function measuredTimedOfficeTextArea(focus, text, focusStyle, reservedFooterHeight) {
   const focusRect = focus.getBoundingClientRect();
   const textRect = text.getBoundingClientRect();
-  const response = focus.querySelector(".noonday-response");
-  const responseStyle = response ? getComputedStyle(response) : null;
   return {
     height: timedOfficeAvailableHeight({
       focusBottom: focusRect.bottom,
       paddingBottom: parseFloat(focusStyle.paddingBottom),
       textTop: textRect.top,
-      responseHeight: response?.getBoundingClientRect().height || 0,
-      responseMarginTop: responseStyle ? parseFloat(responseStyle.marginTop || 0) : 0,
-      responseMarginBottom: responseStyle ? parseFloat(responseStyle.marginBottom || 0) : 0,
+      reservedFooterHeight,
     }),
     width: textRect.width,
   };
 }
 
-function measuredPsalmTextAreas(focus, text, section, focusStyle) {
-  let citation = focus.querySelector(".focus-cite");
-  let subtitle = focus.querySelector(".noonday-subtitle");
-  let temporaryCitation = null;
-  let temporarySubtitle = null;
-  if (!citation && section.citation) {
-    temporaryCitation = document.createElement("span");
-    temporaryCitation.className = "focus-cite noonday-psalm-cite";
-    temporaryCitation.textContent = section.citation;
-    temporaryCitation.style.visibility = "hidden";
-    focus.insertBefore(temporaryCitation, focus.querySelector(".noonday-subtitle") || text);
-    citation = temporaryCitation;
-  }
-  if (!subtitle && section.subtitle) {
-    temporarySubtitle = document.createElement("span");
-    temporarySubtitle.className = "noonday-subtitle";
-    temporarySubtitle.textContent = section.subtitle;
-    temporarySubtitle.style.visibility = "hidden";
-    focus.insertBefore(temporarySubtitle, text);
-    subtitle = temporarySubtitle;
-  }
-
-  const originalCitationDisplay = citation?.style.display || "";
-  const originalSubtitleDisplay = subtitle?.style.display || "";
+function measuredTimedOfficeTextAreas(
+  focus,
+  text,
+  section,
+  focusStyle,
+  isPsalm,
+  reservedFooterHeight,
+  citation,
+  scriptureHeading,
+) {
+  const scriptureMetadata = scriptureHeading
+    ? [[".timed-office-scripture-heading", scriptureHeading, "focus-cite timed-office-scripture-heading"]]
+    : [];
+  const metadata = section.heading
+    ? [
+      [".timed-office-section-title", section.heading, "timed-office-section-title"],
+      [".noonday-subtitle", section.subtitle, "noonday-subtitle timed-office-section-subtitle"],
+      [".focus-cite", citation, "focus-cite timed-office-section-cite"],
+      ...scriptureMetadata,
+    ]
+    : [
+      [".focus-cite", citation, `focus-cite${isPsalm ? " noonday-psalm-cite" : ""}`],
+      [".noonday-subtitle", section.subtitle, "noonday-subtitle"],
+      ...scriptureMetadata,
+    ];
+  const temporaryElements = [];
+  const elements = metadata
+    .filter(([, value]) => value)
+    .map(([selector, value, className]) => {
+      const existing = focus.querySelector(selector);
+      if (existing) return existing;
+      const element = document.createElement("span");
+      element.className = className;
+      element.textContent = value;
+      element.style.visibility = "hidden";
+      focus.insertBefore(element, text);
+      temporaryElements.push(element);
+      return element;
+    });
+  const originalDisplays = elements.map(element => element.style.display);
   try {
-    if (citation) citation.style.display = originalCitationDisplay;
-    if (subtitle) subtitle.style.display = originalSubtitleDisplay;
-    const firstPage = measuredTimedOfficeTextArea(focus, text, focusStyle);
-    if (citation) citation.style.display = "none";
-    if (subtitle) subtitle.style.display = "none";
-    return [firstPage, measuredTimedOfficeTextArea(focus, text, focusStyle)];
+    const firstPage = measuredTimedOfficeTextArea(
+      focus,
+      text,
+      focusStyle,
+      reservedFooterHeight,
+    );
+    elements.forEach(element => {
+      element.style.display = "none";
+    });
+    return [
+      firstPage,
+      measuredTimedOfficeTextArea(focus, text, focusStyle, reservedFooterHeight),
+    ];
   } finally {
-    if (citation) citation.style.display = originalCitationDisplay;
-    if (subtitle) subtitle.style.display = originalSubtitleDisplay;
-    temporaryCitation?.remove();
-    temporarySubtitle?.remove();
+    elements.forEach((element, index) => {
+      element.style.display = originalDisplays[index];
+    });
+    temporaryElements.forEach(element => element.remove());
   }
 }
 
 function measuredTimedOfficeLayout(view) {
-  const section = (view.noonday || view.compline)?.sections?.[view.focus];
+  const section = (view[view.service] || view.office || view.noonday || view.compline)?.sections?.[view.focus];
   const focus = screen.querySelector(".noonday-focus");
   const text = screen.querySelector(".noonday-text");
   if (!section?.pages || !focus || !text) return null;
+  const isOpening = view.focus?.endsWith("_OPENING");
+  const isConclusion = view.focus?.endsWith("_CONCLUSION");
+  const scripturePresentation = scriptureCitationPresentation(section.footnote);
 
   let temporaryResponse = null;
   if (section.response && !focus.querySelector(".noonday-response")) {
@@ -521,24 +774,75 @@ function measuredTimedOfficeLayout(view) {
     temporaryResponse.style.visibility = "hidden";
     focus.append(temporaryResponse);
   }
+  let temporaryScriptureCitation = null;
+  const renderedScriptureCitation = focus.querySelector(
+    ".timed-office-scripture-heading, .timed-office-scripture-footnote",
+  );
+  const reserveScriptureCitation = scripturePresentation === "footnote" || isConclusion;
+  if (reserveScriptureCitation && section.footnote && !renderedScriptureCitation) {
+    temporaryScriptureCitation = document.createElement("span");
+    temporaryScriptureCitation.className = `focus-cite timed-office-scripture-${scripturePresentation}`;
+    temporaryScriptureCitation.textContent = scripturePresentation === "footnote"
+      ? `– ${section.footnote}`
+      : section.footnote;
+    temporaryScriptureCitation.style.visibility = "hidden";
+    focus.append(temporaryScriptureCitation);
+  }
 
   const focusStyle = getComputedStyle(focus);
   const textStyle = getComputedStyle(text);
-  const isPsalm = view.focus?.endsWith("_PSALM");
-  const textAreas = isPsalm
-    ? measuredPsalmTextAreas(focus, text, section, focusStyle)
-    : [measuredTimedOfficeTextArea(focus, text, focusStyle)];
+  const reservedFooterElements = [
+    ...focus.querySelectorAll(".noonday-response"),
+    ...focus.querySelectorAll(".timed-office-scripture-footnote"),
+    ...(temporaryScriptureCitation ? [temporaryScriptureCitation] : []),
+  ];
+  const reservedFooterHeight = reservedFooterElements.reduce((total, element) => {
+    const style = getComputedStyle(element);
+    return total
+      + element.getBoundingClientRect().height
+      + parseFloat(style.marginTop || 0)
+      + parseFloat(style.marginBottom || 0);
+  }, 0);
+  const isPsalm = /_PSALMS?$/.test(view.focus || "");
+  const hasNumberedVerses = usesNumberedVerseLayout(section, view.focus || "");
+  const citation = view.focus?.endsWith("_PSALMS") ? null : section.citation;
+  const scriptureHeading = isOpening && scripturePresentation === "heading"
+    ? section.footnote
+    : null;
+  const hasFirstPageMetadata = Boolean(
+    section.heading
+    || section.subtitle
+    || citation
+    || scriptureHeading
+  );
+  const textAreas = hasFirstPageMetadata
+    ? measuredTimedOfficeTextAreas(
+      focus,
+      text,
+      section,
+      focusStyle,
+      isPsalm,
+      reservedFooterHeight,
+      citation,
+      scriptureHeading,
+    )
+    : [measuredTimedOfficeTextArea(focus, text, focusStyle, reservedFooterHeight)];
   if (textAreas.some(area => area.height <= 0 || area.width <= 0)) {
     temporaryResponse?.remove();
+    temporaryScriptureCitation?.remove();
     return null;
   }
 
   const probe = createMeasurementProbe(text, textStyle, textAreas[0].width);
-  const renderCandidate = (element, candidate) => renderTimedOfficeCandidate(element, candidate, isPsalm);
+  const renderCandidate = (element, candidate) => renderTimedOfficeCandidate(
+    element,
+    candidate,
+    hasNumberedVerses,
+  );
   try {
     const preferredFontSize = parseFloat(textStyle.fontSize);
     if (section.preservePages) return { pages: section.pages, fontSize: preferredFontSize };
-    const pageHeights = textAreas.map(area => isPsalm
+    const pageHeights = textAreas.map(area => hasNumberedVerses
       ? Math.max(0, area.height - Math.ceil(preferredFontSize * 0.5))
       : area.height);
 
@@ -549,12 +853,14 @@ function measuredTimedOfficeLayout(view) {
         renderCandidate(probe, candidate);
         return probe.scrollHeight <= pageHeights[Math.min(pageIndex, pageHeights.length - 1)];
       },
+      { preserveNumberedCallResponse: hasNumberedVerses },
     );
     const pages = section.closingPage ? [...textPages, section.closingPage] : textPages;
     return { pages, fontSize: preferredFontSize };
   } finally {
     probe.remove();
     temporaryResponse?.remove();
+    temporaryScriptureCitation?.remove();
   }
 }
 
@@ -609,7 +915,9 @@ function render({ previousTimedOfficePages = null } = {}) {
   const layout = measuringPrayer ? measuredPrayerLayout(view) : measuredTimedOfficeLayout(view);
   if (!layout?.pages.length) return;
   const { pages } = layout;
-  const section = measuringPrayer ? view.prayer : (view.noonday || view.compline).sections[view.focus];
+  const section = measuringPrayer
+    ? view.prayer
+    : (view[view.service] || view.office || view.noonday || view.compline).sections[view.focus];
   const changed = pages.length !== section.pages.length || pages.some((page, index) => page !== section.pages[index]);
   const previousLayout = measuringPrayer ? prayerLayout : timedOfficeLayout;
   const fontChanged = previousLayout?.fontSize !== layout.fontSize;
@@ -631,20 +939,29 @@ function dispatch(event) {
   if (resetForNewLocalDate()) return render();
   const view = currentView();
   const nextState = handle(state, event, {
-    focusPageCounts: focusPageCounts(view),
+    focusPageCounts: focusPageCounts(view, measuredTimedOfficePages(view)),
     focusOrder: view.focusOrder,
   });
   if (nextState === state) return;
   state = nextState;
   const targetDate = dateWithOffset(localIsoDate(), state.offset);
-  if (!bundle.dates.has(targetDate)) {
+  const requestedService = requestedServiceAt();
+  const needsReadings = !bundle.dates.has(targetDate);
+  const needsFullOffice = isFullOfficeService(requestedService) && !hasFullOfficeDate(targetDate);
+  if (needsReadings || needsFullOffice) {
     const targetBundle = bundle;
     const targetOffset = state.offset;
-    screen.textContent = "Loading readings…";
-    readingPackLoader.loadDay(targetDate)
-      .then(partial => {
+    screen.textContent = needsFullOffice ? "Loading Daily Office…" : "Loading readings…";
+    Promise.all([
+      needsReadings ? readingPackLoader.loadDay(targetDate) : null,
+      needsFullOffice ? ensureFullOfficeContentForDate(targetDate) : fullOfficeContent,
+    ])
+      .then(([partial, content]) => {
         if (bundle !== targetBundle) return;
-        mergeReadingBundle(bundle, partial);
+        if (partial) mergeReadingBundle(bundle, partial);
+        if (needsFullOffice && !content) {
+          throw fullOfficeError || new Error(`Daily Office for ${targetDate} is unavailable`);
+        }
         if (state.offset === targetOffset) render();
       })
       .catch(error => {
@@ -677,6 +994,51 @@ function cacheCompletePackForOfflineUse() {
   navigator.serviceWorker.ready
     .then(registration => registration.active?.postMessage({ type: "CACHE_COMPLETE_READING_PACK" }))
     .catch(() => {});
+}
+
+async function cacheFullOfficeForOfflineUse() {
+  if (!("serviceWorker" in navigator) || typeof MessageChannel === "undefined") {
+    return false;
+  }
+  const registration = await navigator.serviceWorker.ready;
+  const worker = registration.active || navigator.serviceWorker.controller;
+  if (!worker) throw new Error("No active service worker is available");
+  await new Promise((resolve, reject) => {
+    const channel = new MessageChannel();
+    const timeout = window.setTimeout(() => {
+      channel.port1.close();
+      reject(new Error("Offline Full Daily Office preparation timed out"));
+    }, 15000);
+    channel.port1.onmessage = event => {
+      window.clearTimeout(timeout);
+      channel.port1.close();
+      if (event.data?.ok) resolve();
+      else reject(new Error(event.data?.message || "Offline Full Daily Office preparation failed"));
+    };
+    worker.postMessage({ type: "CACHE_FULL_DAILY_OFFICE" }, [channel.port2]);
+  });
+  return true;
+}
+
+async function retryFullOfficePreparation() {
+  const today = localIsoDate();
+  if (!hasFullOfficeDate(today) || fullOfficeError) {
+    const content = await ensureFullOfficeContentForDate(today, { forceRefresh: true });
+    if (content) beginFullOfficeHydration(today);
+    return content;
+  }
+  fullOfficeOfflineError = null;
+  fullOfficeOfflineState = "preparing";
+  syncPrayerFormatStatus();
+  try {
+    const offlineReady = await cacheFullOfficeForOfflineUse();
+    fullOfficeOfflineState = offlineReady ? "ready" : "unsupported";
+  } catch (error) {
+    fullOfficeOfflineState = "error";
+    fullOfficeOfflineError = error;
+  }
+  syncPrayerFormatStatus();
+  return fullOfficeContent;
 }
 
 async function loadPack() {
@@ -743,7 +1105,7 @@ async function loadPack() {
 centerControl.addEventListener("click", () => dispatch(centerControl.dataset.event));
 
 window.addEventListener("keydown", event => {
-  if (!settingsPage.hidden || !bundle || !collects || installDialog.open || timedOfficeOnboarding.isOpen() || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+  if (!settingsPage.hidden || !bundle || !collects || reader.classList.contains("full-office-loading-active") || installDialog.open || timedOfficeOnboarding.isOpen() || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
   if (event.target instanceof Element && event.target.closest("input, textarea, select, [contenteditable]")) return;
   if (event.key === "Enter" && event.target instanceof Element && event.target.closest("button, a")) return;
   const verticalKey = event.key === "ArrowUp" || event.key === "ArrowDown";
@@ -763,6 +1125,7 @@ window.addEventListener("keydown", event => {
 });
 
 deviceScreen.addEventListener("click", event => {
+  if (event.target.closest(".full-office-loading")) return;
   const fromPointer = pointerActivated;
   pointerActivated = false;
   const link = event.target.closest("a");
@@ -783,12 +1146,15 @@ deviceScreen.addEventListener("click", event => {
     reading: Boolean(reading),
   });
   if (decision.preventDefault) event.preventDefault();
+  if (decision.action === "TODAY" && fullOfficePreview) exitFullOfficePreview();
+  if (decision.action === "TODAY" && simpleOfficePreview) exitSimpleOfficePreview();
   if (decision.action === "TODAY" && noondayPreview) exitNoondayPreview();
   if (decision.action === "TODAY" && complinePreview) exitComplinePreview();
   if (decision.action) dispatch(decision.action);
 });
 
 deviceScreen.addEventListener("pointerdown", event => {
+  if (event.target.closest(".full-office-loading")) return;
   pointerActivated = true;
   pointerStart = { x: event.clientX, y: event.clientY };
 });
@@ -837,6 +1203,7 @@ function activateService(service) {
 }
 
 function activateTimedOfficePreview(office, now = new Date()) {
+  fullOfficePreviewController.cancel();
   if (office === "noonday") {
     noondayPreview = true;
     noondayPreviewMarker = noondayPreviewMarkerAt(now, noondayEnabled);
@@ -850,6 +1217,78 @@ function activateTimedOfficePreview(office, now = new Date()) {
   setSettingsOpen(false);
 }
 
+function commitFullOfficePreview(office, activatedAt) {
+  if (fullOfficePreview !== office || fullOfficePreviewMarker !== fullOfficeMarkerAt(activatedAt)) return;
+  if (bundle && collects) render();
+}
+
+function beginFullOfficePreview(office, activatedAt) {
+  fullOfficePreview = office;
+  fullOfficePreviewMarker = fullOfficeMarkerAt(activatedAt);
+  activeLocalDate = localIsoDate(activatedAt);
+  state = createState();
+  activateService(office);
+  setSettingsOpen(false);
+}
+
+const fullOfficePreviewController = createFullOfficePreviewController({
+  load: async activatedAt => {
+    const today = localIsoDate(activatedAt);
+    const content = await ensureFullOfficeContentForDate(today);
+    if (content) beginFullOfficeHydration(today);
+    return content;
+  },
+  begin: beginFullOfficePreview,
+  activate: commitFullOfficePreview,
+});
+
+async function activateFullOfficePreview(office) {
+  const button = office === "morning" ? previewMorningButton : previewEveningButton;
+  const originalLabel = button.textContent;
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  button.textContent = "Loading today…";
+  const activated = await fullOfficePreviewController.preview(office);
+  if (!activated && fullOfficePreview === office && !hasFullOfficeDate(localIsoDate())) {
+    exitFullOfficePreview();
+    if (bundle && collects) render();
+  }
+  button.disabled = false;
+  button.removeAttribute("aria-busy");
+  button.textContent = originalLabel;
+}
+
+function activateSimpleOfficePreview(office, now = new Date()) {
+  fullOfficePreviewController.cancel();
+  fullOfficePreview = null;
+  fullOfficePreviewMarker = null;
+  simpleOfficePreview = office;
+  simpleOfficePreviewMarker = fullOfficeMarkerAt(now);
+  activeLocalDate = localIsoDate(now);
+  state = createState();
+  activateService("daily");
+  setSettingsOpen(false);
+}
+
+function activatePrayerFormatPreview(office) {
+  if (prayerFormat === "full") {
+    activateSimpleOfficePreview(office);
+    return;
+  }
+  activateFullOfficePreview(office);
+}
+
+function applyPrayerFormat(format, now = new Date()) {
+  prayerFormat = format;
+  fullOfficeDocumentCache.clear();
+  syncPrayerFormatStatus();
+  syncPrayerFormatPreviews();
+  const nextService = scheduleAt(now);
+  if (isFullOfficeService(nextService)) prepareScheduledFullOffice(now);
+  activateService(serviceWithContentFallback(nextService, localIsoDate(now)));
+  if (bundle && collects) render();
+}
+
 function applyTimedOfficePreference(office, enabled, now = new Date()) {
   if (office === "noonday") {
     noondayEnabled = Boolean(enabled);
@@ -860,8 +1299,9 @@ function applyTimedOfficePreference(office, enabled, now = new Date()) {
     prayerSchedule.setComplineEnabled(complineEnabled);
     syncComplinePreviewButton(now);
   }
-  const nextService = scheduledServiceAt(now, noondayEnabled, complineEnabled);
-  activateService(nextService);
+  const nextService = scheduleAt(now);
+  if (isFullOfficeService(nextService)) prepareScheduledFullOffice(now);
+  activateService(serviceWithContentFallback(nextService, localIsoDate(now)));
   if (bundle && collects) render();
 }
 
@@ -875,6 +1315,7 @@ function enableTimedOffice(office, now) {
 bindNoondayPreference({ ...noondayContext, onChange: enabled => applyTimedOfficePreference("noonday", enabled) });
 
 bindComplinePreference({ ...complineContext, onChange: enabled => applyTimedOfficePreference("compline", enabled) });
+bindPrayerFormatPreference({ ...prayerFormatContext, onChange: applyPrayerFormat });
 
 themeContext.media.addEventListener?.("change", () => {
   if (!syncSystemTheme(themeContext)) return;
@@ -897,6 +1338,9 @@ readerMenu.addEventListener("click", () => setSettingsOpen(true));
 openReaderButton.addEventListener("click", () => setSettingsOpen(false));
 previewNoondayButton.addEventListener("click", () => activateTimedOfficePreview("noonday"));
 previewComplineButton.addEventListener("click", () => activateTimedOfficePreview("compline"));
+previewMorningButton.addEventListener("click", () => activatePrayerFormatPreview("morning"));
+previewEveningButton.addEventListener("click", () => activatePrayerFormatPreview("evening"));
+retryFullOfficeButton.addEventListener("click", retryFullOfficePreparation);
 browseFeastDaysButton.addEventListener("click", () => setFeastBrowserOpen(true));
 closeFeastBrowserButton.addEventListener("click", () => setFeastBrowserOpen(false));
 feastList.addEventListener("click", event => {
@@ -964,7 +1408,17 @@ function rescheduleTimeBoundaries(date) {
 function refreshAt(date, rescheduleTimer = true) {
   syncNoondayPreviewButton(date);
   syncComplinePreviewButton(date);
-  const scheduledService = scheduledServiceAt(date, noondayEnabled, complineEnabled);
+  const scheduledService = scheduleAt(date);
+  if (isFullOfficeService(scheduledService)) prepareScheduledFullOffice(date);
+  if (fullOfficePreview || simpleOfficePreview) {
+    const previewExpired = (fullOfficePreviewMarker || simpleOfficePreviewMarker) !== fullOfficeMarkerAt(date);
+    if (previewExpired) exitFullOfficePreview(date);
+    if (previewExpired) exitSimpleOfficePreview(date);
+    resetForNewLocalDate(date);
+    if (bundle && collects) render();
+    if (rescheduleTimer) rescheduleTimeBoundaries(date);
+    return;
+  }
   const previewToExit = timedOfficePreviewToExit({ noondayPreview, complinePreview, scheduledService });
   if (previewToExit === "noonday") exitNoondayPreview(date);
   if (previewToExit === "compline") exitComplinePreview(date);
@@ -993,7 +1447,7 @@ function refreshAt(date, rescheduleTimer = true) {
     return;
   }
   const dateChanged = resetForNewLocalDate(date);
-  const service = scheduledService;
+  const service = serviceWithContentFallback(scheduledService, localIsoDate(date));
   const serviceChanged = service !== activeService;
   if ((dateChanged || serviceChanged) && bundle && collects) {
     activateService(service);

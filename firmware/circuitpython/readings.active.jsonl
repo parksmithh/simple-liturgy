@@ -1,4 +1,4 @@
-{"type":"header","schema_version":1,"source":"data/bcp1979_scraped","start_year":2025,"end_year":2036,"reading_count":799,"date_count":4383}
+{"type":"header","schema_version":1,"source":"data/bcp1979_scraped","start_year":2025,"end_year":2036,"reading_count":842,"date_count":4383}
 {"type":"reading","key":"one|advent-1|sunday","psalms_morning":["146","147"],"psalms_evening":["111","112","113"],"lessons":["Isaiah 1:1-9","2 Peter 3:1-10","Matthew 25:1-13"],"verified":false}
 {"type":"reading","key":"one|advent-1|monday","psalms_morning":["1","2","3"],"psalms_evening":["4","7"],"lessons":["Isaiah 1:10-20","1 Thessalonians 1:1-10","Luke 20:1-8"],"verified":false}
 {"type":"reading","key":"one|advent-1|tuesday","psalms_morning":["5","6"],"psalms_evening":["10","11"],"lessons":["Isaiah 1:21-31","1 Thessalonians 2:1-12","Luke 20:9-18"],"verified":false}
@@ -385,6 +385,25 @@
 {"type":"reading","key":"one|proper-29|thursday","psalms_morning":["131","132","[133]"],"psalms_evening":["134","135"],"lessons":["Zephaniah 3:1-13","1 Peter 2:11-25","Matthew 20:1-16"],"verified":false}
 {"type":"reading","key":"one|proper-29|friday","psalms_morning":["140","142"],"psalms_evening":["141","143:1-11(12)"],"lessons":["Isaiah 24:14-23","1 Peter 3:13--4:6","Matthew 20:17-28"],"verified":false}
 {"type":"reading","key":"one|proper-29|saturday","psalms_morning":["137:1-6(7-9)","144"],"psalms_evening":["104"],"lessons":["Micah 7:11-20","1 Peter 4:7-19","Matthew 20:29-34"],"verified":false}
+{"type":"reading","key":"one|ash-wednesday|wednesday","psalms_morning":["95* & 32","143"],"psalms_evening":["102","130"],"lessons":["Jonah 3:1--4:11","Hebrews 12:1-14","Luke 18:9-14"],"verified":false}
+{"type":"reading","key":"one|ash-wednesday|thursday","psalms_morning":["37:1-18"],"psalms_evening":["37:19-42"],"lessons":["Deuteronomy 7:6-11","Titus 1:1-16","John 1:29-34"],"verified":false}
+{"type":"reading","key":"one|ash-wednesday|friday","psalms_morning":["95* & 31"],"psalms_evening":["35"],"lessons":["Deuteronomy 7:12-16","Titus 2:1-15","John 1:35-42"],"verified":false}
+{"type":"reading","key":"one|ash-wednesday|saturday","psalms_morning":["30","32"],"psalms_evening":["42","43"],"lessons":["Deuteronomy 7:17-26","Titus 3:1-15","John 1:43-51"],"verified":false}
+{"type":"reading","key":"one|easter-6|thursday","psalms_morning":["8","47"],"psalms_evening":["24","96"],"lessons":["Ezekiel 1:14, 24-28b","Hebrews 2:5-18","Matthew 28:16-20"],"verified":false}
+{"type":"reading","key":"one|easter-week|sunday","psalms_morning":["148","149","150"],"psalms_evening":["113, 114 or 118"],"lessons":["Exodus 12:1-14","John 1:1-18","Isaiah 51:9-11","Luke 24:13-35, or John 20:19-23"],"verified":false}
+{"type":"reading","key":"one|holy-week|sunday","psalms_morning":["24","29"],"psalms_evening":["103"],"lessons":["Zechariah 9:9-12","1 Timothy 6:12-16","Zechariah 12:9-11, 13:1, 7-9","Matthew 21:12-17"],"verified":false}
+{"type":"reading","key":"one|holy-week|thursday","psalms_morning":["102"],"psalms_evening":["142","143"],"lessons":["Jeremiah 20:7-11","1 Corinthians 10:14-17; 11:27-32","John 17:1-11(12-26)"],"verified":false}
+{"type":"reading","key":"one|holy-week|friday","psalms_morning":["95* & 22"],"psalms_evening":["40:1:1-14(15-19)","54"],"lessons":["Wisdom 1:16--2:1, 12-22","1 Peter 1:10-20","John 13:36-38","or Genesis 22:1-14","John 19:38-42"],"verified":false}
+{"type":"reading","key":"one|holy-week|saturday","psalms_morning":["95* & 88"],"psalms_evening":["27"],"lessons":["Job 19:21-27a","Hebrews 4:1-16","Romans 8:1-11"],"verified":false}
+{"type":"reading","key":"one|pentecost|sunday","psalms_morning":["118"],"psalms_evening":["145"],"lessons":["Isaiah 11:1-9","1 Corinthians 2:1-13","John 14:21-29"],"verified":false}
+{"type":"reading","key":"one|trinity|sunday","psalms_morning":["146","147"],"psalms_evening":["111","112","113"],"lessons":["Ecclesiasticus 43:1-12(27-33)","Ephesians 4:1-16","John 1:1-18"],"verified":false}
+{"type":"reading","key":"one|dated|01-06","psalms_morning":["46","97"],"psalms_evening":["96","100"],"lessons":["Isaiah 52:7-10","Revelation 21:22-27","Matthew 12:14-21"],"verified":false}
+{"type":"reading","key":"one|dated|01-07","psalms_morning":["103"],"psalms_evening":["114","115"],"lessons":["Isaiah 52:3-6","Revelation 2:1-7","John 2:1-11"],"verified":false}
+{"type":"reading","key":"one|dated|01-08","psalms_morning":["117","118"],"psalms_evening":["112","113"],"lessons":["Isaiah 59:15-21","Revelation 2:8-17","John 4:46-54"],"verified":false}
+{"type":"reading","key":"one|dated|01-09","psalms_morning":["121","122","123"],"psalms_evening":["131","132"],"lessons":["Isaiah 63:1-5","Revelation 2:18-29","John 5:1-15"],"verified":false}
+{"type":"reading","key":"one|dated|01-10","psalms_morning":["138","139:1-17(18-23)"],"psalms_evening":["147"],"lessons":["Isaiah 65:1-9","Revelation 3:1-6","John 6:1-14"],"verified":false}
+{"type":"reading","key":"one|dated|01-11","psalms_morning":["148","150"],"psalms_evening":["91","92"],"lessons":["Isaiah 65:13-16","Revelation 3:7-13","John 6:15-27"],"verified":false}
+{"type":"reading","key":"one|dated|12-24","psalms_morning":["45","46"],"psalms_evening":[],"lessons":["Isaiah 35:1-10","Revelation 22:12-17, 21","Luke 1:67-80"],"verified":false}
 {"type":"reading","key":"two|advent-1|sunday","psalms_morning":["146","147"],"psalms_evening":["111","112","113"],"lessons":["Amos 1:1-5, 13--2:8","1 Thessalonians 5:1-11","Luke 21:5-19"],"verified":false}
 {"type":"reading","key":"two|advent-1|monday","psalms_morning":["1","2","3"],"psalms_evening":["4","7"],"lessons":["Amos 2:6-16","2 Peter 1:1-11","Matthew 21:1-11"],"verified":false}
 {"type":"reading","key":"two|advent-1|tuesday","psalms_morning":["5","6"],"psalms_evening":["10","11"],"lessons":["Amos 3:1-11","2 Peter 1:12-21","Matthew 21:12-22"],"verified":false}
@@ -767,6 +786,30 @@
 {"type":"reading","key":"two|proper-29|thursday","psalms_morning":["131","132","[133]"],"psalms_evening":["134","135"],"lessons":["Zechariah 13:1-9","Ephesians 1:15-23","Luke 19:11-27"],"verified":false}
 {"type":"reading","key":"two|proper-29|friday","psalms_morning":["140","142"],"psalms_evening":["141","143:1-11(12)"],"lessons":["Zechariah 14:1-11","Romans 15:7-13","Luke 19:28-40"],"verified":false}
 {"type":"reading","key":"two|proper-29|saturday","psalms_morning":["137:1-6(7-9)","144"],"psalms_evening":["104"],"lessons":["Zechariah 14:12-21","Philippians 2:1-11","Luke 19:41-48"],"verified":false}
+{"type":"reading","key":"two|ash-wednesday|wednesday","psalms_morning":["95* & 32","143"],"psalms_evening":["102","130"],"lessons":["Amos 5:6-15","Hebrews 12:1-14","Luke 18:9-14"],"verified":false}
+{"type":"reading","key":"two|ash-wednesday|thursday","psalms_morning":["37:1-18"],"psalms_evening":["37:19-42"],"lessons":["Habakkuk 3:1-10(11-15)16-18","Philippians 3:12-21","John 17:1-8"],"verified":false}
+{"type":"reading","key":"two|ash-wednesday|friday","psalms_morning":["95* & 31"],"psalms_evening":["35"],"lessons":["Ezekiel 18:1-4, 25-32","Philippians 4:1-9","John 17:9-19"],"verified":false}
+{"type":"reading","key":"two|ash-wednesday|saturday","psalms_morning":["30","32"],"psalms_evening":["42","43"],"lessons":["Ezekiel 39:21-29","Philippians 4:10-20","John 17:20-26"],"verified":false}
+{"type":"reading","key":"two|easter-5|thursday","psalms_morning":["[70]","71"],"psalms_evening":["74"],"lessons":["Leviticus 19:26-37","2 Thessalonians 1:1-12","Matthew 6:25-34"],"verified":false}
+{"type":"reading","key":"two|easter-6|thursday","psalms_morning":["8","47"],"psalms_evening":["24","96"],"lessons":["Daniel 7:9-14","Hebrews 2:5-18","Matthew 28:16-20"],"verified":false}
+{"type":"reading","key":"two|easter-week|sunday","psalms_morning":["148","149","150"],"psalms_evening":["113, 114 or 118"],"lessons":["Exodus 12:1-14","John 1:1-18","Isaiah 51:9-11","Luke 24:13-35, or John 20:19-23"],"verified":false}
+{"type":"reading","key":"two|epiphany-4|thursday","psalms_morning":["[70]","71"],"psalms_evening":["74"],"lessons":["Genesis 23:1-20","Hebrews 11:32--12:2","John 6:60-71"],"verified":false}
+{"type":"reading","key":"two|holy-week|sunday","psalms_morning":["24","29"],"psalms_evening":["103"],"lessons":["Zechariah 9:9-12","1 Timothy 6:12-16","Zechariah 12:9-11; 13:1, 7-9","Luke 19:41-48"],"verified":false}
+{"type":"reading","key":"two|holy-week|thursday","psalms_morning":["102"],"psalms_evening":["142","143"],"lessons":["Lamentations 2:10-18","1 Corinthians 10:14-17; 11:27-32","Mark 14:12-25"],"verified":false}
+{"type":"reading","key":"two|holy-week|friday","psalms_morning":["95* & 22"],"psalms_evening":["40:1-14(15-19)","54"],"lessons":["Lamentations 3:1-9, 19-33","1 Peter 1:10-20","John 13:36-38","John 19:38-42"],"verified":false}
+{"type":"reading","key":"two|holy-week|saturday","psalms_morning":["95* & 88"],"psalms_evening":["27"],"lessons":["Lamentations 3:37-58","Hebrews 4:1-16","Romans 8:1-11"],"verified":false}
+{"type":"reading","key":"two|lent-5|thursday","psalms_morning":["131","132","[133]"],"psalms_evening":["140","142"],"lessons":["Exodus 7:25--8:19","2 Corinthians 3:7-18","Mark 10:17-31"],"verified":false}
+{"type":"reading","key":"two|pentecost|sunday","psalms_morning":["118"],"psalms_evening":["145"],"lessons":["Deuteronomy 16:9-12","Acts 4:18-21, 23-33","John 4:19-26"],"verified":false}
+{"type":"reading","key":"two|proper-5|thursday","psalms_morning":["[70]","71"],"psalms_evening":["74"],"lessons":["Ecclesiastes 11:1-8","Galatians 5:16-24","Matthew 16:13-20"],"verified":false}
+{"type":"reading","key":"two|trinity|sunday","psalms_morning":["146","147"],"psalms_evening":["111","112","113"],"lessons":["Job 38:1-11, 42:1-5","Revelation 19:4-16","John 1:29-34"],"verified":false}
+{"type":"reading","key":"two|dated|01-06","psalms_morning":["46","97"],"psalms_evening":["96","100"],"lessons":["Isaiah 49:1-7","Revelation 21:22-27","Matthew 12:14-21"],"verified":false}
+{"type":"reading","key":"two|dated|01-07","psalms_morning":["103"],"psalms_evening":["114","115"],"lessons":["Deuteronomy 8:1-3","Colossians 1:1-14","John 6:30-33, 48-51"],"verified":false}
+{"type":"reading","key":"two|dated|01-08","psalms_morning":["117","118"],"psalms_evening":["112","113"],"lessons":["Exodus 17:1-7","Colossians 1:15-23","John 7:37-52"],"verified":false}
+{"type":"reading","key":"two|dated|01-09","psalms_morning":["121","122","123"],"psalms_evening":["131","132"],"lessons":["Isaiah 45:14-19","Colossians 1:21--2:7","John 8:12-19"],"verified":false}
+{"type":"reading","key":"two|dated|01-10","psalms_morning":["138","139:1-17(18-23)"],"psalms_evening":["147"],"lessons":["Jeremiah 23:1-8","Colossians 2:8-23","John 10:7-17"],"verified":false}
+{"type":"reading","key":"two|dated|01-11","psalms_morning":["148","150"],"psalms_evening":["91","92"],"lessons":["Isaiah 55:3-9","Colossians 3:1-17","John 14:6-14"],"verified":false}
+{"type":"reading","key":"two|dated|01-12","psalms_morning":["98","99","[100]"],"psalms_evening":[],"lessons":["Genesis 49:1-2, 8-12","Colossians 3:18--4:6","John 15:1-16"],"verified":false}
+{"type":"reading","key":"two|dated|12-24","psalms_morning":["45","46"],"psalms_evening":[],"lessons":["Baruch 4:36--5:9","Galatians 3:23--4:7","Matthew 1:18-25"],"verified":false}
 {"type":"reading","key":"st-andrew","psalms_morning":["34"],"psalms_evening":["96","100"],"lessons":["Isaiah 49:1-6","1 Corinthians 4:1-16","Isaiah 55:1-5","John 1:35-42"],"verified":false}
 {"type":"reading","key":"st-thomas","psalms_morning":["23","121"],"psalms_evening":["27"],"lessons":["Job 42:1-6","1 Peter 1:3-9","Isaiah 43:8-13","John 14:1-7"],"verified":false}
 {"type":"reading","key":"st-stephen","psalms_morning":["28","30"],"psalms_evening":["118"],"lessons":["2 Chronicles 24:17-22","Acts 6:1-7","Wisdom 4:7-15","Acts 7:59--8:8"],"verified":false}

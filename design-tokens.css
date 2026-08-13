@@ -24,6 +24,8 @@
   --type-reader-label: .72em;
   --type-reader-banner: var(--type-reader-date);
   --type-reader-citation: .92em;
+  --type-reader-subtitle: var(--type-reader-label);
+  --type-reader-footnote: var(--type-reader-label);
   --type-reader-focus-label: var(--type-reader-label);
   --type-reader-focus-citation: clamp(30px, 8vw, 52px);
   --type-reader-prayer: clamp(20px, 4.8vw, 34px);
@@ -102,7 +104,7 @@
 
 .reader .device-screen {
   --type-reader-base: clamp(18px, 2vw, 30px);
-  --type-reader-prayer: clamp(26px, 3.4vw, 42px);
+  --type-reader-prayer: clamp(24px, 3.4vw, 42px);
 }
 
 @media (max-width: 470px) {

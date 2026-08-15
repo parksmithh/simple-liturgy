@@ -1,5 +1,5 @@
-import { selectAppointedPsalms } from "./daily-office.js?v=0.3.141";
-import { prioritizedDates } from "./reading-pack-loader.js?v=0.3.141";
+import { selectAppointedPsalms } from "./daily-office.js?v=0.3.142";
+import { prioritizedDates } from "./reading-pack-loader.js?v=0.3.142";
 
 const DEFAULT_CONTENT_URLS = Object.freeze({
   riteTwo: "data/daily-office/rite-two.json",

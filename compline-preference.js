@@ -1,6 +1,8 @@
-import { createBoundaryTimer } from "./boundary-timer.js?v=0.3.141";
+import { createBoundaryTimer } from "./boundary-timer.js?v=0.3.142";
 
 const STORAGE_KEY = "simple-liturgy.compline-enabled";
+const COMPLINE_START_HOUR = 21;
+export const COMPLINE_END_HOUR = 4;
 
 export function initializeComplinePreference({ control, storage }) {
   const enabled = storage.getItem(STORAGE_KEY) === "true";
@@ -25,7 +27,8 @@ export function bindComplinePreference({ control, storage, onChange }) {
 
 export function complineServiceAt(date = new Date(), enabled = true) {
   if (!enabled) return "daily";
-  return date.getHours() >= 21 ? "compline" : "daily";
+  const hour = date.getHours();
+  return hour >= COMPLINE_START_HOUR || hour < COMPLINE_END_HOUR ? "compline" : "daily";
 }
 
 export function complinePreviewRelation(date = new Date()) {
@@ -67,11 +70,13 @@ export function shouldShowComplinePreview(date = new Date(), enabled = true) {
 
 export function millisecondsUntilComplineBoundary(date = new Date()) {
   const boundary = new Date(date);
-  if (date.getHours() < 21) {
-    boundary.setHours(21, 0, 0, 0);
+  if (date.getHours() < COMPLINE_END_HOUR) {
+    boundary.setHours(COMPLINE_END_HOUR, 0, 0, 0);
+  } else if (date.getHours() < COMPLINE_START_HOUR) {
+    boundary.setHours(COMPLINE_START_HOUR, 0, 0, 0);
   } else {
     boundary.setDate(boundary.getDate() + 1);
-    boundary.setHours(0, 0, 0, 0);
+    boundary.setHours(COMPLINE_END_HOUR, 0, 0, 0);
   }
   return Math.max(1, boundary.getTime() - date.getTime());
 }

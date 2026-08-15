@@ -1,4 +1,5 @@
-import { localIsoDate, scheduledServiceAt } from "./office-schedule.js?v=0.3.141";
+import { COMPLINE_END_HOUR } from "./compline-preference.js?v=0.3.142";
+import { localIsoDate, scheduledServiceAt } from "./office-schedule.js?v=0.3.142";
 
 const DISMISSAL_KEY_PREFIX = "simple-liturgy.timed-office-onboarding";
 
@@ -10,13 +11,22 @@ const OFFICE_COPY = {
   },
   compline: {
     title: "Make room for Compline?",
-    description: "Show Compline automatically from 9 p.m. to midnight. Manage it anytime in Settings.",
+    description: "Show Compline automatically from 9 p.m. to 4 a.m. Manage it anytime in Settings.",
     enableLabel: "Turn on Compline",
   },
 };
 
 function dismissalKey(office) {
   return `${DISMISSAL_KEY_PREFIX}.${office}`;
+}
+
+function dismissalPeriodAt(office, date) {
+  if (office !== "compline" || date.getHours() >= COMPLINE_END_HOUR) {
+    return localIsoDate(date);
+  }
+  const evening = new Date(date);
+  evening.setDate(evening.getDate() - 1);
+  return localIsoDate(evening);
 }
 
 export function shouldOfferTimedOfficeOnboarding({
@@ -35,7 +45,7 @@ export function timedOfficeOnboardingCopy(office) {
 
 export function isTimedOfficeOnboardingDismissed(storage, office, date = new Date()) {
   try {
-    return storage.getItem(dismissalKey(office)) === localIsoDate(date);
+    return storage.getItem(dismissalKey(office)) === dismissalPeriodAt(office, date);
   } catch {
     return false;
   }
@@ -43,7 +53,7 @@ export function isTimedOfficeOnboardingDismissed(storage, office, date = new Dat
 
 export function dismissTimedOfficeOnboarding(storage, office, date = new Date()) {
   try {
-    storage.setItem(dismissalKey(office), localIsoDate(date));
+    storage.setItem(dismissalKey(office), dismissalPeriodAt(office, date));
   } catch {}
 }
 

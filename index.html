@@ -25,11 +25,11 @@
   <meta name="twitter:image" content="https://simpleliturgy.com/assets/og-simple-liturgy.png?v=3">
   <meta name="twitter:image:alt" content="Simplified Simple Liturgy reader showing Psalms, Old Testament, New Testament, and Gospel citations">
   <title>Simple Liturgy | BCP 1979 Daily Office Reader</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=0.3.142">
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=0.3.142">
-  <link rel="icon" href="./icon.svg?v=0.3.142" type="image/svg+xml">
-  <link rel="stylesheet" href="./design-tokens.css?v=0.3.142">
-  <link rel="stylesheet" href="./app.css?v=0.3.142">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.3.143">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=0.3.143">
+  <link rel="icon" href="./icon.svg?v=0.3.143" type="image/svg+xml">
+  <link rel="stylesheet" href="./design-tokens.css?v=0.3.143">
+  <link rel="stylesheet" href="./app.css?v=0.3.143">
 </head>
 <body>
   <svg class="reader-art-filters" width="0" height="0" aria-hidden="true" focusable="false">
@@ -108,10 +108,17 @@
             </span>
           </label>
           <p class="settings-note" id="prayer-format-status" aria-live="polite">Simple keeps the concise prayer-and-readings backbone.</p>
-          <div class="prayer-format-previews" aria-label="Preview Traditional Morning and Evening Prayer">
-            <p class="prayer-format-preview-label">Preview Traditional</p>
-            <button class="settings-action" id="preview-morning" type="button">Preview Morning</button>
-            <button class="settings-action" id="preview-evening" type="button">Preview Evening</button>
+          <div class="prayer-format-previews" aria-label="Preview Simple and Traditional Morning and Evening Prayer">
+            <div class="prayer-format-preview-group" role="group" aria-label="Preview Simple Morning and Evening Prayer">
+              <p class="prayer-format-preview-label">Preview Simple</p>
+              <button class="settings-action" id="preview-simple-morning" type="button" aria-label="Preview Simple Morning">Morning</button>
+              <button class="settings-action" id="preview-simple-evening" type="button" aria-label="Preview Simple Evening">Evening</button>
+            </div>
+            <div class="prayer-format-preview-group" role="group" aria-label="Preview Traditional Morning and Evening Prayer">
+              <p class="prayer-format-preview-label">Preview Traditional</p>
+              <button class="settings-action" id="preview-traditional-morning" type="button" aria-label="Preview Traditional Morning">Morning</button>
+              <button class="settings-action" id="preview-traditional-evening" type="button" aria-label="Preview Traditional Evening">Evening</button>
+            </div>
           </div>
           <button class="settings-action" id="retry-full-office" type="button" hidden>Retry Traditional Office</button>
         </div>
@@ -374,6 +381,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="./app.js?v=0.3.142"></script>
+  <script type="module" src="./app.js?v=0.3.143"></script>
 </body>
 </html>

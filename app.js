@@ -1,30 +1,30 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.142";
-import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, lessonValues, model, numberedLiturgicalTextHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, resolvePrayer, screenClickDecision, screenHtml, scriptureCitationPresentation, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays, usesNumberedVerseLayout } from "./bookmark-engine.js?v=0.3.142";
-import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.142";
-import { createDailyOfficeDayLoader, mergeDailyOfficeContent } from "./daily-office-content.js?v=0.3.142";
-import { composeDailyOffice } from "./daily-office.js?v=0.3.142";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.142";
-import { createFullOfficePreviewController, fullOfficeLoadingHtml, fullOfficeLoadingService, isFullOfficeService } from "./full-office-lifecycle.js?v=0.3.142";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.142";
-import { localIsoDate, officePeriodAt, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.142";
-import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.142";
-import { bindPrayerFormatPreference, initializePrayerFormatPreference } from "./prayer-format-preference.js?v=0.3.142";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.142";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.142";
-import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.142";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.142";
-import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.142";
-import { appVersionLabel } from "./version.js?v=0.3.142";
+import { initializeAnalytics } from "./analytics.js?v=0.3.143";
+import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, lessonValues, model, numberedLiturgicalTextHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, resolvePrayer, screenClickDecision, screenHtml, scriptureCitationPresentation, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays, usesNumberedVerseLayout } from "./bookmark-engine.js?v=0.3.143";
+import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.143";
+import { createDailyOfficeDayLoader, mergeDailyOfficeContent } from "./daily-office-content.js?v=0.3.143";
+import { composeDailyOffice } from "./daily-office.js?v=0.3.143";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.143";
+import { createFullOfficePreviewController, fullOfficeLoadingHtml, fullOfficeLoadingService, isFullOfficeService } from "./full-office-lifecycle.js?v=0.3.143";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.143";
+import { localIsoDate, officePeriodAt, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.143";
+import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.143";
+import { bindPrayerFormatPreference, initializePrayerFormatPreference } from "./prayer-format-preference.js?v=0.3.143";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.143";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.143";
+import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.143";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.143";
+import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.143";
+import { appVersionLabel } from "./version.js?v=0.3.143";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.142", CONTENT_ROOT);
-const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.142", CONTENT_ROOT);
-const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.142", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.143", CONTENT_ROOT);
+const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.143", CONTENT_ROOT);
+const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.143", CONTENT_ROOT);
 const FULL_OFFICE_URLS = {
-  riteTwo: new URL("data/daily-office/rite-two.json?v=0.3.142", CONTENT_ROOT),
-  index: new URL("dor-engine/daily-office-content.index.json?v=0.3.142", APP_ROOT),
-  pack: new URL("dor-engine/daily-office-content.active.jsonl?v=0.3.142", APP_ROOT),
+  riteTwo: new URL("data/daily-office/rite-two.json?v=0.3.143", CONTENT_ROOT),
+  index: new URL("dor-engine/daily-office-content.index.json?v=0.3.143", APP_ROOT),
+  pack: new URL("dor-engine/daily-office-content.active.jsonl?v=0.3.143", APP_ROOT),
 };
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -37,10 +37,10 @@ const deviceScreen = document.querySelector("#device-screen");
 const themeControls = document.querySelectorAll('input[name="theme"]');
 const psalmControls = document.querySelectorAll('input[name="psalm-display"]');
 const prayerFormatControl = document.querySelector("#full-daily-office-enabled");
-const previewMorningButton = document.querySelector("#preview-morning");
-const previewEveningButton = document.querySelector("#preview-evening");
-const prayerFormatPreviews = document.querySelector(".prayer-format-previews");
-const prayerFormatPreviewLabel = document.querySelector(".prayer-format-preview-label");
+const previewSimpleMorningButton = document.querySelector("#preview-simple-morning");
+const previewSimpleEveningButton = document.querySelector("#preview-simple-evening");
+const previewTraditionalMorningButton = document.querySelector("#preview-traditional-morning");
+const previewTraditionalEveningButton = document.querySelector("#preview-traditional-evening");
 const prayerFormatStatus = document.querySelector("#prayer-format-status");
 const retryFullOfficeButton = document.querySelector("#retry-full-office");
 const prayerReminderControls = document.querySelectorAll("[data-prayer-office]");
@@ -246,13 +246,6 @@ function syncPrayerFormatStatus() {
   retryFullOfficeButton.hidden = true;
 }
 
-function syncPrayerFormatPreviews() {
-  const target = prayerFormat === "full" ? "Simple" : "Traditional";
-  prayerFormatPreviews.hidden = false;
-  prayerFormatPreviews.setAttribute("aria-label", `Preview ${target} Morning and Evening Prayer`);
-  prayerFormatPreviewLabel.textContent = `Preview ${target}`;
-}
-
 async function ensureFullOfficeContentForDate(
   date = new Date(),
   { forceRefresh = false } = {},
@@ -412,7 +405,6 @@ function setSettingsOpen(open) {
     syncNoondayPreviewButton();
     syncComplinePreviewButton();
     syncPrayerFormatStatus();
-    syncPrayerFormatPreviews();
   }
   document.documentElement.classList.toggle("settings-open", open);
   settingsPage.hidden = !open;
@@ -429,7 +421,6 @@ function setSettingsOpen(open) {
 }
 
 syncPrayerFormatStatus();
-syncPrayerFormatPreviews();
 prepareScheduledFullOffice(initialServiceTime);
 
 const feastDateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -1243,11 +1234,11 @@ const fullOfficePreviewController = createFullOfficePreviewController({
 });
 
 async function activateFullOfficePreview(office) {
-  const button = office === "morning" ? previewMorningButton : previewEveningButton;
+  const button = office === "morning" ? previewTraditionalMorningButton : previewTraditionalEveningButton;
   const originalLabel = button.textContent;
   button.disabled = true;
   button.setAttribute("aria-busy", "true");
-  button.textContent = "Loading today…";
+  button.textContent = "Loading…";
   const activated = await fullOfficePreviewController.preview(office);
   if (!activated && fullOfficePreview === office && !hasFullOfficeDate(localIsoDate())) {
     exitFullOfficePreview();
@@ -1270,19 +1261,10 @@ function activateSimpleOfficePreview(office, now = new Date()) {
   setSettingsOpen(false);
 }
 
-function activatePrayerFormatPreview(office) {
-  if (prayerFormat === "full") {
-    activateSimpleOfficePreview(office);
-    return;
-  }
-  activateFullOfficePreview(office);
-}
-
 function applyPrayerFormat(format, now = new Date()) {
   prayerFormat = format;
   fullOfficeDocumentCache.clear();
   syncPrayerFormatStatus();
-  syncPrayerFormatPreviews();
   const nextService = scheduleAt(now);
   if (isFullOfficeService(nextService)) prepareScheduledFullOffice(now);
   activateService(serviceWithContentFallback(nextService, localIsoDate(now)));
@@ -1338,8 +1320,10 @@ readerMenu.addEventListener("click", () => setSettingsOpen(true));
 openReaderButton.addEventListener("click", () => setSettingsOpen(false));
 previewNoondayButton.addEventListener("click", () => activateTimedOfficePreview("noonday"));
 previewComplineButton.addEventListener("click", () => activateTimedOfficePreview("compline"));
-previewMorningButton.addEventListener("click", () => activatePrayerFormatPreview("morning"));
-previewEveningButton.addEventListener("click", () => activatePrayerFormatPreview("evening"));
+previewSimpleMorningButton.addEventListener("click", () => activateSimpleOfficePreview("morning"));
+previewSimpleEveningButton.addEventListener("click", () => activateSimpleOfficePreview("evening"));
+previewTraditionalMorningButton.addEventListener("click", () => activateFullOfficePreview("morning"));
+previewTraditionalEveningButton.addEventListener("click", () => activateFullOfficePreview("evening"));
 retryFullOfficeButton.addEventListener("click", retryFullOfficePreparation);
 browseFeastDaysButton.addEventListener("click", () => setFeastBrowserOpen(true));
 closeFeastBrowserButton.addEventListener("click", () => setFeastBrowserOpen(false));

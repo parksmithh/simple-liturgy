@@ -1,5 +1,5 @@
-import { COMPLINE_END_HOUR } from "./compline-preference.js?v=0.3.142";
-import { localIsoDate, scheduledServiceAt } from "./office-schedule.js?v=0.3.142";
+import { COMPLINE_END_HOUR } from "./compline-preference.js?v=0.3.143";
+import { localIsoDate, scheduledServiceAt } from "./office-schedule.js?v=0.3.143";
 
 const DISMISSAL_KEY_PREFIX = "simple-liturgy.timed-office-onboarding";
 

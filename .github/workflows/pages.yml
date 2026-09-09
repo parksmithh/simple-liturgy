@@ -2,9 +2,10 @@ name: Deploy Simple Liturgy
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    tags:
+      - "v*.*.*"
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -16,7 +17,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  verify:
+    name: verify
+    if: github.event_name != 'release' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Run production merge checks
+        run: node scripts/check-site.mjs
+
   deploy:
+    name: deploy
+    needs: verify
+    if: github.event_name != 'release' || !github.event.release.prerelease
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

@@ -268,6 +268,12 @@ check("production channel is locked", () => {
   assert(!appVersionLabel().toLowerCase().includes("staging"), "production label must not mention staging");
 });
 
+check("promote tag matches APP_VERSION", () => {
+  if (process.env.GITHUB_REF_TYPE !== "tag") return;
+  const tag = process.env.GITHUB_REF_NAME || "";
+  assert(tag === `v${APP_VERSION}`, `tag ${tag || "(empty)"} must be v${APP_VERSION}`);
+});
+
 await checkAsync("versioned assets use APP_VERSION", async () => {
   const unexpected = [];
   for (const file of versionedTextFiles) {

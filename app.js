@@ -666,9 +666,11 @@ function largestWholePrayerFont(
   preferredFontSize,
   renderCandidate = appendMeasuredContent,
   minimumFontSize = Math.min(16, preferredFontSize),
+  allowGrow = true,
 ) {
   const floor = Math.min(minimumFontSize, preferredFontSize);
-  const maximumFontSize = Math.max(Math.floor(preferredFontSize), Math.min(52, Math.floor(availableHeight / 2)));
+  const grownCeiling = Math.max(Math.floor(preferredFontSize), Math.min(52, Math.floor(availableHeight / 2)));
+  const maximumFontSize = allowGrow ? grownCeiling : Math.floor(preferredFontSize);
   for (let fontSize = maximumFontSize; fontSize >= floor; fontSize -= 1) {
     probe.style.fontSize = `${fontSize}px`;
     renderCandidate(probe, prayer);
@@ -907,6 +909,7 @@ function measuredLordsPrayerLayout() {
       maximumFontSize,
       renderLordsPrayerCandidate,
       12,
+      false,
     );
     return { fontSize: fontSize ?? 12 };
   } finally {

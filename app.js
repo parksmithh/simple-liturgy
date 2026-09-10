@@ -1,5 +1,5 @@
 import { initializeAnalytics } from "./analytics.js?v=0.3.143";
-import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, lessonValues, model, numberedLiturgicalTextHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, remapFocusPageAfterLayout, resolvePrayer, screenClickDecision, screenHtml, scriptureCitationPresentation, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays, usesNumberedVerseLayout } from "./bookmark-engine.js?v=0.3.143";
+import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, lessonValues, LORDS_PRAYER_TEXT, model, numberedLiturgicalTextHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, prayerLineationHtml, remapFocusPageAfterLayout, resolvePrayer, screenClickDecision, screenHtml, scriptureCitationPresentation, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays, usesNumberedVerseLayout } from "./bookmark-engine.js?v=0.3.143";
 import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.143";
 import { createDailyOfficeDayLoader, mergeDailyOfficeContent } from "./daily-office-content.js?v=0.3.143";
 import { composeDailyOffice } from "./daily-office.js?v=0.3.143";
@@ -96,6 +96,7 @@ let pointerStart = null;
 let pointerActivated = false;
 let suppressReadingTap = false;
 let prayerLayout = null;
+let lordsPrayerLayout = null;
 let timedOfficeLayout = null;
 let observedDeviceSize = "";
 let activeLocalDate = null;
@@ -134,6 +135,7 @@ const dailyOfficeLoader = createDailyOfficeDayLoader({
 
 function invalidateLayouts() {
   prayerLayout = null;
+  lordsPrayerLayout = null;
   timedOfficeLayout = null;
 }
 
@@ -515,8 +517,15 @@ function deviceSize() {
 }
 
 function matchingPrayerLayout(view) {
+  if (view.focus === "LORDS_PRAYER") return null;
   if (view.service !== "daily" || prayerLayout?.date !== view.date || prayerLayout.deviceSize !== deviceSize()) return null;
   return prayerLayout;
+}
+
+function matchingLordsPrayerLayout(view) {
+  if (view.service !== "daily" || view.focus !== "LORDS_PRAYER") return null;
+  if (lordsPrayerLayout?.date !== view.date || lordsPrayerLayout.deviceSize !== deviceSize()) return null;
+  return lordsPrayerLayout;
 }
 
 function measuredTimedOfficePages(view) {
@@ -610,9 +619,12 @@ function paint(view) {
   }
   activeService = view.service || "daily";
   activePsalmOffice = view.service === "daily" ? psalmOffice : null;
-  const layout = matchingPrayerLayout(view) || matchingTimedOfficeLayout(view);
+  const layout = matchingLordsPrayerLayout(view) || matchingPrayerLayout(view) || matchingTimedOfficeLayout(view);
   if (layout?.fontSize) {
-    screen.querySelector(".prayer-text")?.style.setProperty("font-size", `${layout.fontSize}px`);
+    const text = view.focus === "LORDS_PRAYER"
+      ? screen.querySelector(".lords-prayer-text")
+      : screen.querySelector(".prayer-text");
+    text?.style.setProperty("font-size", `${layout.fontSize}px`);
   }
   paintPixelArtStack(screen, view, previousArtStack);
   controlModel(view).forEach((control, index) => {
@@ -647,10 +659,17 @@ function appendMeasuredContent(probe, candidate) {
   probe.replaceChildren(...nodes);
 }
 
-function largestWholePrayerFont(probe, prayer, availableHeight, preferredFontSize, renderCandidate = appendMeasuredContent) {
-  const minimumFontSize = Math.min(16, preferredFontSize);
+function largestWholePrayerFont(
+  probe,
+  prayer,
+  availableHeight,
+  preferredFontSize,
+  renderCandidate = appendMeasuredContent,
+  minimumFontSize = Math.min(16, preferredFontSize),
+) {
+  const floor = Math.min(minimumFontSize, preferredFontSize);
   const maximumFontSize = Math.max(Math.floor(preferredFontSize), Math.min(52, Math.floor(availableHeight / 2)));
-  for (let fontSize = maximumFontSize; fontSize >= minimumFontSize; fontSize -= 1) {
+  for (let fontSize = maximumFontSize; fontSize >= floor; fontSize -= 1) {
     probe.style.fontSize = `${fontSize}px`;
     renderCandidate(probe, prayer);
     if (probe.scrollHeight <= availableHeight + 0.5) return fontSize;
@@ -855,6 +874,46 @@ function measuredTimedOfficeLayout(view) {
   }
 }
 
+function renderLordsPrayerCandidate(probe, html) {
+  probe.innerHTML = html;
+}
+
+function measuredLordsPrayerLayout() {
+  const focus = screen.querySelector(".prayer-focus");
+  const text = screen.querySelector(".lords-prayer-text");
+  const label = focus?.querySelector(".label");
+  if (!focus || !text || !label) return null;
+
+  const focusStyle = getComputedStyle(focus);
+  const textStyle = getComputedStyle(text);
+  const availableHeight = prayerAvailableHeight({
+    focusHeight: focus.getBoundingClientRect().height,
+    paddingTop: parseFloat(focusStyle.paddingTop),
+    paddingBottom: parseFloat(focusStyle.paddingBottom),
+    labelHeight: label.getBoundingClientRect().height,
+    textMarginTop: parseFloat(textStyle.marginTop),
+  });
+  const textWidth = text.getBoundingClientRect().width;
+  if (availableHeight <= 0 || textWidth <= 0) return null;
+
+  const probe = createMeasurementProbe(text, textStyle, textWidth);
+  try {
+    const maximumFontSize = parseFloat(textStyle.fontSize);
+    const html = prayerLineationHtml(LORDS_PRAYER_TEXT);
+    const fontSize = largestWholePrayerFont(
+      probe,
+      html,
+      availableHeight,
+      maximumFontSize,
+      renderLordsPrayerCandidate,
+      12,
+    );
+    return { fontSize: fontSize ?? 12 };
+  } finally {
+    probe.remove();
+  }
+}
+
 function measuredPrayerLayout(view) {
   const focus = screen.querySelector(".prayer-focus");
   const text = screen.querySelector(".prayer-text");
@@ -902,6 +961,17 @@ function render({ previousTimedOfficePages = null } = {}) {
   resetForNewLocalDate();
   let view = currentView();
   paint(view);
+  if (view.focus === "LORDS_PRAYER") {
+    const layout = measuredLordsPrayerLayout();
+    if (!layout?.fontSize) return;
+    const previousLayout = lordsPrayerLayout;
+    const fontChanged = previousLayout?.fontSize !== layout.fontSize;
+    lordsPrayerLayout = { date: view.date, deviceSize: deviceSize(), ...layout };
+    if (!fontChanged) return;
+    view = currentView();
+    paint(view);
+    return;
+  }
   const measuringPrayer = Boolean(view.focus === "PRAYER" && view.prayer);
   const layout = measuringPrayer ? measuredPrayerLayout(view) : measuredTimedOfficeLayout(view);
   if (!layout?.pages.length) return;

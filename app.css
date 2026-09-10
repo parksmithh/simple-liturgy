@@ -285,7 +285,9 @@ h1 { margin: 0; font: var(--font-weight-semibold) var(--type-app-title) var(--fo
 .reading, .prayer-content { display: flex; min-width: 0; flex-direction: column; border: 0; background: transparent; color: var(--ink); padding: 0; text-align: left; cursor: pointer; }
 .reading { justify-content: flex-end; }
 .grid > .reading { align-items: flex-start; justify-content: flex-start; }
-.overview-marker { display: none; cursor: default; }
+.overview-marker { display: flex; cursor: pointer; }
+.prayer-amen { display: block; }
+.lords-prayer-text { max-width: 36em; }
 .reading span { display: block; }
 .label { color: var(--red); font-size: var(--type-reader-label); font-weight: var(--font-weight-regular); text-transform: uppercase; }
 .cite { min-height: 2.2em; margin-top: 2px; font-size: var(--type-reader-citation); font-weight: var(--font-weight-reader-content); line-height: 1.1; overflow-wrap: break-word; white-space: normal; }
@@ -640,7 +642,7 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
   }
   .grid {
     grid-template-columns: 1fr;
-    grid-template-rows: repeat(6, auto);
+    grid-template-rows: repeat(7, auto);
     gap: var(--space-reading-group);
     margin-top: 0;
   }

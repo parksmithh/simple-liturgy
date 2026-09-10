@@ -828,6 +828,7 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
     overflow: hidden;
     background: var(--paper);
   }
+  .lords-prayer-text br { display: none; }
   .reader {
     display: block;
     height: 100svh;

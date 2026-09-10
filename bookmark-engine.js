@@ -1033,7 +1033,7 @@ function escapeHtml(value) {
 
 export function prayerLineationHtml(text) {
   return escapeHtml(text)
-    .replaceAll("\n", "<br>")
+    .replaceAll("\n", "<br> ")
     .replace(/ Amen\.$/, '<span class="prayer-amen">Amen.</span>');
 }
 

@@ -491,7 +491,7 @@ await checkAsync("Simple Liturgy Lord's Prayer text, lineation, and Amen", async
   assert(LORDS_PRAYER_TEXT.replaceAll("\n", " ") === contemporary, "Simple Liturgy wording must match Rite II contemporary once newlines are ignored");
   assert(!/who art|trespasses|temptation|this day/.test(LORDS_PRAYER_TEXT), "must not use traditional substitutions");
   const html = prayerLineationHtml(LORDS_PRAYER_TEXT);
-  assert(html.includes("Our Father in heaven,<br>hallowed be your Name,"), "phrase breaks must be <br> after escaping");
+  assert(html.includes("Our Father in heaven,<br> hallowed be your Name,"), "phrase breaks must be <br> after escaping");
   assert(html.includes("now and for ever.<span class=\"prayer-amen\">Amen.</span>"), "final Amen must be a block span");
   assert(!html.includes("now and for ever. Amen."), "Amen must be peeled off the last doxology line");
 });
@@ -521,6 +521,10 @@ await checkAsync("Lord's Prayer typography inherits the shared prayer token", as
     "portrait Simple Liturgy overview must use repeat(7, auto)",
   );
   assert(css.includes(".prayer-amen { display: block; }"), "Amen must use the shared block treatment");
+  assert(
+    css.includes(".lords-prayer-text br { display: none; }"),
+    "mobile must drop Lord's Prayer phrase breaks",
+  );
   const modifierRules = [...css.matchAll(/\.lords-prayer-text\s*\{([^}]*)\}/g)].map(match => match[1]);
   assert(modifierRules.length > 0, "lords-prayer-text modifier must exist");
   assert(

@@ -47,7 +47,8 @@ Then merge that bump to `main` if it is not already there, and push to prod:
 
 1. Tag current `main` as `vX.Y.Z`, matching `APP_VERSION` in `version.js`.
 2. Publish a GitHub Release for that tag, or push the tag.
-3. Actions runs **verify** on the tagged commit, then deploys Pages. A tag that does not match `v${APP_VERSION}` fails the gate.
+3. Actions runs **verify** on the tagged commit. A tag that does not match `v${APP_VERSION}` fails the gate.
+4. After **verify** succeeds, **Publish Pages** deploys that tagged commit. The `github-pages` environment allows the `main` branch only, so the publish job runs on `main` and checks out the tag. Add a `v*.*.*` tag rule under Settings → Environments → github-pages if you later want the tag job itself to deploy.
 
 ## Contribution terms
 

@@ -228,12 +228,16 @@ const {
   appVersionLabel,
 } = await import("../version.js");
 const {
+  DAILY_FOCUS_ORDER,
   dateWithOffset,
   handle,
   keyboardEvent,
+  LORDS_PRAYER_HEADING,
+  LORDS_PRAYER_TEXT,
   model,
   parseBundle,
   parseCollects,
+  prayerLineationHtml,
   resolvePrayer,
   screenHtml,
   stateForDate,
@@ -453,6 +457,88 @@ check("reader navigation helpers still map gestures", () => {
   const next = handle({ offset: 0, focus: null, focusPage: 0 }, "NEXT_DAY");
   assert(next.offset === 1, "NEXT_DAY should increment the date offset");
   assert(dateWithOffset("2026-09-08", 1) === "2026-09-09", "date offset");
+});
+
+check("Simple Liturgy focus order includes The Lord's Prayer", () => {
+  assert(
+    DAILY_FOCUS_ORDER.join(",") === "PRAYER,PS,OT,NT,GS,LORDS_PRAYER,GLORIA",
+    `focus order is ${DAILY_FOCUS_ORDER.join(",")}`,
+  );
+  const afterGospel = handle({ offset: 0, focus: "GS", focusPage: 0 }, "NEXT_READING");
+  assert(afterGospel.focus === "LORDS_PRAYER", "next after Gospel must open The Lord's Prayer");
+  const afterPrayer = handle({ offset: 0, focus: "LORDS_PRAYER", focusPage: 0 }, "NEXT_READING");
+  assert(afterPrayer.focus === "GLORIA", "next after The Lord's Prayer must open Gloria");
+  const previousFromGloria = handle({ offset: 0, focus: "GLORIA", focusPage: 0 }, "PREV_READING");
+  assert(previousFromGloria.focus === "LORDS_PRAYER", "previous from Gloria must open The Lord's Prayer");
+  const opened = handle({ offset: 0, focus: null, focusPage: 0 }, "LORDS_PRAYER");
+  assert(opened.focus === "LORDS_PRAYER", "overview must focus The Lord's Prayer, not a reading");
+  const afterOverview = handle({ offset: 0, focus: "LORDS_PRAYER", focusPage: 0 }, "OVERVIEW");
+  assert(afterOverview.focus === null, "overview must clear Lord's Prayer focus");
+  const afterDate = handle({ offset: 0, focus: "LORDS_PRAYER", focusPage: 0 }, "NEXT_DAY");
+  assert(afterDate.focus === null, "date change must clear Lord's Prayer focus");
+});
+
+check("The Lord's Prayer heading uses a curly apostrophe", () => {
+  assert(LORDS_PRAYER_HEADING === "The Lord\u2019s Prayer", "heading must be The Lord’s Prayer");
+  assert(LORDS_PRAYER_HEADING.includes("\u2019"), "heading must use U+2019");
+  assert(!LORDS_PRAYER_HEADING.includes("'"), "heading must not use a straight apostrophe");
+});
+
+await checkAsync("Simple Liturgy Lord's Prayer text, lineation, and Amen", async () => {
+  const contemporary = "Our Father in heaven, hallowed be your Name, your kingdom come, your will be done, on earth as in heaven. Give us today our daily bread. Forgive us our sins as we forgive those who sin against us. Save us from the time of trial, and deliver us from evil. For the kingdom, the power, and the glory are yours, now and for ever. Amen.";
+  const riteTwo = await readText("data/daily-office/rite-two.json");
+  assert(riteTwo.includes(contemporary), "Rite II contemporary Lord's Prayer must still be present for comparison");
+  assert(LORDS_PRAYER_TEXT.replaceAll("\n", " ") === contemporary, "Simple Liturgy wording must match Rite II contemporary once newlines are ignored");
+  assert(!/who art|trespasses|temptation|this day/.test(LORDS_PRAYER_TEXT), "must not use traditional substitutions");
+  const html = prayerLineationHtml(LORDS_PRAYER_TEXT);
+  assert(html.includes("Our Father in heaven,<br> hallowed be your Name,"), "phrase breaks must be <br> after escaping");
+  assert(html.includes("now and for ever.<span class=\"prayer-amen\">Amen.</span>"), "final Amen must be a block span");
+  assert(!html.includes("now and for ever. Amen."), "Amen must be peeled off the last doxology line");
+});
+
+await checkAsync("Simple Liturgy Lord's Prayer renders in focus and overview", async () => {
+  const bundle = parseBundle(await readText("firmware/circuitpython/readings.active.jsonl"));
+  const collects = parseCollects(await readText("data/collects/collects.json"));
+  const today = localIsoDate();
+  const overview = screenHtml(model(bundle, { offset: 0, focus: null, focusPage: 0 }, today, collects));
+  assert(overview.includes(`data-event="LORDS_PRAYER"`), "overview marker must open LORDS_PRAYER");
+  assert(overview.includes(LORDS_PRAYER_HEADING), "overview must use the shared heading");
+  assert(!overview.includes("Our Father in heaven"), "overview must be label-only");
+  const focus = screenHtml(model(bundle, { offset: 0, focus: "LORDS_PRAYER", focusPage: 0 }, today, collects));
+  assert(focus.includes(`data-reading="LORDS_PRAYER"`), "focus must target LORDS_PRAYER");
+  assert(focus.includes(LORDS_PRAYER_HEADING), "focus label must use the shared heading");
+  assert(focus.includes("prayer-text lords-prayer-text"), "focus body must use prayer-text plus lords-prayer-text");
+  assert(focus.includes('<span class="prayer-amen">Amen.</span>'), "focus must include the block Amen");
+  const noonday = screenHtml(model(bundle, { offset: 0, focus: "NOONDAY_LORDS_PRAYER", focusPage: 0 }, today, collects, { service: "noonday" }));
+  assert(noonday.includes(LORDS_PRAYER_HEADING), "Noonday must keep The Lord’s Prayer heading");
+  assert(!noonday.includes("For the kingdom, the power, and the glory are yours"), "Noonday must keep the doxology-free wording");
+});
+
+await checkAsync("Lord's Prayer typography inherits the shared prayer token", async () => {
+  const css = await readText("app.css");
+  assert(
+    /\.grid \{\s*grid-template-columns: 1fr;\s*grid-template-rows: repeat\(7, auto\);/.test(css),
+    "portrait Simple Liturgy overview must use repeat(7, auto)",
+  );
+  assert(css.includes(".prayer-amen { display: block; }"), "Amen must use the shared block treatment");
+  assert(
+    css.includes(".lords-prayer-text br { display: none; }"),
+    "mobile must drop Lord's Prayer phrase breaks",
+  );
+  const modifierRules = [...css.matchAll(/\.lords-prayer-text\s*\{([^}]*)\}/g)].map(match => match[1]);
+  assert(modifierRules.length > 0, "lords-prayer-text modifier must exist");
+  assert(
+    modifierRules.every(body => !/font-size|line-height|--type-reader-lords-prayer/.test(body)),
+    "lords-prayer-text may not set font-size, line-height, or a private type token",
+  );
+  assert(!css.includes("--type-reader-lords-prayer"), "must not invent --type-reader-lords-prayer");
+  assert(
+    /function matchingPrayerLayout\(view\) \{\s*if \(view\.focus === "LORDS_PRAYER"\) return null;/.test(appJs),
+    "collect cache must exclude LORDS_PRAYER",
+  );
+  assert(appJs.includes('screen.querySelector(".lords-prayer-text")'), "fitted size must apply only to .lords-prayer-text");
+  assert(appJs.includes("matchingLordsPrayerLayout"), "Lord's Prayer must use a dedicated fitter");
+  assert(appJs.includes("measuredLordsPrayerLayout"), "Lord's Prayer must measure its own HTML");
 });
 
 check("prayer reminder calendar can be generated", () => {

@@ -49,6 +49,7 @@ Then merge that bump to `main` if it is not already there, and push to prod:
 2. Publish a GitHub Release for that tag, or push the tag.
 3. Actions runs **verify** on the tagged commit. A tag that does not match `v${APP_VERSION}` fails the gate.
 4. After **verify** succeeds, **Publish Pages** deploys that tagged commit. The `github-pages` environment allows the `main` branch only, so the publish job runs on `main` and checks out the tag. Add a `v*.*.*` tag rule under Settings → Environments → github-pages if you later want the tag job itself to deploy.
+5. Open [simpleliturgy.com](https://simpleliturgy.com) in a normal browser. Hard-refresh if the first load looks stale. Confirm the footer version matches the tag **and** that the shipped surface is actually on the page (for a Simple Prayer change, the Simple Prayer overview). A green Actions run, a localhost look, a Cursor port-forward, or an installed PWA is not this check. Do not say the promote is live until the public hostname passes.
 
 ## Contribution terms
 

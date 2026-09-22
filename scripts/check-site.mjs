@@ -304,6 +304,8 @@ await checkAsync("versioned assets use APP_VERSION", async () => {
   assert(unexpected.length === 0, unexpected.join("; ") || "mixed versions");
   assert(workerSource.includes(`daily-office-reader-v${APP_VERSION}`), "service worker cache name must include APP_VERSION");
   assert(workerSource.includes(`?v=${APP_VERSION}`), "service worker must version the current release");
+  assert(workerSource.includes("skipWaiting"), "a newly installed worker must activate without waiting for every client to close");
+  assert(appJs.includes("controllerchange"), "the reader must reload when a new service worker takes control");
 });
 
 check("JavaScript modules parse", () => {

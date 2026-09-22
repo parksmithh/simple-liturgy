@@ -293,6 +293,15 @@ await checkAsync("Pages publish stays off ordinary main merges", async () => {
   );
 });
 
+await checkAsync("promote ritual requires a live simpleliturgy.com check", async () => {
+  const contributing = await readText("CONTRIBUTING.md");
+  assert(contributing.includes("simpleliturgy.com"), "CONTRIBUTING must name the public hostname");
+  assert(
+    contributing.includes("Do not say the promote is live until the public hostname passes"),
+    "push to prod must require a live-site check of simpleliturgy.com, not only Actions or localhost"
+  );
+});
+
 await checkAsync("versioned assets use APP_VERSION", async () => {
   const unexpected = [];
   for (const file of versionedTextFiles) {

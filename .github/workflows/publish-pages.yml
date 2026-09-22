@@ -1,0 +1,48 @@
+# github-pages currently allows the `main` branch only. Tag jobs cannot
+# enter that environment, so publish runs here on main after the tagged
+# verify workflow succeeds, and checks out that tagged commit.
+name: Publish Pages
+
+on:
+  workflow_run:
+    workflows: ["Deploy Simple Liturgy"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: deploy
+    if: >
+      github.event.workflow_run.conclusion == 'success'
+      && (
+        github.event.workflow_run.event == 'push'
+        || github.event.workflow_run.event == 'release'
+      )
+      && startsWith(github.event.workflow_run.head_branch, 'v')
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tagged site
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+      - name: Deploy site
+        id: deployment
+        uses: actions/deploy-pages@v4

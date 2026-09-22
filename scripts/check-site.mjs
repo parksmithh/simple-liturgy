@@ -278,6 +278,21 @@ check("promote tag matches APP_VERSION", () => {
   assert(tag === `v${APP_VERSION}`, `tag ${tag || "(empty)"} must be v${APP_VERSION}`);
 });
 
+await checkAsync("Pages publish stays off ordinary main merges", async () => {
+  const verifyWorkflow = await readText(".github/workflows/pages.yml");
+  const publishWorkflow = await readText(".github/workflows/publish-pages.yml");
+  assert(!verifyWorkflow.includes("deploy-pages"), "tag verify workflow must not deploy Pages");
+  assert(!verifyWorkflow.includes("environment:"), "tag verify workflow must not enter github-pages");
+  assert(verifyWorkflow.includes("v*.*.*"), "tag verify workflow must still run on version tags");
+  assert(publishWorkflow.includes("workflow_run"), "Pages publish must follow the tagged verify workflow");
+  assert(publishWorkflow.includes("Deploy Simple Liturgy"), "Pages publish must wait on Deploy Simple Liturgy");
+  assert(publishWorkflow.includes("actions/deploy-pages"), "Pages publish must deploy the tagged commit");
+  assert(
+    publishWorkflow.includes("github.event.workflow_run.head_sha"),
+    "Pages publish must check out the tagged commit, not the latest main tip"
+  );
+});
+
 await checkAsync("versioned assets use APP_VERSION", async () => {
   const unexpected = [];
   for (const file of versionedTextFiles) {

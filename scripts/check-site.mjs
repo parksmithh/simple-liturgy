@@ -757,11 +757,16 @@ await checkAsync("scripture preference remaps Simple and Traditional lesson focu
 
 await checkAsync("scripture lesson focus stays non-scrolling", async () => {
   const css = await readText("app.css");
+  const engine = await readText("bookmark-engine.js");
   assert(css.includes(".focus {") && /overflow:\s*hidden/.test(css), "focus overflow hidden");
   assert(css.includes(".scripture-lesson-text") && css.includes("overflow: hidden"), "scripture body overflow hidden");
   assert(css.includes(".scripture-unavailable-note"), "unavailable note styled");
   assert(appJs.includes("paginateScriptureVersesByFit"), "app measures scripture with auto-fit");
   assert(appJs.includes("measuredScriptureSimpleLayout"), "Simple lessons measure fit");
+  assert(
+    engine.includes("page > 0") && engine.includes("escapeHtml(citationText)}") && engine.includes("READING_LABELS[key]"),
+    "continuation pages use citation as the focus title",
+  );
 });
 
 await checkAsync("critical URLs return HTTP 200 from a Pages-like server", async () => {

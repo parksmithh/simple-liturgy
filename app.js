@@ -1,45 +1,45 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.151";
-import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, lessonValues, LORDS_PRAYER_TEXT, model, numberedLiturgicalTextHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, prayerLineationHtml, remapFocusPageAfterLayout, resolvePrayer, screenClickDecision, screenHtml, scriptureCitationPresentation, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays, usesNumberedVerseLayout } from "./bookmark-engine.js?v=0.3.151";
-import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.151";
-import { createDailyOfficeDayLoader, mergeDailyOfficeContent } from "./daily-office-content.js?v=0.3.151";
-import { composeDailyOffice } from "./daily-office.js?v=0.3.151";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.151";
-import { createFullOfficePreviewController, fullOfficeLoadingHtml, fullOfficeLoadingService, isFullOfficeService } from "./full-office-lifecycle.js?v=0.3.151";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.151";
-import { localIsoDate, officePeriodAt, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.151";
-import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.151";
-import { bindPrayerFormatPreference, initializePrayerFormatPreference } from "./prayer-format-preference.js?v=0.3.151";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.151";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.151";
-import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.151";
-import { createScripturePackLoader } from "./scripture-pack-loader.js?v=0.3.151";
+import { initializeAnalytics } from "./analytics.js?v=0.3.152";
+import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, lessonValues, LORDS_PRAYER_TEXT, model, numberedLiturgicalTextHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, prayerLineationHtml, remapFocusPageAfterLayout, resolvePrayer, screenClickDecision, screenHtml, scriptureCitationPresentation, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays, usesNumberedVerseLayout } from "./bookmark-engine.js?v=0.3.152";
+import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.152";
+import { createDailyOfficeDayLoader, mergeDailyOfficeContent } from "./daily-office-content.js?v=0.3.152";
+import { composeDailyOffice } from "./daily-office.js?v=0.3.152";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.152";
+import { createFullOfficePreviewController, fullOfficeLoadingHtml, fullOfficeLoadingService, isFullOfficeService } from "./full-office-lifecycle.js?v=0.3.152";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.152";
+import { localIsoDate, officePeriodAt, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.152";
+import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.152";
+import { bindPrayerFormatPreference, initializePrayerFormatPreference } from "./prayer-format-preference.js?v=0.3.152";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.152";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.152";
+import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.152";
+import { createScripturePackLoader } from "./scripture-pack-loader.js?v=0.3.152";
 import {
   bindScripturePreference,
   editionForMode,
   initializeScripturePreference,
-} from "./scripture-preference.js?v=0.3.151";
+} from "./scripture-preference.js?v=0.3.152";
 import {
   applyScriptureToSimpleView,
   applyScriptureToTimedOffice,
   paginateScriptureVersesByFit,
-} from "./scripture-reading.js?v=0.3.151";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.151";
-import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.151";
-import { appVersionLabel } from "./version.js?v=0.3.151";
+} from "./scripture-reading.js?v=0.3.152";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.152";
+import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.152";
+import { appVersionLabel } from "./version.js?v=0.3.152";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.151", CONTENT_ROOT);
-const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.151", CONTENT_ROOT);
-const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.151", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.152", CONTENT_ROOT);
+const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.152", CONTENT_ROOT);
+const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.152", CONTENT_ROOT);
 const SCRIPTURE_PACK_URLS = {
-  engwebp: new URL("data/scripture/engwebp.json?v=0.3.151", CONTENT_ROOT),
-  "eng-kjv": new URL("data/scripture/eng-kjv.json?v=0.3.151", CONTENT_ROOT),
+  engwebp: new URL("data/scripture/engwebp.json?v=0.3.152", CONTENT_ROOT),
+  "eng-kjv": new URL("data/scripture/eng-kjv.json?v=0.3.152", CONTENT_ROOT),
 };
 const FULL_OFFICE_URLS = {
-  riteTwo: new URL("data/daily-office/rite-two.json?v=0.3.151", CONTENT_ROOT),
-  index: new URL("dor-engine/daily-office-content.index.json?v=0.3.151", APP_ROOT),
-  pack: new URL("dor-engine/daily-office-content.active.jsonl?v=0.3.151", APP_ROOT),
+  riteTwo: new URL("data/daily-office/rite-two.json?v=0.3.152", CONTENT_ROOT),
+  index: new URL("dor-engine/daily-office-content.index.json?v=0.3.152", APP_ROOT),
+  pack: new URL("dor-engine/daily-office-content.active.jsonl?v=0.3.152", APP_ROOT),
 };
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -888,6 +888,8 @@ function measuredTimedOfficeTextAreas(
       return element;
     });
   const originalDisplays = elements.map(element => element.style.display);
+  const label = focus.querySelector(".label");
+  const savedLabelText = label?.textContent;
   try {
     const firstPage = measuredTimedOfficeTextArea(
       focus,
@@ -898,6 +900,9 @@ function measuredTimedOfficeTextAreas(
     elements.forEach(element => {
       element.style.display = "none";
     });
+    if (label && citation && (section.numberedVerses || section.scriptureVerses)) {
+      label.textContent = `${citation} (2/9)`;
+    }
     return [
       firstPage,
       measuredTimedOfficeTextArea(focus, text, focusStyle, reservedFooterHeight),
@@ -906,6 +911,7 @@ function measuredTimedOfficeTextAreas(
     elements.forEach((element, index) => {
       element.style.display = originalDisplays[index];
     });
+    if (label && savedLabelText != null) label.textContent = savedLabelText;
     temporaryElements.forEach(element => element.remove());
   }
 }
@@ -1115,43 +1121,50 @@ function measuredScriptureSimpleLayout(view) {
 
   const focusStyle = getComputedStyle(focus);
   const textStyle = getComputedStyle(text);
-  const citation = focus.querySelector(".focus-cite");
-  const label = focus.querySelector(".label");
+  const citationText = built.citation || view.values?.[view.focus] || "Citation";
   const temporary = [];
-  // Always reserve first-page chrome (label + citation), even when viewing a
-  // continuation page where the citation node is omitted from the DOM.
+  let label = focus.querySelector(".label");
+  let citation = focus.querySelector(".focus-cite");
+  // Reserve first-page chrome (section label + citation) and continuation chrome
+  // (citation-as-title label) even when measuring from the other page.
   if (!label) {
-    const element = document.createElement("span");
-    element.className = "label";
-    element.textContent = "Old Testament (1/1)";
-    element.style.visibility = "hidden";
-    focus.insertBefore(element, text);
-    temporary.push(element);
+    label = document.createElement("span");
+    label.className = "label";
+    label.style.visibility = "hidden";
+    focus.insertBefore(label, text);
+    temporary.push(label);
   }
   if (!citation) {
-    const element = document.createElement("span");
-    element.className = "focus-cite";
-    element.textContent = built.citation || view.values?.[view.focus] || "Citation";
-    element.style.visibility = "hidden";
-    focus.insertBefore(element, text);
-    temporary.push(element);
+    citation = document.createElement("span");
+    citation.className = "focus-cite";
+    citation.style.visibility = "hidden";
+    focus.insertBefore(citation, text);
+    temporary.push(citation);
   }
-  const firstPageChrome = [
-    focus.querySelector(".label"),
-    focus.querySelector(".focus-cite"),
-  ].filter(Boolean);
+  const saved = {
+    labelText: label.textContent,
+    labelDisplay: label.style.display,
+    citeText: citation.textContent,
+    citeDisplay: citation.style.display,
+  };
   const measure = () => measuredTimedOfficeTextArea(focus, text, focusStyle, 0);
-  const textAreas = [measure()];
-  const hidden = firstPageChrome.map(element => [element, element.style.display]);
+  let textAreas;
   try {
-    firstPageChrome.forEach(element => {
-      element.style.display = "none";
-    });
-    textAreas.push(measure());
+    label.style.display = "";
+    label.textContent = "Old Testament (1/9)";
+    citation.style.display = "";
+    citation.textContent = citationText;
+    const firstPage = measure();
+
+    citation.style.display = "none";
+    label.textContent = `${citationText} (2/9)`;
+    const continuation = measure();
+    textAreas = [firstPage, continuation];
   } finally {
-    hidden.forEach(([element, display]) => {
-      element.style.display = display;
-    });
+    label.textContent = saved.labelText;
+    label.style.display = saved.labelDisplay;
+    citation.textContent = saved.citeText;
+    citation.style.display = saved.citeDisplay;
     temporary.forEach(element => element.remove());
   }
   if (textAreas.some(area => area.height <= 0 || area.width <= 0)) return null;

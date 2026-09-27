@@ -1,8 +1,8 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.151";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.152";
 import {
   adaptLegacyTimedOffice,
   officeDocumentToViewSections,
-} from "./office-document.js?v=0.3.151";
+} from "./office-document.js?v=0.3.152";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -1150,12 +1150,16 @@ function readingContentHtml(view, key, className, psalmPresentation) {
     if (built && view.focus === key) {
       const page = Math.min(view.focusPage || 0, built.pages.length - 1);
       const pageIndex = built.pages.length > 1 ? ` (${page + 1}/${built.pages.length})` : "";
-      const citation = page > 0
-        ? ""
-        : `<span class="focus-cite">${escapeHtml(built.citation || view.values[key])}</span>`;
+      const citationText = built.citation || view.values[key] || "";
       const body = built.unavailable
         ? `<span class="prayer-text scripture-unavailable-note">${escapeHtml(built.pages[page] || "")}</span>`
         : `<span class="prayer-text noonday-text timed-office-numbered-verses scripture-lesson-text">${numberedLiturgicalTextHtml(built.pages[page] || "")}</span>`;
+      if (page > 0) {
+        return `<span class="label">${escapeHtml(citationText)}${pageIndex}</span>${body}`;
+      }
+      const citation = citationText
+        ? `<span class="focus-cite">${escapeHtml(citationText)}</span>`
+        : "";
       return `<span class="label">${READING_LABELS[key]}${pageIndex}</span>${citation}${body}`;
     }
     return `<span class="label">${READING_LABELS[key]}</span>${citationHtml(view, key, className)}`;
@@ -1242,7 +1246,11 @@ function timedOfficeFocusHtml(section, key) {
     ? `<span class="noonday-response">${escapeHtml(section.response)}</span>`
     : "";
   const header = heading ? `${heading}${subtitle}${citation}` : `${citation}${subtitle}`;
-  const pageLabel = isGloriaPage ? "Gloria" : `${section.label}${pageIndex}`;
+  const pageLabel = isGloriaPage
+    ? "Gloria"
+    : (isScriptureCitation && isContinuation && section.citation)
+      ? `${normalizedCitation(section.citation)}${pageIndex}`
+      : `${section.label}${pageIndex}`;
   return `<button class="reading focus prayer-focus noonday-focus" data-reading="${key}" type="button"><span class="label">${escapeHtml(pageLabel)}</span>${header}${scriptureHeading}${content}${scriptureFootnote}${response}</button>`;
 }
 

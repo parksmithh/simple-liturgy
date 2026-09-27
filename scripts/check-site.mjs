@@ -320,21 +320,21 @@ await checkAsync("versioned assets use APP_VERSION", async () => {
 await checkAsync("iOS PWA avoids black-translucent status bar blur", async () => {
   const indexHtml = await readText("index.html");
   const appCss = await readText("app.css");
-  const themeJs = await readText("theme.js");
+  const appJs = await readText("app.js");
   assert(
     !indexHtml.includes("black-translucent"),
-    "black-translucent locks iOS 27 scroll-edge blur on; use opaque black/default instead"
+    "black-translucent locks iOS 27 scroll-edge blur on"
   );
   assert(
-    /apple-mobile-web-app-status-bar-style" content="black"/.test(indexHtml),
-    "index must ship an opaque Apple status bar style for installed PWAs"
+    !indexHtml.includes("apple-mobile-web-app-status-bar-style"),
+    "omit Apple status-bar-style so the platform keeps obscuredInsets and can hide the scroll-edge blur"
   );
   assert(indexHtml.includes("ios-pwa-status-strip"), "index must include the iOS PWA status strip");
+  assert(indexHtml.includes("dataset.standalone"), "index must mark standalone before first paint");
   assert(appCss.includes("ios-pwa-status-strip"), "app.css must style the iOS PWA status strip");
   assert(appCss.includes("background-clip: text"), "status strip must use background-clip:text so it samples without painting");
-  assert(themeJs.includes("statusBarMeta"), "theme.js must sync the Apple status bar style with light/dark theme");
-  assert(themeJs.includes('"black"'), "dark theme must set status bar style to black");
-  assert(themeJs.includes('"default"'), "light theme must set status bar style to default");
+  assert(appCss.includes("ios-pwa-blur-panel"), "app.css must style the iOS PWA blur kick panel");
+  assert(appJs.includes("kickIosPwaTopBlur"), "app.js must kick iOS PWA top blur on install");
 });
 
 check("JavaScript modules parse", () => {

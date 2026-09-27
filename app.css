@@ -10,26 +10,15 @@
 html, body { min-height: 100%; margin: 0; background: var(--app-background); }
 
 /* iOS 27 PWA: sample a solid color at the top edge so WebKit can hide the
-   system scroll-edge blur. background-clip:text keeps the strip unpainted. */
-.ios-pwa-status-strip { display: none; }
+   system scroll-edge blur. background-clip:text keeps the strip unpainted.
+   Also used with the one-shot blur panel kick for installs that still carry
+   an old black-translucent home-screen status-bar style. */
+.ios-pwa-status-strip,
+.ios-pwa-blur-cover,
+.ios-pwa-blur-panel { display: none; }
 
 @supports (-webkit-touch-callout: none) {
-  @media (display-mode: standalone), (display-mode: fullscreen) {
-    .ios-pwa-status-strip {
-      display: block;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 11px;
-      z-index: 2147483647;
-      pointer-events: none;
-      background-color: var(--paper);
-      -webkit-background-clip: text;
-      background-clip: text;
-    }
-  }
-
+  :root[data-standalone] .ios-pwa-status-strip,
   .installed-pwa .ios-pwa-status-strip {
     display: block;
     position: fixed;
@@ -43,6 +32,39 @@ html, body { min-height: 100%; margin: 0; background: var(--app-background); }
     -webkit-background-clip: text;
     background-clip: text;
   }
+
+  :root[data-standalone] .ios-pwa-blur-cover,
+  .installed-pwa .ios-pwa-blur-cover {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    pointer-events: none;
+    background: rgb(255 255 255 / 0.01);
+    opacity: 0;
+  }
+
+  :root[data-standalone] .ios-pwa-blur-cover.is-on,
+  .installed-pwa .ios-pwa-blur-cover.is-on { opacity: 1; }
+
+  :root[data-standalone] .ios-pwa-blur-panel,
+  .installed-pwa .ios-pwa-blur-panel {
+    display: block;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 90%;
+    height: 100%;
+    z-index: 2147483647;
+    pointer-events: none;
+    background: rgb(255 255 255 / 0.01);
+    transform: translateX(110%);
+    transition: transform .3s;
+  }
+
+  :root[data-standalone] .ios-pwa-blur-panel.is-in,
+  .installed-pwa .ios-pwa-blur-panel.is-in { transform: translateX(0); }
 }
 
 body {

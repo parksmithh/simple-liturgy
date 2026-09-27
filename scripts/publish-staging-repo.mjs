@@ -22,21 +22,35 @@ function redact(text) {
   return text.split(token).join("***");
 }
 
-function git(args, cwd) {
+function runGit(args, cwd) {
   const result = spawnSync(
     "git",
     ["-c", `http.extraheader=AUTHORIZATION: bearer ${token}`, ...args],
     { cwd, encoding: "utf8", env: { ...process.env, GIT_TERMINAL_PROMPT: "0" } },
   );
-  const output = redact(`${result.stdout || ""}${result.stderr || ""}`);
-  if (result.status !== 0) throw new Error(output.trim() || `git ${args[0]} failed`);
-  return output;
+  return {
+    status: result.status ?? 1,
+    output: redact(`${result.stdout || ""}${result.stderr || ""}`),
+  };
+}
+
+function git(args, cwd) {
+  const result = runGit(args, cwd);
+  if (result.status !== 0) throw new Error(result.output.trim() || `git ${args[0]} failed`);
+  return result.output;
 }
 
 const dest = await mkdtemp(join(tmpdir(), "simple-liturgy-staging-"));
 try {
   const url = `https://github.com/${repository}.git`;
-  git(["clone", "--depth", "1", "--branch", "main", url, dest], tmpdir());
+  const clone = runGit(["clone", "--depth", "1", "--branch", "main", url, dest], tmpdir());
+  if (clone.status !== 0) {
+    const empty = /Remote branch main not found|empty repository/i.test(clone.output);
+    if (!empty) throw new Error(clone.output.trim() || "git clone failed");
+    await rm(dest, { recursive: true, force: true });
+    git(["init", "-b", "main", dest], tmpdir());
+    git(["remote", "add", "origin", url], dest);
+  }
   await syncStagingTree(process.cwd(), dest);
   git(["config", "user.name", "github-actions[bot]"], dest);
   git(["config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"], dest);

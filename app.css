@@ -9,6 +9,42 @@
 
 html, body { min-height: 100%; margin: 0; background: var(--app-background); }
 
+/* iOS 27 PWA: sample a solid color at the top edge so WebKit can hide the
+   system scroll-edge blur. background-clip:text keeps the strip unpainted. */
+.ios-pwa-status-strip { display: none; }
+
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone), (display-mode: fullscreen) {
+    .ios-pwa-status-strip {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 11px;
+      z-index: 2147483647;
+      pointer-events: none;
+      background-color: var(--paper);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+  }
+
+  .installed-pwa .ios-pwa-status-strip {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 11px;
+    z-index: 2147483647;
+    pointer-events: none;
+    background-color: var(--paper);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+}
+
 body {
   min-height: 100dvh;
   overflow-x: hidden;

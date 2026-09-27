@@ -18,12 +18,20 @@ function resolvedTheme(mode, media) {
   return mode === "system" ? media.matches ? "dark" : "light" : mode;
 }
 
+function applyStatusBarStyle(context, theme) {
+  // iOS 27 keeps the top scroll-edge blur forever when the status bar is
+  // black-translucent (obscuredInsets.top stays 0). Opaque black/default
+  // restores the platform color-extension path that can hide that blur.
+  context.statusBarMeta?.setAttribute("content", theme === "dark" ? "black" : "default");
+}
+
 function applyTheme(context, mode) {
   const theme = resolvedTheme(mode, context.media);
   context.root.dataset.themeMode = mode;
   context.root.dataset.theme = theme;
   const color = themeColor(context);
   if (color) context.meta?.setAttribute("content", color);
+  applyStatusBarStyle(context, theme);
   updateControls(context.controls, mode);
   return theme;
 }

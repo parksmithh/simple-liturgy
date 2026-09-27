@@ -1,8 +1,8 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.145";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.146";
 import {
   adaptLegacyTimedOffice,
   officeDocumentToViewSections,
-} from "./office-document.js?v=0.3.145";
+} from "./office-document.js?v=0.3.146";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -1010,6 +1010,10 @@ export function model(bundle, state, today, collects = null, options = {}) {
 
 export function focusPageCounts(view, measuredPages = {}) {
   const pageCounts = { PRAYER: view.prayer?.pages.length || 1 };
+  for (const key of ["OT", "NT", "GS"]) {
+    const built = view.scripturePages?.[key];
+    if (built?.pages?.length) pageCounts[key] = built.pages.length;
+  }
   const timedOffice = view[view.service] || view.office || view.noonday || view.compline;
   for (const [focus, section] of Object.entries(timedOffice?.sections || {})) {
     if (measuredPages[focus]?.length) pageCounts[focus] = measuredPages[focus].length;
@@ -1132,6 +1136,15 @@ function citationHtml(view, key, className) {
 
 function readingContentHtml(view, key, className, psalmPresentation) {
   if (key !== "PS" || !view.psalms || !psalmPresentation.byTime) {
+    const built = view.scripturePages?.[key];
+    if (built && view.focus === key) {
+      const page = Math.min(view.focusPage || 0, built.pages.length - 1);
+      const pageIndex = built.pages.length > 1 ? ` (${page + 1}/${built.pages.length})` : "";
+      const body = built.unavailable
+        ? `<span class="prayer-text scripture-unavailable-note">${escapeHtml(built.pages[page] || "")}</span>`
+        : `<span class="prayer-text noonday-text timed-office-numbered-verses scripture-lesson-text">${numberedLiturgicalTextHtml(built.pages[page] || "")}</span>`;
+      return `<span class="label">${READING_LABELS[key]}${pageIndex}</span><span class="focus-cite">${escapeHtml(built.citation || view.values[key])}</span>${body}`;
+    }
     return `<span class="label">${READING_LABELS[key]}</span>${citationHtml(view, key, className)}`;
   }
   const label = PSALM_OFFICE_LABELS[psalmPresentation.office];
@@ -1196,7 +1209,11 @@ function timedOfficeFocusHtml(section, key) {
   if (isConclusionClosingPage) textClass += " timed-office-closing-text";
   const renderedPageText = isGloriaPage ? pageText.replace(/\s*\*\s*/g, " ") : pageText;
   const content = isScriptureCitation
-    ? ""
+    ? (section.scriptureUnavailable
+      ? `<span class="prayer-text scripture-unavailable-note">${escapeHtml(pageText || "")}</span>`
+      : section.numberedVerses
+        ? `<span class="${textClass} scripture-lesson-text">${numberedLiturgicalTextHtml(renderedPageText)}</span>`
+        : "")
     : `<span class="${textClass}">${hasNumberedVerses && !isClosingPage ? numberedLiturgicalTextHtml(renderedPageText) : timedOfficeTextHtml(renderedPageText)}</span>`;
   const scripturePresentation = scriptureCitationPresentation(section.footnote);
   const scriptureCitationPage = key.endsWith("_OPENING")

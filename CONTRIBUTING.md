@@ -19,6 +19,16 @@ Use `daily-office-reader` only when you are regenerating lectionary or firmware 
 
 Require the **verify** status check on `main` in GitHub branch protection so the gate cannot be skipped.
 
+### Scripture packs
+
+Optional WEB and KJV lesson text is built from eBible USFX into `data/scripture/`. Regenerate with:
+
+```bash
+node scripts/ingest-scripture.mjs
+```
+
+Downloaded ZIPs cache under `.cache/ebible/` (not committed). Shipping pack or reader changes requires an `APP_VERSION` bump like other PWA assets.
+
 ### Look at stacked `main` before promoting
 
 The prescribed pre-promote look is localhost in Cursor, not a hosted staging URL.

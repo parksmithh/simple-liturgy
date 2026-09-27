@@ -23,9 +23,17 @@ Require the **verify** status check on `main` in GitHub branch protection so the
 
 After merge, `main` publishes to [staging.simpleliturgy.com](https://staging.simpleliturgy.com). Give the tester the staging URL for each surface the change touches. Do not use localhost or [simpleliturgy.com](https://simpleliturgy.com) for this look.
 
+Give https://staging.simpleliturgy.com/ when that host is serving. When the custom domain is not serving, [parksmithh.github.io/simple-liturgy-staging](https://parksmithh.github.io/simple-liturgy-staging/) is an acceptable fallback for the same surfaces. While `staging.simpleliturgy.com` is the custom domain on the Pages site, GitHub redirects that github.io URL to the custom domain. Do not remove the custom domain.
+
 - Reader surfaces (Simple Prayer, Traditional Morning, Traditional Evening, settings): https://staging.simpleliturgy.com/
 - Privacy: https://staging.simpleliturgy.com/privacy.html
 - Terms: https://staging.simpleliturgy.com/terms.html
+
+Fallback when the custom domain is not serving:
+
+- Reader surfaces: https://parksmithh.github.io/simple-liturgy-staging/
+- Privacy: https://parksmithh.github.io/simple-liturgy-staging/privacy.html
+- Terms: https://parksmithh.github.io/simple-liturgy-staging/terms.html
 
 The staging footer identifies that build as `staging-` plus the commit, with the word Staging. That id is not a `vX.Y.Z` production tag.
 

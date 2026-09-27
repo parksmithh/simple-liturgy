@@ -1,8 +1,8 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.146";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.147";
 import {
   adaptLegacyTimedOffice,
   officeDocumentToViewSections,
-} from "./office-document.js?v=0.3.146";
+} from "./office-document.js?v=0.3.147";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -163,7 +163,7 @@ const RESPONSE_FRAGMENT_MARKER = "\u001e";
 
 function numberedVerseParts(value) {
   return String(value || "").match(
-    /^(\d+(?::\d+)?[a-z]?(?:(?:[-–—]|,)\d+(?::\d+)?[a-z]?)*)(?:\s+([\s\S]*))?$/i,
+    /^((?:\u2026|\.\.\.)?\d+(?::\d+)?[a-z]?(?:(?:[-–—]|,)\d+(?::\d+)?[a-z]*)*(?:\u2026|\.\.\.)?)(?:\s+([\s\S]*))?$/i,
   );
 }
 
@@ -1011,8 +1011,11 @@ export function model(bundle, state, today, collects = null, options = {}) {
 export function focusPageCounts(view, measuredPages = {}) {
   const pageCounts = { PRAYER: view.prayer?.pages.length || 1 };
   for (const key of ["OT", "NT", "GS"]) {
-    const built = view.scripturePages?.[key];
-    if (built?.pages?.length) pageCounts[key] = built.pages.length;
+    if (measuredPages[key]?.length) pageCounts[key] = measuredPages[key].length;
+    else {
+      const built = view.scripturePages?.[key];
+      if (built?.pages?.length) pageCounts[key] = built.pages.length;
+    }
   }
   const timedOffice = view[view.service] || view.office || view.noonday || view.compline;
   for (const [focus, section] of Object.entries(timedOffice?.sections || {})) {
@@ -1140,10 +1143,13 @@ function readingContentHtml(view, key, className, psalmPresentation) {
     if (built && view.focus === key) {
       const page = Math.min(view.focusPage || 0, built.pages.length - 1);
       const pageIndex = built.pages.length > 1 ? ` (${page + 1}/${built.pages.length})` : "";
+      const citation = page > 0
+        ? ""
+        : `<span class="focus-cite">${escapeHtml(built.citation || view.values[key])}</span>`;
       const body = built.unavailable
         ? `<span class="prayer-text scripture-unavailable-note">${escapeHtml(built.pages[page] || "")}</span>`
         : `<span class="prayer-text noonday-text timed-office-numbered-verses scripture-lesson-text">${numberedLiturgicalTextHtml(built.pages[page] || "")}</span>`;
-      return `<span class="label">${READING_LABELS[key]}${pageIndex}</span><span class="focus-cite">${escapeHtml(built.citation || view.values[key])}</span>${body}`;
+      return `<span class="label">${READING_LABELS[key]}${pageIndex}</span>${citation}${body}`;
     }
     return `<span class="label">${READING_LABELS[key]}</span>${citationHtml(view, key, className)}`;
   }

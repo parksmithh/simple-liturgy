@@ -1,13 +1,15 @@
-const CACHE = "daily-office-reader-v0.3.148";
+const CACHE = "daily-office-reader-v0.3.152";
 const CACHE_PREFIX = "daily-office-reader-v";
 const RELEASE_MARKER = `?v=${CACHE.slice(CACHE_PREFIX.length)}`;
 const CONTENT_ROOT = self.registration.scope.endsWith("/web/") ? "../" : "./";
-const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.148`;
-const PACK_INDEX_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.idx?v=0.3.148`;
-const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json?v=0.3.148`;
-const RITE_TWO_URL = `${CONTENT_ROOT}data/daily-office/rite-two.json?v=0.3.148`;
-const FULL_OFFICE_INDEX_URL = "./dor-engine/daily-office-content.index.json?v=0.3.148";
-const FULL_OFFICE_PACK_URL = "./dor-engine/daily-office-content.active.jsonl?v=0.3.148";
+const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.152`;
+const PACK_INDEX_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.idx?v=0.3.152`;
+const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json?v=0.3.152`;
+const SCRIPTURE_WEB_URL = `${CONTENT_ROOT}data/scripture/engwebp.json?v=0.3.152`;
+const SCRIPTURE_KJV_URL = `${CONTENT_ROOT}data/scripture/eng-kjv.json?v=0.3.152`;
+const RITE_TWO_URL = `${CONTENT_ROOT}data/daily-office/rite-two.json?v=0.3.152`;
+const FULL_OFFICE_INDEX_URL = "./dor-engine/daily-office-content.index.json?v=0.3.152";
+const FULL_OFFICE_PACK_URL = "./dor-engine/daily-office-content.active.jsonl?v=0.3.152";
 const FULL_OFFICE_CONTENT = [
   RITE_TWO_URL,
   FULL_OFFICE_INDEX_URL,
@@ -29,34 +31,38 @@ const SHELL = [
   "./LICENSE.md",
   "./NOTICE",
   "./CONTRIBUTING.md",
-  "./design-tokens.css?v=0.3.148",
-  "./app.css?v=0.3.148",
-  "./app.js?v=0.3.148",
-  "./analytics.js?v=0.3.148",
-  "./bookmark-engine.js?v=0.3.148",
-  "./boundary-timer.js?v=0.3.148",
-  "./compline-preference.js?v=0.3.148",
-  "./daily-office-content.js?v=0.3.148",
-  "./daily-office.js?v=0.3.148",
-  "./feast-link-preference.js?v=0.3.148",
-  "./feast-wikipedia.js?v=0.3.148",
-  "./full-office-lifecycle.js?v=0.3.148",
-  "./noonday-preference.js?v=0.3.148",
-  "./office-schedule.js?v=0.3.148",
-  "./office-document.js?v=0.3.148",
-  "./pixel-art.js?v=0.3.148",
-  "./prayer-calendar.js?v=0.3.148",
-  "./prayer-format-preference.js?v=0.3.148",
-  "./psalm-preference.js?v=0.3.148",
-  "./reading-pack-loader.js?v=0.3.148",
-  "./theme.js?v=0.3.148",
-  "./timed-office-onboarding.js?v=0.3.148",
-  "./version.js?v=0.3.148",
-  "./manifest.webmanifest?v=0.3.148",
-  "./icon.svg?v=0.3.148",
-  "./apple-touch-icon.png?v=0.3.148",
-  "./icon-192.png?v=0.3.148",
-  "./icon-512.png?v=0.3.148",
+  "./design-tokens.css?v=0.3.152",
+  "./app.css?v=0.3.152",
+  "./app.js?v=0.3.152",
+  "./analytics.js?v=0.3.152",
+  "./bookmark-engine.js?v=0.3.152",
+  "./boundary-timer.js?v=0.3.152",
+  "./compline-preference.js?v=0.3.152",
+  "./daily-office-content.js?v=0.3.152",
+  "./daily-office.js?v=0.3.152",
+  "./feast-link-preference.js?v=0.3.152",
+  "./feast-wikipedia.js?v=0.3.152",
+  "./full-office-lifecycle.js?v=0.3.152",
+  "./noonday-preference.js?v=0.3.152",
+  "./office-schedule.js?v=0.3.152",
+  "./office-document.js?v=0.3.152",
+  "./pixel-art.js?v=0.3.152",
+  "./prayer-calendar.js?v=0.3.152",
+  "./prayer-format-preference.js?v=0.3.152",
+  "./psalm-preference.js?v=0.3.152",
+  "./reading-pack-loader.js?v=0.3.152",
+  "./scripture-pack-loader.js?v=0.3.152",
+  "./scripture-preference.js?v=0.3.152",
+  "./scripture-reading.js?v=0.3.152",
+  "./scripture-resolve.js?v=0.3.152",
+  "./theme.js?v=0.3.152",
+  "./timed-office-onboarding.js?v=0.3.152",
+  "./version.js?v=0.3.152",
+  "./manifest.webmanifest?v=0.3.152",
+  "./icon.svg?v=0.3.152",
+  "./apple-touch-icon.png?v=0.3.152",
+  "./icon-192.png?v=0.3.152",
+  "./icon-512.png?v=0.3.152",
   "./assets/og-simple-liturgy.png?v=3",
   "./assets/liturgical-icons/liturgical-calendar/lit-01-solemnity.svg",
   "./assets/liturgical-icons/liturgical-calendar/lit-02-feast.svg",
@@ -131,6 +137,8 @@ const SHELL = [
   "./llms.txt",
   PACK_INDEX_URL,
   COLLECTS_URL,
+  SCRIPTURE_WEB_URL,
+  SCRIPTURE_KJV_URL,
 ];
 
 self.addEventListener("install", event => {

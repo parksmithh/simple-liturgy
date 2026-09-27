@@ -1,50 +1,105 @@
-import { editionForMode } from "./scripture-preference.js?v=0.3.146";
-import { resolveCitation, unavailableNote } from "./scripture-resolve.js?v=0.3.146";
+import { editionForMode } from "./scripture-preference.js?v=0.3.147";
+import { resolveCitation, unavailableNote } from "./scripture-resolve.js?v=0.3.147";
 
-export const SCRIPTURE_PAGINATION_MODES = Object.freeze(["verses-4", "verses-8"]);
-const STORAGE_KEY = "simple-liturgy.scripture-pagination";
+/** Unicode ellipsis used in split-verse markers (7… / …7 / …7…). */
+export const VERSE_ELLIPSIS = "\u2026";
 
-export function initializeScripturePagination({ storage }) {
-  try {
-    const saved = storage.getItem(STORAGE_KEY);
-    if (SCRIPTURE_PAGINATION_MODES.includes(saved)) return saved;
-  } catch {
-    /* ignore */
-  }
-  return "verses-4";
+/**
+ * Format a verse number for a page fragment.
+ * - starts && ends → "7"
+ * - starts && !ends → "7…"
+ * - !starts && ends → "…7"
+ * - !starts && !ends → "…7…"
+ */
+export function formatVerseMarker(verse, { starts = true, ends = true } = {}) {
+  const n = String(verse);
+  if (starts && ends) return n;
+  if (starts && !ends) return `${n}${VERSE_ELLIPSIS}`;
+  if (!starts && ends) return `${VERSE_ELLIPSIS}${n}`;
+  return `${VERSE_ELLIPSIS}${n}${VERSE_ELLIPSIS}`;
 }
 
-export function setScripturePagination({ storage }, mode) {
-  if (!SCRIPTURE_PAGINATION_MODES.includes(mode)) return null;
-  try {
-    storage.setItem(STORAGE_KEY, mode);
-  } catch {
-    /* ignore */
-  }
-  return mode;
+export function versesToPageText(verses) {
+  return (verses || [])
+    .map(verse => `${formatVerseMarker(verse.verse)} ${verse.text}`.trim())
+    .join("\n\n");
 }
 
-export function paginateVerses(verses, paginationMode = "verses-4") {
-  const size = paginationMode === "verses-8" ? 8 : 4;
+/**
+ * Pack verse fragments into pages that fill available height.
+ * `fits(pageText, pageIndex)` returns true when the candidate fits.
+ * Mid-verse splits keep the verse marker with leading/trailing ellipsis.
+ */
+export function paginateScriptureVersesByFit(verses, fits) {
   if (!verses?.length) return [];
   const pages = [];
-  for (let i = 0; i < verses.length; i += size) {
-    const chunk = verses.slice(i, i + size);
-    pages.push(chunk.map(verse => `${verse.verse} ${verse.text}`).join("\n\n"));
+  let blocks = [];
+
+  const pageText = list => list.map(block => `${block.marker} ${block.text}`.trim()).join("\n\n");
+  const tryFit = list => fits(pageText(list), pages.length);
+  const commit = () => {
+    if (!blocks.length) return;
+    pages.push(pageText(blocks));
+    blocks = [];
+  };
+
+  for (const verse of verses) {
+    const words = String(verse.text || "").trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      const marker = formatVerseMarker(verse.verse);
+      const next = [...blocks, { marker, text: "" }];
+      if (blocks.length && !tryFit(next)) commit();
+      blocks.push({ marker, text: "" });
+      continue;
+    }
+
+    let start = 0;
+    let isStart = true;
+    while (start < words.length) {
+      let bestEnd = start;
+      for (let end = start + 1; end <= words.length; end += 1) {
+        const marker = formatVerseMarker(verse.verse, {
+          starts: isStart,
+          ends: end === words.length,
+        });
+        const fragment = words.slice(start, end).join(" ");
+        if (tryFit([...blocks, { marker, text: fragment }])) bestEnd = end;
+        else break;
+      }
+
+      if (bestEnd === start) {
+        if (blocks.length) {
+          commit();
+          continue;
+        }
+        // Empty page still cannot fit the next word — emit it to guarantee progress.
+        bestEnd = start + 1;
+      }
+
+      const ends = bestEnd === words.length;
+      blocks.push({
+        marker: formatVerseMarker(verse.verse, { starts: isStart, ends }),
+        text: words.slice(start, bestEnd).join(" "),
+      });
+      start = bestEnd;
+      isStart = false;
+      if (!ends) commit();
+    }
   }
+  commit();
   return pages;
 }
 
 /**
- * Build focus pages for a citation under the current scripture mode.
- * @returns {{ pages: string[], citation: string, unavailable: boolean } | null}
+ * Build focus payload for a citation under the current scripture mode.
+ * @returns {{ pages: string[], verses: Array|null, citation: string, unavailable: boolean } | null}
  *   null means Off (caller keeps citation-only UI).
+ *   Available lessons ship all verses as one initial page; the UI measures and refits.
  */
 export function scriptureLessonPages({
   citation,
   scriptureMode,
   pack,
-  paginationMode = "verses-4",
 }) {
   if (!scriptureMode || scriptureMode === "off") return null;
   const edition = editionForMode(scriptureMode);
@@ -52,6 +107,7 @@ export function scriptureLessonPages({
   if (!pack) {
     return {
       pages: [unavailableNote()],
+      verses: null,
       citation: String(citation || ""),
       unavailable: true,
     };
@@ -60,12 +116,14 @@ export function scriptureLessonPages({
   if (!resolved.ok) {
     return {
       pages: [unavailableNote()],
+      verses: null,
       citation: resolved.citation || String(citation || ""),
       unavailable: true,
     };
   }
   return {
-    pages: paginateVerses(resolved.verses, paginationMode),
+    pages: [versesToPageText(resolved.verses)],
+    verses: resolved.verses,
     citation: resolved.citation,
     unavailable: false,
   };
@@ -74,7 +132,6 @@ export function scriptureLessonPages({
 export function applyScriptureToSimpleView(view, {
   scriptureMode,
   pack,
-  paginationMode,
 }) {
   if (!view?.values) return view;
   const scripturePages = {};
@@ -85,7 +142,6 @@ export function applyScriptureToSimpleView(view, {
       citation,
       scriptureMode,
       pack,
-      paginationMode,
     });
     if (built) scripturePages[key] = built;
   }
@@ -95,7 +151,6 @@ export function applyScriptureToSimpleView(view, {
 export function applyScriptureToTimedOffice(office, {
   scriptureMode,
   pack,
-  paginationMode,
 }) {
   if (!office?.sections || scriptureMode === "off") return office;
   const sections = { ...office.sections };
@@ -105,15 +160,15 @@ export function applyScriptureToTimedOffice(office, {
       citation: section.citation,
       scriptureMode,
       pack,
-      paginationMode,
     });
     if (!built) continue;
     sections[key] = {
       ...section,
       pages: built.pages,
-      preservePages: true,
+      scriptureVerses: built.verses,
       scriptureUnavailable: built.unavailable,
       numberedVerses: !built.unavailable,
+      preservePages: built.unavailable,
     };
   }
   return { ...office, sections };

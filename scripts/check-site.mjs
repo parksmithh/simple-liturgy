@@ -50,7 +50,6 @@ const REQUIRED_HTML_IDS = [
   "timed-office-onboarding",
   "scripture-settings",
   "scripture-settings-title",
-  "scripture-pagination-settings",
 ];
 
 const SMOKE_PATHS = [
@@ -247,6 +246,7 @@ const {
   LORDS_PRAYER_HEADING,
   LORDS_PRAYER_TEXT,
   model,
+  numberedLiturgicalTextHtml,
   parseBundle,
   parseCollects,
   prayerLineationHtml,
@@ -265,8 +265,10 @@ const { resolveCitation, unavailableNote } = await import("../scripture-resolve.
 const {
   applyScriptureToSimpleView,
   applyScriptureToTimedOffice,
-  paginateVerses,
-  SCRIPTURE_PAGINATION_MODES,
+  formatVerseMarker,
+  paginateScriptureVersesByFit,
+  VERSE_ELLIPSIS,
+  versesToPageText,
 } = await import("../scripture-reading.js");
 const { initializeScripturePreference, setScriptureMode } = await import("../scripture-preference.js");
 
@@ -599,13 +601,12 @@ check("prayer reminder calendar can be generated", () => {
   assert(!calendar.includes("Compline"), "disabled Compline should stay out");
 });
 
-check("scripture settings default Off and spike options ship", () => {
+check("scripture settings default Off and auto-fit", () => {
   assert(indexHtml.includes('name="scripture-mode" value="off" checked'), "Off must be the default scripture mode");
   assert(indexHtml.includes('name="scripture-mode" value="web"'), "WEB option must be present");
   assert(indexHtml.includes('name="scripture-mode" value="kjv"'), "KJV option must be present");
-  assert(indexHtml.includes('name="scripture-pagination" value="verses-4" checked'), "4-verse spike default");
-  assert(indexHtml.includes('name="scripture-pagination" value="verses-8"'), "8-verse spike option");
-  assert(SCRIPTURE_PAGINATION_MODES.includes("verses-4") && SCRIPTURE_PAGINATION_MODES.includes("verses-8"), "pagination modes");
+  assert(!indexHtml.includes('name="scripture-pagination"'), "fixed verse-count spike removed");
+  assert(indexHtml.includes("auto-fit"), "settings note mentions auto-fit");
   const memory = new Map();
   const storage = {
     getItem: key => memory.get(key) ?? null,
@@ -627,6 +628,15 @@ check("product copy no longer claims Scripture is absent", () => {
   assert(indexHtml.includes("King James Version (KJV)") || indexHtml.includes("KJV"), "FAQ mentions KJV");
 });
 
+check("scripture verse markers encode split pages", () => {
+  assert(formatVerseMarker(7) === "7", "complete verse");
+  assert(formatVerseMarker(7, { starts: true, ends: false }) === `7${VERSE_ELLIPSIS}`, "starts only");
+  assert(formatVerseMarker(7, { starts: false, ends: true }) === `${VERSE_ELLIPSIS}7`, "ends only");
+  assert(formatVerseMarker(7, { starts: false, ends: false }) === `${VERSE_ELLIPSIS}7${VERSE_ELLIPSIS}`, "middle");
+  const html = numberedLiturgicalTextHtml(`${VERSE_ELLIPSIS}7${VERSE_ELLIPSIS} middle fragment`);
+  assert(html.includes(`${VERSE_ELLIPSIS}7${VERSE_ELLIPSIS}`), "HTML keeps middle marker");
+});
+
 await checkAsync("scripture packs resolve appointed lesson samples", async () => {
   const web = JSON.parse(await readText("data/scripture/engwebp.json"));
   const kjv = JSON.parse(await readText("data/scripture/eng-kjv.json"));
@@ -641,8 +651,18 @@ await checkAsync("scripture packs resolve appointed lesson samples", async () =>
   const kjvIsaiah = resolveCitation(isaiah, kjv);
   assert(webIsaiah.ok && webIsaiah.verses.length === 9, "WEB Isaiah 1:1-9");
   assert(kjvIsaiah.ok && kjvIsaiah.verses.length === 9, "KJV Isaiah 1:1-9");
-  assert(paginateVerses(webIsaiah.verses, "verses-4").length === 3, "4-verse pages for 9 verses");
-  assert(paginateVerses(webIsaiah.verses, "verses-8").length === 2, "8-verse pages for 9 verses");
+
+  // Tiny height forces mid-verse splits so markers appear.
+  let call = 0;
+  const pages = paginateScriptureVersesByFit(webIsaiah.verses, candidate => {
+    call += 1;
+    const words = candidate.split(/\s+/).length;
+    return words <= 12;
+  });
+  assert(pages.length > 1, "auto-fit yields multiple pages");
+  assert(pages.some(page => page.includes(VERSE_ELLIPSIS)), "split pages keep ellipsis markers");
+  assert(call > 0, "fit callback used");
+  assert(versesToPageText(webIsaiah.verses).includes("1 "), "full page text includes verse 1");
 
   const wisdom = resolveCitation("Wisdom 1:1-5", web);
   assert(!wisdom.ok, "WEB misses Wisdom");
@@ -680,9 +700,9 @@ await checkAsync("scripture preference remaps Simple and Traditional lesson focu
   const webView = applyScriptureToSimpleView(offView, {
     scriptureMode: "web",
     pack: web,
-    paginationMode: "verses-4",
   });
-  assert(webView.scripturePages?.OT?.pages?.length > 0, "WEB attaches OT pages");
+  assert(webView.scripturePages?.OT?.verses?.length > 0, "WEB attaches OT verses");
+  assert(webView.scripturePages?.OT?.pages?.length === 1, "initial paint is one unfitted page");
   const webHtml = screenHtml(webView);
   assert(webHtml.includes("scripture-lesson-text") || webHtml.includes("scripture-unavailable-note"), "WEB focus shows body or note");
 
@@ -705,12 +725,11 @@ await checkAsync("scripture preference remaps Simple and Traditional lesson focu
   const withKjv = applyScriptureToTimedOffice(morning.office, {
     scriptureMode: "kjv",
     pack: kjv,
-    paginationMode: "verses-4",
   });
   const lessonKey = Object.keys(withKjv.sections).find(key => /_LESSON_1$/.test(key));
   assert(lessonKey, "morning has lesson 1");
-  assert(withKjv.sections[lessonKey].pages?.length >= 1, "KJV lesson has pages");
-  assert(withKjv.sections[lessonKey].preservePages === true, "spike pages are preserved");
+  assert(withKjv.sections[lessonKey].scriptureVerses?.length >= 1, "KJV lesson has verses for fit");
+  assert(withKjv.sections[lessonKey].preservePages !== true, "available lessons are auto-fit, not preservePages");
   const kjvFocus = screenHtml({
     ...morning,
     office: withKjv,
@@ -730,10 +749,10 @@ await checkAsync("scripture preference remaps Simple and Traditional lesson focu
   const webMiss = applyScriptureToTimedOffice(wisdomOffice, {
     scriptureMode: "web",
     pack: web,
-    paginationMode: "verses-4",
   });
   assert(webMiss.sections.MORNING_LESSON_1.scriptureUnavailable, "WEB Wisdom is unavailable");
   assert(webMiss.sections.MORNING_LESSON_1.pages[0] === unavailableNote(), "R8 note text");
+  assert(webMiss.sections.MORNING_LESSON_1.preservePages === true, "unavailable note preserves pages");
 });
 
 await checkAsync("scripture lesson focus stays non-scrolling", async () => {
@@ -741,6 +760,8 @@ await checkAsync("scripture lesson focus stays non-scrolling", async () => {
   assert(css.includes(".focus {") && /overflow:\s*hidden/.test(css), "focus overflow hidden");
   assert(css.includes(".scripture-lesson-text") && css.includes("overflow: hidden"), "scripture body overflow hidden");
   assert(css.includes(".scripture-unavailable-note"), "unavailable note styled");
+  assert(appJs.includes("paginateScriptureVersesByFit"), "app measures scripture with auto-fit");
+  assert(appJs.includes("measuredScriptureSimpleLayout"), "Simple lessons measure fit");
 });
 
 await checkAsync("critical URLs return HTTP 200 from a Pages-like server", async () => {

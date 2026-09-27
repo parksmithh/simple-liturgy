@@ -1,5 +1,5 @@
-import { editionForMode } from "./scripture-preference.js?v=0.3.152";
-import { resolveCitation, unavailableNote } from "./scripture-resolve.js?v=0.3.152";
+import { editionForMode } from "./scripture-preference.js?v=0.3.153";
+import { resolveCitation, unavailableNote } from "./scripture-resolve.js?v=0.3.153";
 
 /** Unicode ellipsis used in split-verse markers (7… / …7 / …7…). */
 export const VERSE_ELLIPSIS = "\u2026";

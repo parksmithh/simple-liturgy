@@ -36,10 +36,10 @@ function applyTheme(context, mode) {
   return theme;
 }
 
-export function initializeTheme({ root, controls, storage, media, meta, styles }) {
+export function initializeTheme({ root, controls, storage, media, meta, statusBarMeta, styles }) {
   const saved = storage.getItem(STORAGE_KEY);
   const mode = MODES.has(saved) ? saved : "system";
-  applyTheme({ root, controls, media, meta, styles }, mode);
+  applyTheme({ root, controls, media, meta, statusBarMeta, styles }, mode);
   return mode;
 }
 

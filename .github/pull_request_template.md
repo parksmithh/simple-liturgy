@@ -13,4 +13,4 @@
 
 This production repo already contains the website, reading packs, and Daily Office data. You do not need `daily-office-reader` unless this change regenerates those generated files.
 
-Live deploys happen only from a `vX.Y.Z` tag / GitHub Release of current `main`. See CONTRIBUTING.md.
+Merging to `main` publishes https://staging.simpleliturgy.com. It does not deploy simpleliturgy.com. Production deploys happen only from a `vX.Y.Z` tag of the tip after the admin's verbal approval. See CONTRIBUTING.md.

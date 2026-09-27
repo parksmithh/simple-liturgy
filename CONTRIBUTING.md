@@ -4,7 +4,7 @@ Thanks for helping improve Simple Liturgy. Bug reports, corrections, and focused
 
 ## Working in this repository
 
-This repository **is** the production website source. Merging to `main` does **not** update [simpleliturgy.com](https://simpleliturgy.com). Live deploys happen only when someone pushes to prod by tagging the tip of `main`.
+This repository **is** the production website source. Merging to `main` publishes a staging copy at [staging.simpleliturgy.com](https://staging.simpleliturgy.com). It does **not** update [simpleliturgy.com](https://simpleliturgy.com). Live production deploys happen only after the admin's verbal approval, by tagging the tip of `main`. A staging publish is not that approval.
 
 You do **not** need the private `daily-office-reader` repo to develop here in Cursor Cloud. Reading packs, collects, icons, and the Daily Office engine are already vendored in this tree. Use this repo for website, reader, styling, and copy changes.
 
@@ -15,22 +15,25 @@ Use `daily-office-reader` only when you are regenerating lectionary or firmware 
 1. Open a pull request. Do not push unverified work straight to `main`.
 2. GitHub Actions must report a green **verify** check. That job parses the site, confirms version lockstep, loads today's office, composes Traditional Morning and Evening Prayer, and smoke-tests the Pages file set over HTTP.
 3. Run the same gate locally with `node scripts/check-site.mjs`.
-4. After merge, `main` is the ready pile. The live site stays on the last GitHub Release / `vX.Y.Z` tag until the next promote.
+4. After merge, `main` is the ready pile and is published to [staging.simpleliturgy.com](https://staging.simpleliturgy.com). The live site stays on the last GitHub Release / `vX.Y.Z` tag until the next promote.
 
 Require the **verify** status check on `main` in GitHub branch protection so the gate cannot be skipped.
 
-### Look at stacked `main` before promoting
+### Look at stacked `main`
 
-The prescribed pre-promote look is localhost in Cursor, not a hosted staging URL.
+After merge, `main` publishes to [staging.simpleliturgy.com](https://staging.simpleliturgy.com). Give the tester the staging URL for each surface the change touches. Do not use localhost or [simpleliturgy.com](https://simpleliturgy.com) for this look.
 
-1. Check out current `main`.
-2. From the repo root, serve the site: `python3 -m http.server 4173`
-3. Forward that port in Cursor and open the reader.
-4. Use Cursor screenshots to walk the office, settings, and install surfaces that the piled changes touch.
+- Reader surfaces (Simple Prayer, Traditional Morning, Traditional Evening, settings): https://staging.simpleliturgy.com/
+- Privacy: https://staging.simpleliturgy.com/privacy.html
+- Terms: https://staging.simpleliturgy.com/terms.html
 
-This does not replace a later phone check of an already-installed PWA. It is the look that happens before the tag.
+The staging footer identifies that build as `staging-` plus the commit, with the word Staging. That id is not a `vX.Y.Z` production tag.
+
+This does not replace a later phone check of an already-installed production PWA, and it does not replace the live check on simpleliturgy.com after a promote.
 
 ### Push to prod
+
+A production tag needs the admin's verbal approval. Do not tag because staging looks right.
 
 Promote only the tip of `main`. Do not tag an older commit.
 

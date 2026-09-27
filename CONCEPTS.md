@@ -5,16 +5,16 @@ Shared domain vocabulary for this project — entities, named processes, and sta
 ## Release path
 
 ### Ready pile
-`main` after a verified merge: work that is allowed to ship, but is not yet what visitors see. Merging onto the ready pile does not change the live website.
+`main` after a verified merge: work that is allowed to ship, but is not yet what visitors of simpleliturgy.com see. Merging onto the ready pile publishes https://staging.simpleliturgy.com and does not change the live website.
 
 ### Promote
-The explicit act of tagging the current tip of the ready pile as a version release so production can update. A promote is not a merge, and it is not finished when Actions turns green.
+The explicit act of tagging the current tip of the ready pile as a version release so production can update. A promote is not a merge, and it is not finished when Actions turns green. A staging publish is not a promote. The tag still needs the admin's verbal approval.
 
 ### Pre-promote look
-The required localhost walk of the ready pile in Cursor before anyone tags. It answers whether the piled commit is what we intend to ship. It is not a hosted staging site, and it is not proof that production has updated.
+The required look at the ready pile on https://staging.simpleliturgy.com after the merge, before anyone asks to tag. Give the staging URL for each surface under test. It is not localhost, it is not simpleliturgy.com, and it is not proof that production has updated. It is not the admin's verbal approval.
 
 ### Live-site check
-The required open of the public website after a promote’s publish job succeeds. It confirms the new version and the shipped surface on the hostname people actually use. A port-forward, a GitHub Pages preview URL, a curl of a version file, or an installed home-screen app is not this check.
+The required open of https://simpleliturgy.com after a promote’s publish job succeeds. It confirms the new version and the shipped surface on the hostname people actually use. A staging URL, a port-forward, a GitHub Pages preview URL, a curl of a version file, or an installed home-screen app is not this check.
 
 ### Publish Pages
 The follow-up deploy job that publishes a tagged ready-pile commit to GitHub Pages after tag verify succeeds. A green Publish Pages run is necessary for a promote and is not the live-site check.
@@ -29,4 +29,4 @@ The longer Rite II Morning or Evening office assembled from the full Daily Offic
 
 ## Flagged ambiguities
 
-- "Look at it" had been used for the localhost pre-promote walk, a green Actions run, an installed PWA, and the public website — these are four different checks. The live-site check is only the public hostname.
+- "Look at it" had been used for the staging look, a green Actions run, an installed PWA, and the public website — these are different checks. The staging look is https://staging.simpleliturgy.com. The live-site check is only https://simpleliturgy.com, after a production tag.

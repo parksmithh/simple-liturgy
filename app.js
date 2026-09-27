@@ -1,45 +1,45 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.147";
-import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, lessonValues, LORDS_PRAYER_TEXT, model, numberedLiturgicalTextHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, prayerLineationHtml, remapFocusPageAfterLayout, resolvePrayer, screenClickDecision, screenHtml, scriptureCitationPresentation, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays, usesNumberedVerseLayout } from "./bookmark-engine.js?v=0.3.147";
-import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.147";
-import { createDailyOfficeDayLoader, mergeDailyOfficeContent } from "./daily-office-content.js?v=0.3.147";
-import { composeDailyOffice } from "./daily-office.js?v=0.3.147";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.147";
-import { createFullOfficePreviewController, fullOfficeLoadingHtml, fullOfficeLoadingService, isFullOfficeService } from "./full-office-lifecycle.js?v=0.3.147";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.147";
-import { localIsoDate, officePeriodAt, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.147";
-import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.147";
-import { bindPrayerFormatPreference, initializePrayerFormatPreference } from "./prayer-format-preference.js?v=0.3.147";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.147";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.147";
-import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.147";
-import { createScripturePackLoader } from "./scripture-pack-loader.js?v=0.3.147";
+import { initializeAnalytics } from "./analytics.js?v=0.3.148";
+import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, lessonValues, LORDS_PRAYER_TEXT, model, numberedLiturgicalTextHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, prayerLineationHtml, remapFocusPageAfterLayout, resolvePrayer, screenClickDecision, screenHtml, scriptureCitationPresentation, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays, usesNumberedVerseLayout } from "./bookmark-engine.js?v=0.3.148";
+import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.148";
+import { createDailyOfficeDayLoader, mergeDailyOfficeContent } from "./daily-office-content.js?v=0.3.148";
+import { composeDailyOffice } from "./daily-office.js?v=0.3.148";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.148";
+import { createFullOfficePreviewController, fullOfficeLoadingHtml, fullOfficeLoadingService, isFullOfficeService } from "./full-office-lifecycle.js?v=0.3.148";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.148";
+import { localIsoDate, officePeriodAt, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.148";
+import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.148";
+import { bindPrayerFormatPreference, initializePrayerFormatPreference } from "./prayer-format-preference.js?v=0.3.148";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.148";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.148";
+import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.148";
+import { createScripturePackLoader } from "./scripture-pack-loader.js?v=0.3.148";
 import {
   bindScripturePreference,
   editionForMode,
   initializeScripturePreference,
-} from "./scripture-preference.js?v=0.3.147";
+} from "./scripture-preference.js?v=0.3.148";
 import {
   applyScriptureToSimpleView,
   applyScriptureToTimedOffice,
   paginateScriptureVersesByFit,
-} from "./scripture-reading.js?v=0.3.147";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.147";
-import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.147";
-import { appVersionLabel } from "./version.js?v=0.3.147";
+} from "./scripture-reading.js?v=0.3.148";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.148";
+import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.148";
+import { appVersionLabel } from "./version.js?v=0.3.148";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.147", CONTENT_ROOT);
-const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.147", CONTENT_ROOT);
-const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.147", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.148", CONTENT_ROOT);
+const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.148", CONTENT_ROOT);
+const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.148", CONTENT_ROOT);
 const SCRIPTURE_PACK_URLS = {
-  engwebp: new URL("data/scripture/engwebp.json?v=0.3.147", CONTENT_ROOT),
-  "eng-kjv": new URL("data/scripture/eng-kjv.json?v=0.3.147", CONTENT_ROOT),
+  engwebp: new URL("data/scripture/engwebp.json?v=0.3.148", CONTENT_ROOT),
+  "eng-kjv": new URL("data/scripture/eng-kjv.json?v=0.3.148", CONTENT_ROOT),
 };
 const FULL_OFFICE_URLS = {
-  riteTwo: new URL("data/daily-office/rite-two.json?v=0.3.147", CONTENT_ROOT),
-  index: new URL("dor-engine/daily-office-content.index.json?v=0.3.147", APP_ROOT),
-  pack: new URL("dor-engine/daily-office-content.active.jsonl?v=0.3.147", APP_ROOT),
+  riteTwo: new URL("data/daily-office/rite-two.json?v=0.3.148", CONTENT_ROOT),
+  index: new URL("dor-engine/daily-office-content.index.json?v=0.3.148", APP_ROOT),
+  pack: new URL("dor-engine/daily-office-content.active.jsonl?v=0.3.148", APP_ROOT),
 };
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -115,6 +115,21 @@ let prayerLayout = null;
 let lordsPrayerLayout = null;
 let timedOfficeLayout = null;
 let scriptureLayout = null;
+/** @type {Map<string, string[]>} fitted scripture pages keyed by date:focus:mode */
+const scripturePageCache = new Map();
+
+function scripturePageCacheKey(date, focus, mode = scriptureMode) {
+  return `${date}:${focus}:${mode}`;
+}
+
+function rememberScripturePages(date, focus, pages) {
+  if (!date || !focus || !pages?.length) return;
+  scripturePageCache.set(scripturePageCacheKey(date, focus), pages);
+}
+
+function cachedScripturePages(date, focus) {
+  return scripturePageCache.get(scripturePageCacheKey(date, focus)) || null;
+}
 let observedDeviceSize = "";
 let activeLocalDate = null;
 let activePsalmOffice = null;
@@ -161,6 +176,7 @@ function invalidateLayouts() {
   lordsPrayerLayout = null;
   timedOfficeLayout = null;
   scriptureLayout = null;
+  scripturePageCache.clear();
 }
 
 const themeContext = {
@@ -607,25 +623,26 @@ function withScripture(view) {
   const options = { scriptureMode, pack };
   if (view.service === "daily") {
     let next = applyScriptureToSimpleView(view, options);
+    if (!next.scripturePages) return next;
+    const scripturePages = { ...next.scripturePages };
+    for (const key of Object.keys(scripturePages)) {
+      const cached = cachedScripturePages(next.date, key);
+      if (!cached?.length || scripturePages[key].unavailable) continue;
+      scripturePages[key] = { ...scripturePages[key], pages: cached };
+    }
     if (
       scriptureLayout
       && scriptureLayout.date === next.date
       && scriptureLayout.focus === next.focus
-      && scriptureLayout.deviceSize === deviceSize()
       && next.scripturePages?.[next.focus]
+      && !next.scripturePages[next.focus].unavailable
     ) {
-      next = {
-        ...next,
-        scripturePages: {
-          ...next.scripturePages,
-          [next.focus]: {
-            ...next.scripturePages[next.focus],
-            pages: scriptureLayout.pages,
-          },
-        },
+      scripturePages[next.focus] = {
+        ...scripturePages[next.focus],
+        pages: scriptureLayout.pages,
       };
     }
-    return next;
+    return { ...next, scripturePages };
   }
   if (view.service === "morning" || view.service === "evening") {
     let office = applyScriptureToTimedOffice(view.office, options);
@@ -634,7 +651,6 @@ function withScripture(view) {
       && timedOfficeLayout.date === view.date
       && timedOfficeLayout.service === view.service
       && timedOfficeLayout.focus === view.focus
-      && timedOfficeLayout.deviceSize === deviceSize()
       && office?.sections?.[view.focus]?.scriptureVerses
     ) {
       office = {
@@ -994,6 +1010,9 @@ function measuredTimedOfficeLayout(view) {
         { preserveNumberedCallResponse: hasNumberedVerses },
       );
     const pages = section.closingPage ? [...textPages, section.closingPage] : textPages;
+    if (section.scriptureVerses?.length) {
+      rememberScripturePages(view.date, view.focus, textPages);
+    }
     return { pages, fontSize: preferredFontSize };
   } finally {
     probe.remove();
@@ -1175,6 +1194,7 @@ function render({ previousTimedOfficePages = null } = {}) {
   if (measuringPrayer) prayerLayout = measuredLayout;
   else if (measuringSimpleScripture) {
     scriptureLayout = { focus: view.focus, ...measuredLayout };
+    rememberScripturePages(view.date, view.focus, pages);
   } else {
     timedOfficeLayout = { service: view.service, focus: view.focus, ...measuredLayout };
   }

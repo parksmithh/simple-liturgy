@@ -150,8 +150,14 @@ let scriptureLayout = null;
 /** @type {Map<string, string[]>} fitted scripture pages keyed by date:focus:mode[:psalmScope] */
 const scripturePageCache = new Map();
 
+function effectivePsalmDisplayMode() {
+  // Scripture body is morning/evening only — never combined morning+evening.
+  if (scriptureMode && scriptureMode !== "off") return "by-time-of-day";
+  return psalmDisplayMode;
+}
+
 function scripturePsalmCacheScope() {
-  if (psalmDisplayMode === "by-time-of-day") {
+  if (effectivePsalmDisplayMode() === "by-time-of-day") {
     return currentPsalmOffice() === "evening" ? "evening" : "morning";
   }
   return "together";
@@ -668,7 +674,7 @@ function withScripture(view) {
   const options = {
     scriptureMode,
     pack,
-    psalmDisplayMode,
+    psalmDisplayMode: effectivePsalmDisplayMode(),
     psalmOffice: currentPsalmOffice(),
   };
   if (view.service === "daily") {
@@ -790,7 +796,11 @@ function paint(view) {
   const feastLinksEnabled = feastLinksControl.checked;
   const psalmOffice = currentPsalmOffice();
   const previousArtStack = screen.querySelector(".pixel-art-stack");
-  screen.innerHTML = screenHtml(view, { feastLinksEnabled, psalmDisplayMode, psalmOffice });
+  screen.innerHTML = screenHtml(view, {
+    feastLinksEnabled,
+    psalmDisplayMode: effectivePsalmDisplayMode(),
+    psalmOffice,
+  });
   const loadingService = fullOfficeLoadingService({
     focus: view.focus,
     requestedService: requestedServiceAt(),
@@ -813,7 +823,7 @@ function paint(view) {
   if (layout?.fontSize) {
     const text = view.focus === "LORDS_PRAYER"
       ? screen.querySelector(".lords-prayer-text")
-      : ["OT", "NT", "GS"].includes(view.focus)
+      : ["PS", "OT", "NT", "GS"].includes(view.focus)
         ? screen.querySelector(".scripture-lesson-text")
         : screen.querySelector(".prayer-text");
     text?.style.setProperty("font-size", `${layout.fontSize}px`);

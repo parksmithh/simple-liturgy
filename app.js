@@ -1,30 +1,30 @@
-import { initializeAnalytics } from "./analytics.js?v=0.3.146";
-import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, lessonValues, LORDS_PRAYER_TEXT, model, numberedLiturgicalTextHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, prayerLineationHtml, remapFocusPageAfterLayout, resolvePrayer, screenClickDecision, screenHtml, scriptureCitationPresentation, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays, usesNumberedVerseLayout } from "./bookmark-engine.js?v=0.3.146";
-import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.146";
-import { createDailyOfficeDayLoader, mergeDailyOfficeContent } from "./daily-office-content.js?v=0.3.146";
-import { composeDailyOffice } from "./daily-office.js?v=0.3.146";
-import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.146";
-import { createFullOfficePreviewController, fullOfficeLoadingHtml, fullOfficeLoadingService, isFullOfficeService } from "./full-office-lifecycle.js?v=0.3.146";
-import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.146";
-import { localIsoDate, officePeriodAt, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.146";
-import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.146";
-import { bindPrayerFormatPreference, initializePrayerFormatPreference } from "./prayer-format-preference.js?v=0.3.146";
-import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.146";
-import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.146";
-import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.146";
-import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.146";
-import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.146";
-import { appVersionLabel } from "./version.js?v=0.3.146";
+import { initializeAnalytics } from "./analytics.js?v=0.3.147";
+import { controlModel, createState, dateWithOffset, focusPageCounts, focusSwipeEvent, handle, keyboardEvent, lessonValues, LORDS_PRAYER_TEXT, model, numberedLiturgicalTextHtml, paginatePrayerByFit, paginateTimedOfficeByFit, parseBundle, parseCollects, prayerAvailableHeight, prayerLineationHtml, remapFocusPageAfterLayout, resolvePrayer, screenClickDecision, screenHtml, scriptureCitationPresentation, stateAfterDateChange, stateForDate, swipeEvent, timedOfficeAvailableHeight, timedOfficeTextHtml, upcomingFeastDays, usesNumberedVerseLayout } from "./bookmark-engine.js?v=0.3.147";
+import { bindComplinePreference, complinePreviewMarkerAt, complinePreviewRelation, createComplineBoundaryTimer, initializeComplinePreference, refreshComplinePreview, setComplineEnabled, shouldShowComplinePreview } from "./compline-preference.js?v=0.3.147";
+import { createDailyOfficeDayLoader, mergeDailyOfficeContent } from "./daily-office-content.js?v=0.3.147";
+import { composeDailyOffice } from "./daily-office.js?v=0.3.147";
+import { bindFeastLinksPreference, initializeFeastLinks } from "./feast-link-preference.js?v=0.3.147";
+import { createFullOfficePreviewController, fullOfficeLoadingHtml, fullOfficeLoadingService, isFullOfficeService } from "./full-office-lifecycle.js?v=0.3.147";
+import { bindNoondayPreference, createNoondayBoundaryTimer, initializeNoondayPreference, noondayPreviewMarkerAt, noondayPreviewRelation, refreshNoondayPreview, setNoondayEnabled, shouldShowNoondayPreview } from "./noonday-preference.js?v=0.3.147";
+import { localIsoDate, officePeriodAt, scheduledServiceAt, timedOfficePreviewToExit } from "./office-schedule.js?v=0.3.147";
+import { calendarEventIconAssetPath, paintPixelArtStack } from "./pixel-art.js?v=0.3.147";
+import { bindPrayerFormatPreference, initializePrayerFormatPreference } from "./prayer-format-preference.js?v=0.3.147";
+import { bindPsalmPreference, createPsalmBoundaryTimer, initializePsalmPreference, psalmOfficeAt, refreshPsalmDisplay } from "./psalm-preference.js?v=0.3.147";
+import { bindPrayerReminderSettings } from "./prayer-calendar.js?v=0.3.147";
+import { createReadingPackLoader, loadAroundToday, mergeReadingBundle } from "./reading-pack-loader.js?v=0.3.147";
+import { initializeTheme, setThemeMode, syncSystemTheme } from "./theme.js?v=0.3.147";
+import { createTimedOfficeOnboardingController } from "./timed-office-onboarding.js?v=0.3.147";
+import { appVersionLabel } from "./version.js?v=0.3.147";
 
 const APP_ROOT = new URL(".", window.location.href);
 const CONTENT_ROOT = APP_ROOT.pathname.endsWith("/web/") ? new URL("../", APP_ROOT) : APP_ROOT;
-const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.146", CONTENT_ROOT);
-const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.146", CONTENT_ROOT);
-const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.146", CONTENT_ROOT);
+const PACK_URL = new URL("firmware/circuitpython/readings.active.jsonl?v=0.3.147", CONTENT_ROOT);
+const PACK_INDEX_URL = new URL("firmware/circuitpython/readings.active.idx?v=0.3.147", CONTENT_ROOT);
+const COLLECTS_URL = new URL("data/collects/collects.json?v=0.3.147", CONTENT_ROOT);
 const FULL_OFFICE_URLS = {
-  riteTwo: new URL("data/daily-office/rite-two.json?v=0.3.146", CONTENT_ROOT),
-  index: new URL("dor-engine/daily-office-content.index.json?v=0.3.146", APP_ROOT),
-  pack: new URL("dor-engine/daily-office-content.active.jsonl?v=0.3.146", APP_ROOT),
+  riteTwo: new URL("data/daily-office/rite-two.json?v=0.3.147", CONTENT_ROOT),
+  index: new URL("dor-engine/daily-office-content.index.json?v=0.3.147", APP_ROOT),
+  pack: new URL("dor-engine/daily-office-content.active.jsonl?v=0.3.147", APP_ROOT),
 };
 const DOUBLE_KEY_WINDOW_MS = 500;
 const INSTALL_TOOLTIP_SESSION_KEY = "simple-liturgy.install-tooltip-dismissed";
@@ -76,6 +76,38 @@ const installedPwa = window.matchMedia("(display-mode: standalone)").matches
   || window.matchMedia("(display-mode: fullscreen)").matches
   || window.navigator.standalone === true;
 document.documentElement.classList.toggle("installed-pwa", installedPwa);
+if (installedPwa) document.documentElement.dataset.standalone = "";
+
+function isAppleTouchDevice() {
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+// iOS 27 can keep a home-screen bookmark's old black-translucent chrome even
+// after the page updates. Sliding a fixed panel once flips WebKit out of the
+// wide top scroll-edge blur; leaving the panel off-screen holds that state.
+function kickIosPwaTopBlur() {
+  if (!installedPwa || !isAppleTouchDevice() || !document.body) return;
+  if (document.querySelector(".ios-pwa-blur-panel")) return;
+
+  const cover = document.createElement("div");
+  cover.className = "ios-pwa-blur-cover";
+  cover.setAttribute("aria-hidden", "true");
+  const panel = document.createElement("div");
+  panel.className = "ios-pwa-blur-panel";
+  panel.setAttribute("aria-hidden", "true");
+  document.body.append(cover, panel);
+  void panel.offsetWidth;
+
+  requestAnimationFrame(() => {
+    cover.classList.add("is-on");
+    panel.classList.add("is-in");
+    window.setTimeout(() => {
+      cover.classList.remove("is-on");
+      panel.classList.remove("is-in");
+    }, 450);
+  });
+}
 const installTooltipMedia = window.matchMedia("(max-width: 767px), (hover: none) and (pointer: coarse)");
 let installTooltipDismissed = false;
 try {
@@ -143,7 +175,6 @@ const themeContext = {
   root: document.documentElement,
   controls: themeControls,
   meta: document.querySelector('meta[name="theme-color"]'),
-  statusBarMeta: document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]'),
   storage: window.localStorage,
   media: window.matchMedia("(prefers-color-scheme: dark)"),
   styles: window.getComputedStyle.bind(window),
@@ -1554,4 +1585,5 @@ if ("serviceWorker" in navigator) {
 }
 
 loadPack();
+kickIosPwaTopBlur();
 initializeAnalytics({ document, storage: window.localStorage, trackerWindow: window });

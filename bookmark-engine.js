@@ -1,8 +1,8 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.148";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.149";
 import {
   adaptLegacyTimedOffice,
   officeDocumentToViewSections,
-} from "./office-document.js?v=0.3.148";
+} from "./office-document.js?v=0.3.149";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -999,6 +999,7 @@ export function model(bundle, state, today, collects = null, options = {}) {
     feast: day.feast,
     occasionType: day.occasion_type || null,
     focus: state.focus,
+    focusPage: state.focusPage || 0,
     focusOrder: DAILY_FOCUS_ORDER,
     service: "daily",
     prayer,

@@ -6,9 +6,17 @@ Merge the work to `main`. That publish goes to https://staging.simpleliturgy.com
 
 After the merge, give the user the staging URL for each surface to test. Do not send localhost, a Cursor port-forward, or https://simpleliturgy.com for that look.
 
+Give https://staging.simpleliturgy.com/ when that host is serving. When the custom domain is not serving, https://parksmithh.github.io/simple-liturgy-staging/ is an acceptable fallback for the same surfaces. While `staging.simpleliturgy.com` is the custom domain on the Pages site, GitHub redirects that github.io URL to the custom domain. Do not remove the custom domain.
+
 - Reader surfaces (Simple Prayer, Traditional Morning, Traditional Evening, settings): https://staging.simpleliturgy.com/
 - Privacy: https://staging.simpleliturgy.com/privacy.html
 - Terms: https://staging.simpleliturgy.com/terms.html
+
+Fallback when the custom domain is not serving:
+
+- Reader surfaces: https://parksmithh.github.io/simple-liturgy-staging/
+- Privacy: https://parksmithh.github.io/simple-liturgy-staging/privacy.html
+- Terms: https://parksmithh.github.io/simple-liturgy-staging/terms.html
 
 The staging footer shows `staging-` plus the full commit sha, then the word Staging. That id is the staging version. It is not a `vX.Y.Z` production tag, and it does not publish https://simpleliturgy.com.
 

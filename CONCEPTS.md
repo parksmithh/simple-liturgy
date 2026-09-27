@@ -11,7 +11,7 @@ Shared domain vocabulary for this project — entities, named processes, and sta
 The explicit act of tagging the current tip of the ready pile as a version release so production can update. A promote is not a merge, and it is not finished when Actions turns green. A staging publish is not a promote. The tag still needs the admin's verbal approval.
 
 ### Pre-promote look
-The required look at the ready pile on https://staging.simpleliturgy.com after the merge, before anyone asks to tag. Give the staging URL for each surface under test. It is not localhost, it is not simpleliturgy.com, and it is not proof that production has updated. It is not the admin's verbal approval.
+The required look at the ready pile after the merge, before anyone asks to tag. Give https://staging.simpleliturgy.com/ for each surface when that host is serving. When the custom domain is not serving, https://parksmithh.github.io/simple-liturgy-staging/ is an acceptable fallback. While that custom domain is configured on the Pages site, GitHub redirects the github.io URL to it. Do not remove the custom domain. It is not localhost, it is not simpleliturgy.com, and it is not proof that production has updated. It is not the admin's verbal approval.
 
 ### Live-site check
 The required open of https://simpleliturgy.com after a promote’s publish job succeeds. It confirms the new version and the shipped surface on the hostname people actually use. A staging URL, a port-forward, a GitHub Pages preview URL, a curl of a version file, or an installed home-screen app is not this check.
@@ -29,4 +29,4 @@ The longer Rite II Morning or Evening office assembled from the full Daily Offic
 
 ## Flagged ambiguities
 
-- "Look at it" had been used for the staging look, a green Actions run, an installed PWA, and the public website — these are different checks. The staging look is https://staging.simpleliturgy.com. The live-site check is only https://simpleliturgy.com, after a production tag.
+- "Look at it" had been used for the staging look, a green Actions run, an installed PWA, and the public website — these are different checks. The staging look is https://staging.simpleliturgy.com when that host is serving, with https://parksmithh.github.io/simple-liturgy-staging/ acceptable when the custom domain is not. The live-site check is only https://simpleliturgy.com, after a production tag.

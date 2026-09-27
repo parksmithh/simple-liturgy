@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { createReadStream } from "node:fs";
 import { cp, mkdtemp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { prepareStagingTree, stagingBuildId } from "./prepare-staging-tree.mjs";
+import { redactStagingAuth, stagingAuthorizationHeader, stagingGitEnv } from "./publish-staging-repo.mjs";
 import { syncStagingTree } from "./sync-staging-tree.mjs";
 
 register(new URL("./version-query-loader.mjs", import.meta.url));
@@ -395,6 +396,65 @@ await checkAsync("staging sync preserves workflows and drops CNAME", async () =>
     assert(porcelain.status === 0 && !porcelain.stdout.trim(), porcelain.stdout || "workflow worktree changed");
   } finally {
     await rm(root, { recursive: true, force: true });
+  }
+});
+
+await checkAsync("staging publish sends basic auth without putting the token in the url", async () => {
+  const token = "test-token-not-real";
+  const encoded = Buffer.from(`x-access-token:${token}`, "utf8").toString("base64");
+  const header = stagingAuthorizationHeader(token);
+  assert(header === `AUTHORIZATION: basic ${encoded}`, "basic x-access-token header");
+  assert(!/bearer/i.test(header), "git smart http auth is not bearer");
+  const env = stagingGitEnv(token, {});
+  assert(env.GIT_CONFIG_COUNT === "1", "git config count");
+  assert(env.GIT_CONFIG_KEY_0 === "http.https://github.com/.extraheader", "host-scoped extraheader");
+  assert(env.GIT_CONFIG_VALUE_0 === header, "header is the config value");
+  assert(env.GIT_TERMINAL_PROMPT === "0", "prompts stay disabled");
+  assert(redactStagingAuth(`url ${token} header ${encoded}`, token) === "url *** header ***", "token and base64 are redacted");
+  const carried = stagingGitEnv(token, { GIT_CONFIG_COUNT: "1", GIT_CONFIG_KEY_0: "safe.directory", GIT_CONFIG_VALUE_0: "*" });
+  assert(carried.GIT_CONFIG_COUNT === "2", "existing git config entries stay");
+  assert(carried.GIT_CONFIG_KEY_0 === "safe.directory", "existing key is kept");
+  assert(carried.GIT_CONFIG_KEY_1 === "http.https://github.com/.extraheader", "auth header is appended");
+  const source = await readText("scripts/publish-staging-repo.mjs");
+  assert(source.includes("https://github.com/${repository}.git"), "remote stays a token-free https url");
+  assert(!source.includes("@github.com"), "token is not embedded in the remote url");
+  assert(!source.includes("http.extraheader="), "header is not passed with git -c");
+  assert(source.includes(":!.github/workflows"), "workflow paths stay unstaged");
+  assert(source.includes("Refusing to push workflow changes"), "staged workflows are still refused");
+
+  const seen = [];
+  const server = createServer((request, response) => {
+    seen.push(request.headers.authorization || "");
+    response.writeHead(401, { "Content-Type": "text/plain" });
+    response.end("nope");
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  try {
+    const { port } = server.address();
+    const local = stagingGitEnv(token, process.env);
+    const index = Number(local.GIT_CONFIG_COUNT) - 1;
+    local[`GIT_CONFIG_KEY_${index}`] = `http.http://127.0.0.1:${port}/.extraheader`;
+    const url = `http://127.0.0.1:${port}/repo.git`;
+    const result = await new Promise((resolve, reject) => {
+      const child = spawn("git", ["ls-remote", url], { env: local, stdio: ["ignore", "pipe", "pipe"] });
+      let stdout = "";
+      let stderr = "";
+      const timer = setTimeout(() => child.kill("SIGTERM"), 15000);
+      child.stdout.on("data", (buf) => { stdout += buf; });
+      child.stderr.on("data", (buf) => { stderr += buf; });
+      child.on("error", reject);
+      child.on("close", (status) => {
+        clearTimeout(timer);
+        resolve({ status, stdout, stderr });
+      });
+    });
+    assert(result.status !== 0, "unauthorized probe should fail");
+    const output = `${result.stdout}${result.stderr}`;
+    assert(!output.includes(token), "git output must not include the token");
+    assert(!output.includes(encoded), "git output must not include the encoded token");
+    assert(seen.some((value) => value === `basic ${encoded}`), `wire header ${seen.join("|") || "(none)"}`);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
   }
 });
 

@@ -1,8 +1,8 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.147";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.148";
 import {
   adaptLegacyTimedOffice,
   officeDocumentToViewSections,
-} from "./office-document.js?v=0.3.147";
+} from "./office-document.js?v=0.3.148";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -440,7 +440,13 @@ export function controlModel(viewOrFocus) {
         || viewOrFocus.compline
       )?.sections?.[focus]
       : null;
-    const paginatedSection = focus === "PRAYER" ? prayer : timedOfficeSection;
+    const scriptureBuilt = typeof viewOrFocus === "object" ? viewOrFocus.scripturePages?.[focus] : null;
+    const paginatedSection = focus === "PRAYER"
+      ? prayer
+      : timedOfficeSection || (scriptureBuilt ? {
+        page: Math.min(viewOrFocus.focusPage || 0, Math.max(0, (scriptureBuilt.pages?.length || 1) - 1)),
+        pages: scriptureBuilt.pages || [""],
+      } : null);
     const focusOrder = typeof viewOrFocus === "object" && Array.isArray(viewOrFocus.focusOrder)
       ? viewOrFocus.focusOrder
       : DAILY_FOCUS_ORDER;

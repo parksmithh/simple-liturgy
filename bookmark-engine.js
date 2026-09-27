@@ -1,8 +1,8 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.154";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.155";
 import {
   adaptLegacyTimedOffice,
   officeDocumentToViewSections,
-} from "./office-document.js?v=0.3.154";
+} from "./office-document.js?v=0.3.155";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -1017,7 +1017,7 @@ export function model(bundle, state, today, collects = null, options = {}) {
 
 export function focusPageCounts(view, measuredPages = {}) {
   const pageCounts = { PRAYER: view.prayer?.pages.length || 1 };
-  for (const key of ["OT", "NT", "GS"]) {
+  for (const key of ["PS", "OT", "NT", "GS"]) {
     if (measuredPages[key]?.length) pageCounts[key] = measuredPages[key].length;
     else {
       const built = view.scripturePages?.[key];
@@ -1145,28 +1145,35 @@ function citationHtml(view, key, className) {
 }
 
 function readingContentHtml(view, key, className, psalmPresentation) {
-  if (key !== "PS" || !view.psalms || !psalmPresentation.byTime) {
-    const built = view.scripturePages?.[key];
-    if (built && view.focus === key) {
-      const page = Math.min(view.focusPage || 0, built.pages.length - 1);
-      const pageIndex = built.pages.length > 1 ? ` (${page + 1}/${built.pages.length})` : "";
-      const citationText = built.citation || view.values[key] || "";
-      const body = built.unavailable
-        ? `<span class="prayer-text scripture-unavailable-note">${escapeHtml(built.pages[page] || "")}</span>`
-        : `<span class="prayer-text noonday-text timed-office-numbered-verses scripture-lesson-text">${numberedLiturgicalTextHtml(built.pages[page] || "")}</span>`;
-      if (page > 0) {
-        return `<span class="label">${escapeHtml(citationText)}${pageIndex}</span>${body}`;
-      }
-      const citation = citationText
-        ? `<span class="focus-cite">${escapeHtml(citationText)}</span>`
-        : "";
-      return `<span class="label">${READING_LABELS[key]}${pageIndex}</span>${citation}${body}`;
-    }
-    return `<span class="label">${READING_LABELS[key]}</span>${citationHtml(view, key, className)}`;
+  const built = view.scripturePages?.[key];
+  const showingScriptureBody = Boolean(built && view.focus === key);
+
+  if (key === "PS" && view.psalms && psalmPresentation.byTime && !showingScriptureBody) {
+    const label = PSALM_OFFICE_LABELS[psalmPresentation.office];
+    const citation = view.psalms[psalmPresentation.office] || `No ${label} Psalms listed`;
+    return `<span class="label">${label} Psalms</span><span class="${className} psalm-cite psalm-cite-single">${escapeHtml(citation)}</span>`;
   }
-  const label = PSALM_OFFICE_LABELS[psalmPresentation.office];
-  const citation = view.psalms[psalmPresentation.office] || `No ${label} Psalms listed`;
-  return `<span class="label">${label} Psalms</span><span class="${className} psalm-cite psalm-cite-single">${escapeHtml(citation)}</span>`;
+
+  if (showingScriptureBody) {
+    const page = Math.min(view.focusPage || 0, built.pages.length - 1);
+    const pageIndex = built.pages.length > 1 ? ` (${page + 1}/${built.pages.length})` : "";
+    const citationText = built.citation || view.values[key] || "";
+    const body = built.unavailable
+      ? `<span class="prayer-text scripture-unavailable-note">${escapeHtml(built.pages[page] || "")}</span>`
+      : `<span class="prayer-text noonday-text timed-office-numbered-verses scripture-lesson-text">${numberedLiturgicalTextHtml(built.pages[page] || "")}</span>`;
+    if (page > 0) {
+      return `<span class="label">${escapeHtml(citationText)}${pageIndex}</span>${body}`;
+    }
+    const sectionLabel = key === "PS" && psalmPresentation.byTime
+      ? `${PSALM_OFFICE_LABELS[psalmPresentation.office]} Psalms`
+      : READING_LABELS[key];
+    const citation = citationText
+      ? `<span class="focus-cite">${escapeHtml(citationText)}</span>`
+      : "";
+    return `<span class="label">${sectionLabel}${pageIndex}</span>${citation}${body}`;
+  }
+
+  return `<span class="label">${READING_LABELS[key]}</span>${citationHtml(view, key, className)}`;
 }
 
 function prayerPageHtml(prayer) {

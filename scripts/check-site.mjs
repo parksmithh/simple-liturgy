@@ -2,11 +2,14 @@
 
 import { spawnSync } from "node:child_process";
 import { createReadStream } from "node:fs";
-import { readFile, readdir, stat } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { register } from "node:module";
+import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { prepareStagingTree, stagingBuildId } from "./prepare-staging-tree.mjs";
+import { syncStagingTree } from "./sync-staging-tree.mjs";
 
 register(new URL("./version-query-loader.mjs", import.meta.url));
 
@@ -281,6 +284,15 @@ check("promote tag matches APP_VERSION", () => {
 await checkAsync("Pages publish stays off ordinary main merges", async () => {
   const verifyWorkflow = await readText(".github/workflows/pages.yml");
   const publishWorkflow = await readText(".github/workflows/publish-pages.yml");
+  const workflowNames = (await readdir(repoPath(".github/workflows"))).filter(name => name.endsWith(".yml") || name.endsWith(".yaml"));
+  assert(workflowNames.includes("publish-pages.yml"), "publish-pages.yml must exist");
+  assert(workflowNames.includes("staging.yml"), "staging publish workflow must exist");
+  for (const name of workflowNames) {
+    if (name === "publish-pages.yml") continue;
+    const text = await readText(".github/workflows", name);
+    assert(!text.includes("actions/deploy-pages"), `${name} must not reference actions/deploy-pages`);
+    assert(!text.includes("actions/upload-pages-artifact"), `${name} must not upload a Pages artifact`);
+  }
   assert(!verifyWorkflow.includes("deploy-pages"), "tag verify workflow must not deploy Pages");
   assert(!verifyWorkflow.includes("environment:"), "tag verify workflow must not enter github-pages");
   assert(verifyWorkflow.includes("v*.*.*"), "tag verify workflow must still run on version tags");
@@ -288,9 +300,102 @@ await checkAsync("Pages publish stays off ordinary main merges", async () => {
   assert(publishWorkflow.includes("Deploy Simple Liturgy"), "Pages publish must wait on Deploy Simple Liturgy");
   assert(publishWorkflow.includes("actions/deploy-pages"), "Pages publish must deploy the tagged commit");
   assert(
+    publishWorkflow.includes("startsWith(github.event.workflow_run.head_branch, 'v')"),
+    "Pages publish must check out the tagged commit only after a v* verify"
+  );
+  assert(
     publishWorkflow.includes("github.event.workflow_run.head_sha"),
     "Pages publish must check out the tagged commit, not the latest main tip"
   );
+  const stagingWorkflow = await readText(".github/workflows/staging.yml");
+  assert(stagingWorkflow.includes("branches:\n      - main"), "staging publish runs on main");
+  assert(stagingWorkflow.includes("group: staging"), "staging publish uses its own concurrency group");
+  assert(stagingWorkflow.includes("cancel-in-progress: true"), "staging publish may cancel an older staging run");
+  assert(!stagingWorkflow.includes("group: pages"), "staging publish must not take the production deploy lock");
+  assert(publishWorkflow.includes("group: pages"), "production publish keeps the pages concurrency group");
+  assert(!stagingWorkflow.includes("environment:"), "staging publish must not enter github-pages");
+  assert(stagingWorkflow.includes("secrets.STAGING_REPO_TOKEN"), "staging publish uses the staging repository token");
+  assert(!(await exists("CNAME")), "a CNAME file would retarget the production Pages domain");
+  assert(!(await exists("robots.txt")), "robots.txt must stay off the production tree");
+  assert(!indexHtml.includes("noindex"), "noindex must stay off the committed site");
+});
+
+await checkAsync("staging copy is rewritten only at deploy time", async () => {
+  const temp = await mkdtemp(join(tmpdir(), "staging-rewrite-"));
+  try {
+    const sha = "a".repeat(40);
+    const id = stagingBuildId(sha);
+    assert(id === `staging-${sha}`, "staging id includes the commit");
+    assert(!/^v\d+\.\d+\.\d+/.test(id), "staging id must not look like a production tag");
+    for (const name of ["version.js", "service-worker.js", "analytics.js", "index.html", "privacy.html", "terms.html", "manifest.webmanifest"]) {
+      await cp(repoPath(name), join(temp, name));
+    }
+    await prepareStagingTree(temp, { commit: sha });
+    const version = await readFile(join(temp, "version.js"), "utf8");
+    assert(version.includes('export const APP_CHANNEL = "staging"'), "rewritten channel");
+    assert(version.includes(`Version ${id} · Staging`), "footer shows the staging id");
+    assert(!version.includes('APP_CHANNEL = "production"'), "rewritten copy drops the production channel");
+    const worker = await readFile(join(temp, "service-worker.js"), "utf8");
+    assert(worker.includes(`const CACHE = "daily-office-reader-${id}";`), "cache uses the staging id");
+    assert(!worker.includes("daily-office-reader-v0.3.148"), "production cache name is not reused");
+    assert(worker.includes(`?v=${id}`), "versioned worker urls use the staging id");
+    const analytics = await readFile(join(temp, "analytics.js"), "utf8");
+    assert(!analytics.includes("cloud.umami.is"), "staging omits the Umami script");
+    assert(!analytics.includes("dab0bd9b-34dc-4e61-8292-fdecfe97b3cc"), "staging omits the Umami website id");
+    const robots = await readFile(join(temp, "robots.txt"), "utf8");
+    assert(robots.includes("Disallow: /"), "staging robots.txt");
+    for (const name of ["index.html", "privacy.html", "terms.html"]) {
+      const html = await readFile(join(temp, name), "utf8");
+      assert(html.includes('name="robots" content="noindex, nofollow"'), `${name} noindex`);
+      assert(html.includes(`?v=${id}`), `${name} cache-busts with the staging id`);
+    }
+    const manifest = await readFile(join(temp, "manifest.webmanifest"), "utf8");
+    assert(manifest.includes('"name": "Simple Liturgy Staging"'), "manifest name marks staging");
+    const committed = await readText("version.js");
+    assert(committed.includes('export const APP_CHANNEL = "production"'), "committed channel stays production");
+    assert(!committed.includes("staging-"), "committed version.js has no staging id");
+  } finally {
+    await rm(temp, { recursive: true, force: true });
+  }
+});
+
+await checkAsync("staging sync preserves workflows and drops CNAME", async () => {
+  const root = await mkdtemp(join(tmpdir(), "staging-sync-"));
+  const source = join(root, "source");
+  const dest = join(root, "dest");
+  try {
+    await mkdir(join(source, ".github/workflows"), { recursive: true });
+    await mkdir(join(dest, ".github/workflows"), { recursive: true });
+    await writeFile(join(source, ".github/workflows/staging.yml"), "source-workflow\n");
+    await writeFile(join(dest, ".github/workflows/pages.yml"), "dest-workflow\n");
+    await writeFile(join(source, "index.html"), "fresh\n");
+    await writeFile(join(source, "CNAME"), "simpleliturgy.com\n");
+    await writeFile(join(dest, "CNAME"), "staging.simpleliturgy.com\n");
+    await writeFile(join(dest, "old.txt"), "gone\n");
+    const gitInDest = (args) => spawnSync("git", args, { cwd: dest, encoding: "utf8" });
+    const init = gitInDest(["init", "-b", "main"]);
+    assert(init.status === 0, init.stderr || "git init failed");
+    gitInDest(["config", "user.email", "staging-sync@example.com"]);
+    gitInDest(["config", "user.name", "staging sync"]);
+    const firstAdd = gitInDest(["add", "CNAME", "old.txt", ".github/workflows/pages.yml"]);
+    assert(firstAdd.status === 0, firstAdd.stderr || "git add failed");
+    const firstCommit = gitInDest(["commit", "-m", "seed staging workflow"]);
+    assert(firstCommit.status === 0, firstCommit.stderr || "git commit failed");
+    await syncStagingTree(source, dest);
+    assert(await readFile(join(dest, ".github/workflows/pages.yml"), "utf8") === "dest-workflow\n", "dest workflow preserved");
+    assert(!(await stat(join(dest, ".github/workflows/staging.yml")).then(() => true).catch(() => false)), "source workflow was not copied");
+    assert(!(await stat(join(dest, "CNAME")).then(() => true).catch(() => false)), "CNAME was removed");
+    assert(!(await stat(join(dest, "old.txt")).then(() => true).catch(() => false)), "stale file was removed");
+    assert(await readFile(join(dest, "index.html"), "utf8") === "fresh\n", "site file was copied");
+    const stage = spawnSync("git", ["add", "-A", "--", ".", ":!.github/workflows"], { cwd: dest, encoding: "utf8" });
+    assert(stage.status === 0, stage.stderr || "git add of the staging tree failed");
+    const stagedWorkflows = spawnSync("git", ["diff", "--cached", "--name-only", "--", ".github/workflows"], { cwd: dest, encoding: "utf8" });
+    assert(stagedWorkflows.status === 0 && !stagedWorkflows.stdout.trim(), stagedWorkflows.stdout || "workflow path was staged");
+    const porcelain = spawnSync("git", ["status", "--porcelain", "--", ".github/workflows"], { cwd: dest, encoding: "utf8" });
+    assert(porcelain.status === 0 && !porcelain.stdout.trim(), porcelain.stdout || "workflow worktree changed");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 await checkAsync("promote ritual requires a live simpleliturgy.com check", async () => {

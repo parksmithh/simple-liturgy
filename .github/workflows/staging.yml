@@ -1,0 +1,35 @@
+# Publish a staging copy of main. This workflow must not deploy this
+# repository's Pages site. Production publish stays in publish-pages.yml.
+name: Publish staging
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Rewrite the staging copy
+        run: node scripts/prepare-staging-tree.mjs
+      - name: Publish to the staging repository
+        env:
+          STAGING_REPO_TOKEN: ${{ secrets.STAGING_REPO_TOKEN }}
+        run: node scripts/publish-staging-repo.mjs

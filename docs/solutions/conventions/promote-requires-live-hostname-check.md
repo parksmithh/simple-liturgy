@@ -33,11 +33,13 @@ tags:
 
 ## Context
 
+Current test host: merging to `main` publishes https://staging.simpleliturgy.com. Give that URL for each surface. Staging is not production and is not the admin's verbal approval to tag. Production is still a `vX.Y.Z` tag of the tip, then the live check on https://simpleliturgy.com.
+
 Simple Liturgy treats `main` as a ready pile, not the live site. Merging a pull request does not update [simpleliturgy.com](https://simpleliturgy.com) (`CONTRIBUTING.md:7`, `CONTRIBUTING.md:18-19`; same warning in `.github/pull_request_template.md:3`). A promote is an explicit tag of the tip of `main` as `vX.Y.Z` matching `APP_VERSION` in `version.js` (`CONTRIBUTING.md:35`, `CONTRIBUTING.md:48-51`).
 
 The written ritual already had two looks that are easy to collapse into one, and a third that was missing:
 
-1. **Pre-promote look — localhost in Cursor.** Check out current `main`, serve it with `python3 -m http.server 4173`, forward that port, and walk the surfaces the piled changes touch (`CONTRIBUTING.md:22-31`). This is not a hosted staging URL. A phone check of an already-installed PWA is explicitly *not* this look (`CONTRIBUTING.md:31`).
+1. **Pre-promote look — staging.** After merge, `main` is published to https://staging.simpleliturgy.com. Give that URL for each surface the piled changes touch. Do not use localhost or simpleliturgy.com for this look. A phone check of an already-installed production PWA is not this look. Staging is not the admin's verbal approval to tag.
 2. **Push to prod — tag, verify, Publish Pages.** Actions runs **verify** on the tagged commit (`CONTRIBUTING.md:50`; `.github/workflows/pages.yml:3-8`, `.github/workflows/pages.yml:13-28`). A tag that does not match `v${APP_VERSION}` fails that gate (`CONTRIBUTING.md:50`; `scripts/check-site.mjs:275-278`). After verify succeeds, **Publish Pages** deploys the tagged commit. The `github-pages` environment allows the `main` branch only, so the publish job runs on a `main`-ref `workflow_run` and checks out the tagged SHA (`CONTRIBUTING.md:51`; `.github/workflows/publish-pages.yml:1-3`, `.github/workflows/publish-pages.yml:6-10`, `.github/workflows/publish-pages.yml:22-39`). Ordinary main merges do not deploy (`scripts/check-site.mjs:281-293`).
 3. **Post-publish look — the public website.** Parker directed that this third look is required: pushing to prod is incomplete until someone has opened the live hostname and confirmed the new version *and* the shipped surface. The push-to-prod list in `CONTRIBUTING.md` now includes that step.
 
@@ -49,9 +51,9 @@ The tree at this writing is `APP_VERSION` `0.3.145` (`version.js:1`) after #10. 
 
 ## Guidance
 
-Keep the localhost look. Add a live-site gate after Publish Pages. Do not replace one with the other.
+Keep the staging look. Add a live-site gate after Publish Pages. Do not replace one with the other.
 
-**Before the tag (unchanged).** Check out the tip of `main`. Serve it from the repo root with `python3 -m http.server 4173` (`CONTRIBUTING.md:26-28`). Walk the office, settings, and install surfaces the piled changes touch. Confirm `APP_VERSION` lockstep locally (`version.js:1` must match the `vX.Y.Z` you are about to tag; `CONTRIBUTING.md:48` and `scripts/check-site.mjs:275-278`). This look answers “is the ready pile what we intend to ship?” It does not answer “is production serving it?”
+**Before the tag.** Open https://staging.simpleliturgy.com and walk the surfaces the piled changes touch. The footer there shows `staging-` plus the commit, not the production tag. Confirm `APP_VERSION` in the committed `version.js` still matches the `vX.Y.Z` you would tag (`scripts/check-site.mjs`). This look answers “is the ready pile what we intend to ship?” It does not answer “is production serving it?” and it is not the admin's verbal approval.
 
 **After the tag and a successful Publish Pages job.** Open https://simpleliturgy.com in a regular browser — the public hostname, not a Cursor port-forward of 4173, and not a `*.github.io` Pages URL unless that is actually what visitors use (they use simpleliturgy.com; `index.html:11`, `CONTRIBUTING.md:7`). Hard-refresh or cache-bust if the first load looks stale. Then confirm two things on that page:
 
@@ -62,7 +64,7 @@ Keep the localhost look. Add a live-site gate after Publish Pages. Do not replac
 
 If the live hostname is still on the previous `APP_VERSION`, or the new surface is missing after a hard refresh, the promote is not finished. Wait and re-check the public host, or investigate the publish checkout and the tag, before telling anyone the release is live.
 
-**Installed PWA remains a later / phone concern.** `CONTRIBUTING.md:31` already separates it from the pre-tag localhost look. Keep that separation after publish: first prove the website, then (when it matters) prove an already-installed home-screen app. #10 made the next open more likely to pick up a new worker; it did not make the website check optional.
+**Installed PWA remains a later / phone concern.** Keep it separate from the staging look. After publish, first prove https://simpleliturgy.com, then (when it matters) prove an already-installed home-screen app. #10 made the next open more likely to pick up a new worker; it did not make the website check optional.
 
 ## Why This Matters
 
@@ -85,7 +87,7 @@ The cost of the extra minute on https://simpleliturgy.com is small next to a fal
 - When the promote ships a user-visible surface (reader, CSS, worker, icons, office or reading data — the same class of files that require a version bump; `CONTRIBUTING.md:37-38`). Confirm that surface on the public host, not only the version string.
 - When a first load of simpleliturgy.com still shows the previous `APP_VERSION` or lacks the new surface: hard-refresh / cache-bust and re-check before declaring success or starting a second promote.
 - When debugging “I don’t see it on my phone”: check the website first. If the public host is correct and the installed PWA is not, that is the #10 / service-worker path (`service-worker.js:136-141`, `app.js:1534-1540`), not a reason to skip the website gate on the next promote.
-- Do **not** apply this as a replacement for the localhost pre-tag look (`CONTRIBUTING.md:22-31`). Do **not** treat a Cursor port-forward or a `*.github.io` URL as the live-site gate. Do **not** treat an already-installed PWA as the live-site gate.
+- Do **not** apply this as a replacement for the staging look at https://staging.simpleliturgy.com. Do **not** treat staging, a Cursor port-forward, or a `*.github.io` URL as the live-site gate. Do **not** treat an already-installed PWA as the live-site gate.
 
 ## Examples
 
@@ -102,18 +104,18 @@ That session never completed Parker’s gate. The localhost look only proved the
 
 ### After: same promote, with the live-site gate
 
-1. **Localhost look (keep this).** Same as above. Do not skip it. Do not tag an older commit (`CONTRIBUTING.md:35`).
-2. **Tag and wait for both workflows.** Tag `vX.Y.Z` matching `version.js`. Confirm **verify** on the tag, then **Publish Pages** on the following `workflow_run` (`CONTRIBUTING.md:48-51`; `.github/workflows/publish-pages.yml:6-10`, `.github/workflows/publish-pages.yml:22-39`). A green verify without a green publish is not a deploy.
+1. **Staging look (keep this).** Open https://staging.simpleliturgy.com and walk the surface. Do not skip it. Do not tag an older commit. Do not tag until the admin has said to.
+2. **Tag and wait for both workflows.** After that verbal approval, tag `vX.Y.Z` matching `version.js`. Confirm **verify** on the tag, then **Publish Pages** on the following `workflow_run` (`.github/workflows/publish-pages.yml`). A green verify without a green publish is not a deploy. Staging is not this step.
 3. **Open https://simpleliturgy.com.** Use a normal browser profile against the public host. Hard-refresh or add a cache-bust query if the first paint still shows the previous footer version.
 4. **Confirm version and surface.** Footer `#app-version` matches the tag (`index.html:327`). Simple Prayer overview shows the new marker — for this class of change, The Lord's Prayer between the readings and Gloria (`bookmark-engine.js:1313-1317`). If you shipped settings or Traditional offices instead, walk those live surfaces the same way.
 5. **Only then say it is live.** If the public host is wrong, do not announce. Re-check after a short lag; if it stays wrong, inspect which SHA Publish Pages checked out before tagging again.
-6. **Phone / installed PWA later, if needed.** That check answers “does a home-screen install pick up the new worker?” (`service-worker.js:136-141`; `app.js:1536-1539`). It is not the website gate, and it is not the pre-tag localhost look (`CONTRIBUTING.md:31`).
+6. **Phone / installed PWA later, if needed.** That check answers “does a home-screen install pick up the new worker?” (`service-worker.js:136-141`; `app.js:1536-1539`). It is not the website gate, and it is not the staging look.
 
 A docs-only or CI-only pile still does not need a version bump or a promote (`CONTRIBUTING.md:37-38`). If you did not tag, you do not owe a live-site check — and you also must not imply simpleliturgy.com changed.
 
 ## Related
 
-- [CONTRIBUTING.md](../../../CONTRIBUTING.md) — operational promote ritual. Localhost pre-promote look, tag, verify, Publish Pages. This learning adds the missing post-publish check of the public hostname.
-- [Promote on tag plan](../../plans/2026-09-09-001-feat-promote-on-tag-plan.md) — decided that localhost in Cursor is the pre-tag look and that a hosted staging URL is not required. Complementary, not a substitute for the live-site gate.
-- [.github/pull_request_template.md](../../../.github/pull_request_template.md) — warns that merging to `main` does not deploy simpleliturgy.com.
+- [CONTRIBUTING.md](../../../CONTRIBUTING.md) — operational ritual. Staging look, verbal approval, tag, verify, Publish Pages, then the live hostname.
+- [Promote on tag plan](../../plans/2026-09-09-001-feat-promote-on-tag-plan.md) — production still ships from a tag of the tip. Staging is the test host and is not a substitute for the live-site gate.
+- [.github/pull_request_template.md](../../../.github/pull_request_template.md) — merging to `main` publishes staging and does not deploy simpleliturgy.com.
 - Parker directed the live-site gate after The Lord's Prayer promote (#7–#10).

@@ -21,7 +21,7 @@ execution: code
 
 ### Summary
 
-Ready work piles on `main` after **verify**. The live site updates only from an explicit GitHub tag / Release of current `main`. Look at that stacked pile on localhost in Cursor before tagging. Bump the installed-app version only when the home-screen PWA would change.
+Ready work piles on `main` after **verify** and is published to https://staging.simpleliturgy.com. The live site updates only from an explicit GitHub tag / Release of the tip of `main`, and only after the admin's verbal approval. Look at that stacked pile on the staging URL before asking to tag. Bump the installed-app version only when the home-screen PWA would change.
 
 ### Problem Frame
 
@@ -33,7 +33,7 @@ Every merge to `main` currently deploys Pages. That makes the ready pile and the
 - KD2. `main` is the ready pile, not the live site. `(session-settled: user-directed — chosen over live-on-merge: work can land without going public until an explicit push to prod.)` Governs R1, R2.
 - KD3. Push to prod is a GitHub Release / `vX.Y.Z` tag of current `main`. `(session-settled: user-directed — chosen over a production branch or Actions-only button: typical OSS, always ships tip of main.)` Governs R5, R6.
 - KD4. Version only when the installed app would change. `(session-settled: user-directed — chosen over version-every-PR: docs, CI, and scripts the phone never loads do not bump.)` Governs R3, R4.
-- KD5. Pre-promote look is Cursor screenshots plus localhost port forwarding. `(session-settled: user-directed — chosen over a hosted staging URL or phone-after-tag as the only look.)` Governs R7.
+- KD5. Pre-promote look is https://staging.simpleliturgy.com after merge to `main`. `(session-settled: user-directed — staging is the test host. It is not the admin's verbal approval and it does not publish simpleliturgy.com.)` Governs R7.
 
 ### Actors
 
@@ -60,19 +60,19 @@ Every merge to `main` currently deploys Pages. That makes the ready pile and the
 
 **Pre-promote look**
 
-- R7. The prescribed look at stacked `main` is a local static server, Cursor port forwarding, and screenshots. It is not a hosted staging URL, and it is not a required phone check before the tag.
+- R7. The prescribed look at stacked `main` is https://staging.simpleliturgy.com after the merge. Give the staging URL for each surface. It is not localhost, it is not simpleliturgy.com, and it is not a required phone check before the tag.
 
 ### Key Flows
 
 - F1. Land work without going live
   - **Trigger:** A PR is ready.
   - **Actors:** A1, A2
-  - **Steps:** **verify** is green; merge to `main`; live site stays on the last tag.
+  - **Steps:** **verify** is green; merge to `main`, which publishes staging; simpleliturgy.com stays on the last tag.
   - **Covered by:** R1, R2
 - F2. Look, then push to prod
   - **Trigger:** Maintainer wants the piled `main` live.
   - **Actors:** A1, A2, A3
-  - **Steps:** Serve current `main` locally and look in Cursor; if installed-app files changed since the last tag, bump once; tag / Release `vX.Y.Z`; **verify** then deploy that commit.
+  - **Steps:** Look at https://staging.simpleliturgy.com; if installed-app files changed since the last tag, bump once; after the admin's verbal approval, tag / Release `vX.Y.Z`; **verify** then deploy that commit.
   - **Covered by:** R3, R4, R5, R6, R7
 - F3. Docs-only pile
   - **Trigger:** Only files the phone never loads landed since the last tag.
@@ -119,14 +119,14 @@ flowchart TB
 ### Success Criteria
 
 - A Cursor Cloud website PR can merge to `main` without changing the live PWA.
-- A maintainer can push to prod by tagging current `main` after a localhost look in Cursor.
+- A maintainer can push to prod by tagging the tip of current `main` after the admin's verbal approval. The look before that ask is https://staging.simpleliturgy.com.
 - **verify** still blocks bad merges and bad tags.
 
 ### Scope Boundaries
 
 - No release-please bot.
 - No `production` branch and no Actions-only button as the promote path.
-- No hosted staging site.
+- Staging is a second site at https://staging.simpleliturgy.com. It does not replace the production tag or the live check on simpleliturgy.com.
 - Phone / existing-profile service-worker upgrade is not a required pre-tag gate. Localhost does not replace that risk.
 - Moving `daily-office-reader` generators into this repo is out of this contract.
 

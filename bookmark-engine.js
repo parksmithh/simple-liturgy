@@ -1,8 +1,8 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.154";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.155";
 import {
   adaptLegacyTimedOffice,
   officeDocumentToViewSections,
-} from "./office-document.js?v=0.3.154";
+} from "./office-document.js?v=0.3.155";
 
 export function parseBundle(text) {
   const readings = new Map();

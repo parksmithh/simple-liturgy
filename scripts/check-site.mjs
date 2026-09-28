@@ -880,7 +880,7 @@ await checkAsync("settings help text lives in a full-screen tray", async () => {
     assert(!pageWithoutTemplates.includes(extra), `longer help stays in the tray: ${extra}`);
   }
   assert(pageWithoutTemplates.includes("System follows your device appearance automatically."), "appearance keeps a two-line summary");
-  assert(pageWithoutTemplates.includes("Choose one format for both offices."), "prayer format keeps a two-line summary");
+  assert(pageWithoutTemplates.includes("Choose one format for both offices. Noonday and Compline stay separate."), "prayer format keeps a two-line summary");
   assert(pageWithoutTemplates.includes('id="prayer-format-status"'), "live prayer-format status stays on the page");
   assert(pageWithoutTemplates.includes('id="prayer-reminder-status"'), "live reminder status stays on the page");
 });

@@ -52,7 +52,7 @@ const deviceScreen = document.querySelector("#device-screen");
 const themeControls = document.querySelectorAll('input[name="theme"]');
 const psalmControls = document.querySelectorAll('input[name="psalm-display"]');
 const scriptureControls = document.querySelectorAll('input[name="scripture-mode"]');
-const prayerFormatControl = document.querySelector("#full-daily-office-enabled");
+const prayerFormatControls = document.querySelectorAll('input[name="prayer-format"]');
 const previewSimpleMorningButton = document.querySelector("#preview-simple-morning");
 const previewSimpleEveningButton = document.querySelector("#preview-simple-evening");
 const previewTraditionalMorningButton = document.querySelector("#preview-traditional-morning");
@@ -77,6 +77,9 @@ const readerMenu = document.querySelector("#reader-menu");
 const openReaderButton = document.querySelector("#open-reader-button");
 const shareButton = document.querySelector("#share-button");
 const shareStatus = document.querySelector("#share-status");
+const settingsHelpTray = document.querySelector("#settings-help-tray");
+const settingsHelpTitle = document.querySelector("#settings-help-title");
+const settingsHelpBody = document.querySelector("#settings-help-body");
 const installTooltip = document.querySelector("#install-tooltip");
 const appVersion = document.querySelector("#app-version");
 const canonicalUrl = document.querySelector('link[rel="canonical"]')?.href || window.location.href;
@@ -242,7 +245,7 @@ const psalmContext = { controls: psalmControls, storage: window.localStorage };
 const scriptureContext = { controls: scriptureControls, storage: window.localStorage };
 const noondayContext = { control: noondayControl, storage: window.localStorage };
 const complineContext = { control: complineControl, storage: window.localStorage };
-const prayerFormatContext = { control: prayerFormatControl, storage: window.localStorage };
+const prayerFormatContext = { controls: prayerFormatControls, storage: window.localStorage };
 const psalmBoundary = createPsalmBoundaryTimer({
   onBoundary: now => refreshAt(now, false),
 });
@@ -316,30 +319,31 @@ function fullOfficeMarkerAt(date = new Date()) {
 
 function syncPrayerFormatStatus() {
   if (fullOfficeLoad) {
+    prayerFormatStatus.hidden = false;
     prayerFormatStatus.textContent = "Preparing the Traditional Rite II offices…";
     retryFullOfficeButton.hidden = true;
     return;
   }
   if (fullOfficeError) {
+    prayerFormatStatus.hidden = false;
     prayerFormatStatus.textContent = "Traditional Prayer is temporarily unavailable. Simple Prayer will remain active.";
     retryFullOfficeButton.hidden = false;
     return;
   }
   if (fullOfficeOfflineState === "preparing") {
+    prayerFormatStatus.hidden = false;
     prayerFormatStatus.textContent = "Traditional Prayer is active; finishing its offline copy…";
     retryFullOfficeButton.hidden = true;
     return;
   }
   if (fullOfficeOfflineError) {
+    prayerFormatStatus.hidden = false;
     prayerFormatStatus.textContent = "Traditional Prayer is active online, but its offline copy could not be completed.";
     retryFullOfficeButton.hidden = false;
     return;
   }
-  prayerFormatStatus.textContent = prayerFormat === "full"
-    ? `Traditional follows the complete Rite II office automatically${
-      fullOfficeOfflineState === "ready" ? ", with the offices ready offline." : "."
-    }`
-    : "Simple keeps the concise prayer-and-readings backbone.";
+  prayerFormatStatus.hidden = true;
+  prayerFormatStatus.textContent = "";
   retryFullOfficeButton.hidden = true;
 }
 
@@ -1731,6 +1735,21 @@ bindNoondayPreference({ ...noondayContext, onChange: enabled => applyTimedOffice
 
 bindComplinePreference({ ...complineContext, onChange: enabled => applyTimedOfficePreference("compline", enabled) });
 bindPrayerFormatPreference({ ...prayerFormatContext, onChange: applyPrayerFormat });
+
+function bindSettingsHelp() {
+  if (!settingsHelpTray || !settingsHelpTitle || !settingsHelpBody) return;
+  document.querySelectorAll("[data-settings-help]").forEach(button => {
+    button.addEventListener("click", () => {
+      const template = document.querySelector(`#${CSS.escape(button.dataset.settingsHelp)}`);
+      settingsHelpTitle.textContent = button.dataset.settingsHelpTitle || "Help";
+      settingsHelpBody.replaceChildren();
+      if (template?.content) settingsHelpBody.append(template.content.cloneNode(true));
+      settingsHelpTray.showModal();
+    });
+  });
+}
+
+bindSettingsHelp();
 
 themeContext.media.addEventListener?.("change", () => {
   if (!syncSystemTheme(themeContext)) return;

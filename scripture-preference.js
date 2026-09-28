@@ -7,6 +7,14 @@ function updateControls(controls, mode) {
   });
 }
 
+export function hasScripturePreference(storage) {
+  try {
+    return MODES.has(storage.getItem(STORAGE_KEY));
+  } catch {
+    return false;
+  }
+}
+
 export function initializeScripturePreference({ controls, storage }) {
   let mode = "off";
   try {

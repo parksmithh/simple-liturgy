@@ -55,6 +55,9 @@ const REQUIRED_HTML_IDS = [
   "center-control",
   "next-control",
   "timed-office-onboarding",
+  "scripture-onboarding",
+  "scripture-onboarding-title",
+  "scripture-onboarding-description",
   "scripture-settings",
   "scripture-settings-title",
 ];
@@ -85,6 +88,7 @@ const SMOKE_PATHS = [
   "/data/scripture/engwebp.json",
   "/data/scripture/eng-kjv.json",
   "/scripture-pack-loader.js",
+  "/scripture-onboarding.js",
   "/scripture-preference.js",
   "/scripture-reading.js",
   "/scripture-resolve.js",
@@ -281,7 +285,15 @@ const {
   withChapterHeadings,
   withPsalmChapterHeadings,
 } = await import("../scripture-reading.js");
-const { initializeScripturePreference, setScriptureMode } = await import("../scripture-preference.js");
+const {
+  hasScripturePreference,
+  initializeScripturePreference,
+  setScriptureMode,
+} = await import("../scripture-preference.js");
+const {
+  SCRIPTURE_ONBOARDING_COPY,
+  shouldOfferScriptureOnboarding,
+} = await import("../scripture-onboarding.js");
 const { initializePrayerFormatPreference, setPrayerFormat } = await import("../prayer-format-preference.js");
 
 const indexHtml = await readText("index.html");
@@ -816,8 +828,22 @@ check("scripture settings default Off and auto-fit", () => {
     { value: "kjv", checked: false },
   ];
   assert(initializeScripturePreference({ controls, storage }) === "off", "preference defaults to Off");
+  assert(!hasScripturePreference(storage), "unset preference is detectable for onboarding");
   assert(setScriptureMode({ controls, storage }, "web") === "web", "WEB persists");
+  assert(hasScripturePreference(storage), "saved preference is detectable");
   assert(initializeScripturePreference({ controls, storage }) === "web", "WEB restores");
+});
+
+check("scripture onboarding explains citation-only default", () => {
+  assert(indexHtml.includes('id="scripture-onboarding"'), "scripture onboarding dialog exists");
+  assert(indexHtml.includes('value="off" type="submit">Off — citation only'), "Off choice labeled citation only");
+  assert(indexHtml.includes('value="web" type="submit">Simple (WEB)'), "WEB choice present");
+  assert(indexHtml.includes('value="kjv" type="submit">Traditional (KJV)'), "KJV choice present");
+  assert(SCRIPTURE_ONBOARDING_COPY.description.includes("citation only"), "copy explains citation-only default");
+  assert(shouldOfferScriptureOnboarding({ hasPreference: false }), "offer when unset");
+  assert(!shouldOfferScriptureOnboarding({ hasPreference: true }), "skip when already chosen");
+  assert(appJs.includes("createScriptureOnboardingController"), "app wires scripture onboarding");
+  assert(appJs.includes("offerInitialOnboarding"), "app offers scripture before timed-office prompts");
 });
 
 await checkAsync("settings option buttons share one selected token recipe", async () => {

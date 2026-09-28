@@ -77,9 +77,6 @@ const readerMenu = document.querySelector("#reader-menu");
 const openReaderButton = document.querySelector("#open-reader-button");
 const shareButton = document.querySelector("#share-button");
 const shareStatus = document.querySelector("#share-status");
-const settingsHelpTray = document.querySelector("#settings-help-tray");
-const settingsHelpTitle = document.querySelector("#settings-help-title");
-const settingsHelpBody = document.querySelector("#settings-help-body");
 const installTooltip = document.querySelector("#install-tooltip");
 const appVersion = document.querySelector("#app-version");
 const canonicalUrl = document.querySelector('link[rel="canonical"]')?.href || window.location.href;
@@ -1735,21 +1732,6 @@ bindNoondayPreference({ ...noondayContext, onChange: enabled => applyTimedOffice
 
 bindComplinePreference({ ...complineContext, onChange: enabled => applyTimedOfficePreference("compline", enabled) });
 bindPrayerFormatPreference({ ...prayerFormatContext, onChange: applyPrayerFormat });
-
-function bindSettingsHelp() {
-  if (!settingsHelpTray || !settingsHelpTitle || !settingsHelpBody) return;
-  document.querySelectorAll("[data-settings-help]").forEach(button => {
-    button.addEventListener("click", () => {
-      const template = document.querySelector(`#${CSS.escape(button.dataset.settingsHelp)}`);
-      settingsHelpTitle.textContent = button.dataset.settingsHelpTitle || "Help";
-      settingsHelpBody.replaceChildren();
-      if (template?.content) settingsHelpBody.append(template.content.cloneNode(true));
-      settingsHelpTray.showModal();
-    });
-  });
-}
-
-bindSettingsHelp();
 
 themeContext.media.addEventListener?.("change", () => {
   if (!syncSystemTheme(themeContext)) return;

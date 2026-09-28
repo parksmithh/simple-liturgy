@@ -1,9 +1,9 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.162";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.163";
 import {
   adaptLegacyTimedOffice,
   officeDocumentToViewSections,
-} from "./office-document.js?v=0.3.162";
-import { scripturePageBodyText } from "./scripture-reading.js?v=0.3.162";
+} from "./office-document.js?v=0.3.163";
+import { scripturePageBodyText } from "./scripture-reading.js?v=0.3.163";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -1171,14 +1171,17 @@ function readingContentHtml(view, key, className, psalmPresentation) {
     const sectionLabel = key === "PS"
       ? `${PSALM_OFFICE_LABELS[psalmPresentation.office]} Psalms`
       : READING_LABELS[key];
-    // Multi-chapter / Psalm streams: page 1 uses the section label; later pages use the
-    // active chapter title (Psalm 19, Hebrews 12, …), matching lesson citation chrome.
+    // Multi-chapter / Psalm streams: page 1 uses the section label + full citation;
+    // later pages use the active chapter title (Psalm 19, Hebrews 12, …).
     if (built.chapterHeadings) {
       if (page > 0) {
         const chapterTitle = built.pageHeadings?.[page] || citationText;
         return `<span class="label">${escapeHtml(chapterTitle)}${pageIndex}</span>${body}`;
       }
-      return `<span class="label">${sectionLabel}${pageIndex}</span>${body}`;
+      const citation = citationText
+        ? `<span class="focus-cite">${escapeHtml(citationText)}</span>`
+        : "";
+      return `<span class="label">${sectionLabel}${pageIndex}</span>${citation}${body}`;
     }
     if (page > 0) {
       return `<span class="label">${escapeHtml(citationText)}${pageIndex}</span>${body}`;

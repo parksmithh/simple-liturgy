@@ -988,17 +988,16 @@ await checkAsync("scripture preference remaps Simple and Traditional lesson focu
     psalmOffice: "morning",
   });
   assert(webPsalms.scripturePages?.PS?.verses?.length > 0, "WEB attaches Psalm verses");
-  assert(webPsalms.scripturePages?.PS?.chapterHeadings, "WEB Psalms insert per-chapter headings");
-  assert(
-    webPsalms.scripturePages.PS.verses[0]?.kind === "heading"
-    && /^Psalm\s+\d+/.test(webPsalms.scripturePages.PS.verses[0].text || ""),
-    "WEB Psalm body starts with a Psalm chapter heading",
-  );
+  assert(!webPsalms.scripturePages?.PS?.chapterHeadings, "single-chapter Psalms keep citation chrome");
+  assert(webPsalms.scripturePages.PS.verses[0]?.kind !== "heading", "single-chapter Psalms omit bare chapter body headings");
   const psalmHtml = screenHtml(webPsalms, { psalmDisplayMode: "by-time-of-day", psalmOffice: "morning" });
   assert(psalmHtml.includes("scripture-lesson-text"), "WEB Psalm focus shows body text");
   assert(psalmHtml.includes("Morning Psalms"), "WEB Psalm focus uses Morning/Evening label");
-  assert(psalmHtml.includes("timed-office-psalm-heading"), "WEB Psalm focus renders chapter headings in body");
-  assert(!psalmHtml.includes("focus-cite"), "WEB Psalm focus omits combined citation focus-cite");
+  assert(psalmHtml.includes("focus-cite"), "WEB Psalm focus shows the full citation");
+  assert(
+    psalmHtml.includes(webPsalms.scripturePages.PS.citation),
+    "WEB Psalm focus cite matches the appointed range",
+  );
   const morningOnly = applyScriptureToSimpleView(psalmFocus, {
     scriptureMode: "web",
     pack: web,
@@ -1020,6 +1019,9 @@ await checkAsync("scripture preference remaps Simple and Traditional lesson focu
   const morningHtml = screenHtml(morningOnly, { psalmDisplayMode: "by-time-of-day", psalmOffice: "morning" });
   assert(morningHtml.includes("Morning Psalms"), "by-time WEB Psalm focus uses Morning Psalms label");
   assert(morningHtml.includes("scripture-lesson-text"), "by-time WEB Psalm focus shows body");
+  assert(morningHtml.includes(morningOnly.scripturePages.PS.citation), "morning WEB Psalm focus keeps verse range");
+  const eveningOnlyHtml = screenHtml(eveningOnly, { psalmDisplayMode: "by-time-of-day", psalmOffice: "evening" });
+  assert(eveningOnlyHtml.includes(eveningOnly.scripturePages.PS.citation), "evening WEB Psalm focus keeps verse range");
   const multiPsalmDay = "2026-03-15";
   const multiPsalmFocus = model(bundle, { offset: 0, focus: "PS", focusPage: 0 }, multiPsalmDay, collects);
   const multiEvening = applyScriptureToSimpleView(multiPsalmFocus, {
@@ -1028,9 +1030,18 @@ await checkAsync("scripture preference remaps Simple and Traditional lesson focu
     psalmDisplayMode: "by-time-of-day",
     psalmOffice: "evening",
   });
+  assert(multiEvening.scripturePages?.PS?.chapterHeadings, "multi-chapter Psalms insert per-chapter headings");
+  assert(
+    multiEvening.scripturePages.PS.verses[0]?.kind === "heading"
+    && /^Psalm\s+\d+/.test(multiEvening.scripturePages.PS.verses[0].text || ""),
+    "multi-chapter Psalm body starts with a Psalm chapter heading",
+  );
   const eveningHtml = screenHtml(multiEvening, { psalmDisplayMode: "by-time-of-day", psalmOffice: "evening" });
   assert(eveningHtml.includes("Evening Psalms"), "evening WEB Psalm focus uses Evening Psalms label");
-  assert(!eveningHtml.includes("Psalm 19; Psalm 46"), "evening WEB Psalm focus does not combine chapter titles");
+  assert(eveningHtml.includes("focus-cite"), "multi-chapter Psalm focus still shows the full citation");
+  assert(eveningHtml.includes("Psalm 19; Psalm 46"), "multi-chapter Psalm focus cite lists each Psalm");
+  assert(eveningHtml.includes("timed-office-psalm-heading"), "multi-chapter Psalm focus renders chapter headings in body");
+  assert(!/class="label">Psalm 19; Psalm 46/.test(eveningHtml), "combined citation is focus-cite, not the section label");
   const eveningPage = multiEvening.scripturePages.PS.pages[0] || "";
   assert(
     eveningPage.includes("Psalm 19") && eveningPage.includes("Psalm 46")

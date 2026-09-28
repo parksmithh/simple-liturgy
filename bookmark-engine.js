@@ -1,9 +1,9 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.161";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.162";
 import {
   adaptLegacyTimedOffice,
   officeDocumentToViewSections,
-} from "./office-document.js?v=0.3.161";
-import { scripturePageBodyText } from "./scripture-reading.js?v=0.3.161";
+} from "./office-document.js?v=0.3.162";
+import { scripturePageBodyText } from "./scripture-reading.js?v=0.3.162";
 
 export function parseBundle(text) {
   const readings = new Map();
@@ -1166,7 +1166,9 @@ function readingContentHtml(view, key, className, psalmPresentation) {
     const body = built.unavailable
       ? `<span class="prayer-text scripture-unavailable-note">${escapeHtml(built.pages[page] || "")}</span>`
       : `<span class="prayer-text noonday-text timed-office-numbered-verses scripture-lesson-text">${numberedLiturgicalTextHtml(pageText)}</span>`;
-    const sectionLabel = key === "PS" && psalmPresentation.byTime
+    // Scripture Psalm body is always one office; label that office even when the
+    // overview still groups morning and evening together.
+    const sectionLabel = key === "PS"
       ? `${PSALM_OFFICE_LABELS[psalmPresentation.office]} Psalms`
       : READING_LABELS[key];
     // Multi-chapter / Psalm streams: page 1 uses the section label; later pages use the

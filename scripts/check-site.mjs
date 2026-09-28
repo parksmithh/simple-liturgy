@@ -864,8 +864,9 @@ await checkAsync("settings help stays on the page without tooltip trays", async 
     "Choose a local time for each office.",
     "Importing another file can create duplicates.",
     "Pages auto-fit the screen",
-    "This setting applies to Simple format when Scripture text is Off.",
+    "Applies to Simple format overview grouping.",
     "Midnight to noon shows Morning Psalms",
+    "overview can stay Together while Psalm body text still follows time of day",
   ]) {
     assert(indexHtml.includes(copy), `help copy missing: ${copy}`);
   }
@@ -1093,9 +1094,39 @@ await checkAsync("scripture preference remaps Simple and Traditional lesson focu
     appJs.includes("effectivePsalmDisplayMode")
     && appJs.includes('scriptureMode !== "off"')
     && appJs.includes("by-time-of-day"),
-    "Scripture on forces morning/evening Psalms instead of combined",
+    "Scripture body still office-scopes Psalms via effectivePsalmDisplayMode",
   );
-
+  const paintHtmlCall = appJs.match(/screenHtml\(view,\s*\{[\s\S]*?\}\)/)?.[0] || "";
+  assert(
+    paintHtmlCall.includes("psalmDisplayMode,")
+    && !paintHtmlCall.includes("effectivePsalmDisplayMode"),
+    "overview paint uses the stored Psalm preference, not the scripture force",
+  );
+  const togetherWeb = applyScriptureToSimpleView(psalmFocus, {
+    scriptureMode: "web",
+    pack: web,
+    psalmDisplayMode: "by-time-of-day",
+    psalmOffice: "morning",
+  });
+  const togetherOverview = screenHtml(
+    { ...togetherWeb, focus: null, focusPage: 0 },
+    { psalmDisplayMode: "together", psalmOffice: "morning" },
+  );
+  assert(togetherOverview.includes('aria-label="Morning"'), "Together overview keeps morning Psalms");
+  assert(togetherOverview.includes('aria-label="Evening"'), "Together overview keeps evening Psalms");
+  assert(!togetherOverview.includes("Morning Psalms"), "Together overview does not collapse to Morning Psalms");
+  assert(!togetherOverview.includes("scripture-lesson-text"), "overview stays citation-only");
+  const togetherFocus = screenHtml(togetherWeb, { psalmDisplayMode: "together", psalmOffice: "morning" });
+  assert(togetherFocus.includes("scripture-lesson-text"), "Together+WEB focus still shows Psalm body");
+  assert(togetherFocus.includes("Morning Psalms"), "Together+WEB focus labels the current office");
+  assert(
+    togetherWeb.scripturePages.PS.citation === morningOnly.scripturePages.PS.citation,
+    "Together preference does not change which office's Psalm text is attached",
+  );
+  assert(
+    togetherWeb.scripturePages.PS.citation !== eveningOnly.scripturePages.PS.citation,
+    "Together+WEB morning body is not the evening citation",
+  );
   const riteTwo = JSON.parse(await readText("data/daily-office/rite-two.json"));
   const psalter = JSON.parse(await readText("data/daily-office/psalter.json"));
   const appointments = JSON.parse(await readText("dor-engine/office-appointments.json"));

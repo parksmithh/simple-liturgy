@@ -866,7 +866,7 @@ check("collect prayer fit does not grow above CSS preferred", () => {
   );
   const tokens = readFileSync(join(ROOT, "design-tokens.css"), "utf8");
   assert(
-    /\.reader \.device-screen \{[\s\S]*?--type-reader-prayer:\s*clamp\([^)]*?,\s*34px\)/.test(tokens),
+    tokens.includes(".reader .device-screen {\n  --type-reader-base: clamp(18px, 2vw, 30px);\n  --type-reader-prayer: clamp(24px, 3.4vw, 34px);\n}"),
     "reader prayer token max must be 34px",
   );
 });

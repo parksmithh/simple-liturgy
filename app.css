@@ -686,6 +686,7 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
 .onboarding-sheet form { display: grid; gap: 12px; }
 .onboarding-sheet h2, .onboarding-sheet p { margin: 0; }
 .onboarding-sheet-actions { display: grid; gap: 10px; margin-top: 8px; }
+.onboarding-sheet-actions-stack { grid-template-columns: 1fr; }
 .onboarding-sheet .onboarding-sheet-enable { border-color: var(--red); background: var(--red); color: var(--paper); }
 .onboarding-sheet button:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
 
@@ -793,7 +794,7 @@ dialog button { width: 100%; border: 1px solid var(--dialog-border); border-radi
     border-radius: 0;
     padding: clamp(16px, 3vh, 24px) clamp(18px, 4vw, 30px);
   }
-  .onboarding-sheet-actions {
+  .onboarding-sheet-actions:not(.onboarding-sheet-actions-stack) {
     grid-template-columns: minmax(0, 2fr) minmax(110px, 1fr);
   }
   .grid { align-content: center; }

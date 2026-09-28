@@ -856,6 +856,9 @@ await checkAsync("settings help text lives in a full-screen tray", async () => {
   assert(indexHtml.includes("settings-help-trigger"), "section headings expose help triggers");
   assert(css.includes(".help-tray {"), "help tray styles exist");
   assert(/\.help-tray \{[^}]*height:\s*100%/.test(css.replaceAll("\n", " ")), "help tray is full screen");
+  assert(css.includes(".settings-help-summary"), "inline help summary style exists");
+  assert(css.includes("-webkit-line-clamp: 2"), "inline help stays at two lines");
+  assert((pageWithoutTemplates.match(/class="settings-help-summary"/g) || []).length >= 7, "each helped section shows a short summary");
   for (const [id, copy] of [
     ["help-appearance", "System follows your device appearance automatically."],
     ["help-prayer-format", "Choose one format for both offices."],
@@ -867,8 +870,17 @@ await checkAsync("settings help text lives in a full-screen tray", async () => {
   ]) {
     assert(indexHtml.includes(`id="${id}"`), `missing #${id} help template`);
     assert(indexHtml.includes(copy), `help copy missing: ${copy}`);
-    assert(!pageWithoutTemplates.includes(copy), `help copy must not stay inline: ${copy}`);
   }
+  for (const extra of [
+    "Traditional follows the complete Rite II office automatically",
+    "Change or delete them there before importing a replacement",
+    "Pages auto-fit the screen",
+    "Midnight to noon shows Morning Psalms",
+  ]) {
+    assert(!pageWithoutTemplates.includes(extra), `longer help stays in the tray: ${extra}`);
+  }
+  assert(pageWithoutTemplates.includes("System follows your device appearance automatically."), "appearance keeps a two-line summary");
+  assert(pageWithoutTemplates.includes("Choose one format for both offices."), "prayer format keeps a two-line summary");
   assert(pageWithoutTemplates.includes('id="prayer-format-status"'), "live prayer-format status stays on the page");
   assert(pageWithoutTemplates.includes('id="prayer-reminder-status"'), "live reminder status stays on the page");
 });

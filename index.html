@@ -98,6 +98,7 @@
         <h2 id="appearance-title">Appearance</h2>
         <button class="icon-button settings-help-trigger" type="button" data-settings-help="help-appearance" data-settings-help-title="Appearance" aria-label="About Appearance">?</button>
       </div>
+      <p class="settings-help-summary">System follows your device appearance automatically.</p>
       <fieldset class="settings-options theme-options">
         <legend>Color theme</legend>
         <label><input type="radio" name="theme" value="light"> <span>Light</span></label>
@@ -114,6 +115,7 @@
             <h2 id="prayer-format-title">Morning and Evening Prayer</h2>
             <button class="icon-button settings-help-trigger" type="button" data-settings-help="help-prayer-format" data-settings-help-title="Morning and Evening Prayer" aria-label="About Morning and Evening Prayer">?</button>
           </div>
+          <p class="settings-help-summary">Choose one format for both offices. Noonday and Compline remain separate below.</p>
           <fieldset class="settings-options prayer-format-options">
             <legend>Morning and Evening Prayer format</legend>
             <label><input type="radio" name="prayer-format" value="simple" checked> <span>Simple</span></label>
@@ -145,6 +147,7 @@
             </label>
             <button class="icon-button settings-help-trigger" type="button" data-settings-help="help-noonday" data-settings-help-title="Noonday Prayer" aria-label="About Noonday Prayer">?</button>
           </div>
+          <p class="settings-help-summary">Follows the BCP 1979 Order of Service for Noonday.</p>
           <button class="settings-action" id="preview-noonday" type="button">Preview</button>
         </div>
         <div class="timed-office-option">
@@ -158,6 +161,7 @@
             </label>
             <button class="icon-button settings-help-trigger" type="button" data-settings-help="help-compline" data-settings-help-title="Compline" aria-label="About Compline">?</button>
           </div>
+          <p class="settings-help-summary">Follows the BCP 1979 Order for Compline.</p>
           <button class="settings-action" id="preview-compline" type="button">Preview</button>
         </div>
       </div>
@@ -169,7 +173,7 @@
         <h2 id="prayer-schedule-title">Prayer reminders</h2>
         <button class="icon-button settings-help-trigger" type="button" data-settings-help="help-reminders" data-settings-help-title="Prayer reminders" aria-label="About Prayer reminders">?</button>
       </div>
-      <p>Choose a local time for each office. Timed-office schedules appear when their reader office is enabled.</p>
+      <p class="settings-help-summary">Choose a local time for each office. Timed-office schedules appear when their reader office is enabled.</p>
       <div class="prayer-time-groups">
         <div class="prayer-time-row" data-prayer-reminder-row="morning">
           <label for="prayer-reminder-morning">Morning Prayer</label>
@@ -221,6 +225,7 @@
         <h2 id="scripture-settings-title">Scripture text</h2>
         <button class="icon-button settings-help-trigger" type="button" data-settings-help="help-scripture" data-settings-help-title="Scripture text" aria-label="About Scripture text">?</button>
       </div>
+      <p class="settings-help-summary">Applies to Morning and Evening appointed Psalms and lessons. Off keeps the citation only.</p>
       <fieldset class="settings-options scripture-options">
         <legend>Scripture translation</legend>
         <label><input type="radio" name="scripture-mode" value="off" checked> <span>Off</span></label>
@@ -235,6 +240,7 @@
         <h2 id="psalm-settings-title">Simple Liturgy Psalms</h2>
         <button class="icon-button settings-help-trigger" type="button" data-settings-help="help-psalms" data-settings-help-title="Simple Liturgy Psalms" aria-label="About Simple Liturgy Psalms">?</button>
       </div>
+      <p class="settings-help-summary">This setting applies to Simple format when Scripture text is Off.</p>
       <fieldset class="settings-options psalm-options">
         <legend>Psalm display</legend>
         <label><input type="radio" name="psalm-display" value="together" checked> <span>Together</span></label>

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn, spawnSync } from "node:child_process";
-import { createReadStream } from "node:fs";
+import { createReadStream, readFileSync } from "node:fs";
 import { cp, mkdtemp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { register } from "node:module";
@@ -851,6 +851,24 @@ await checkAsync("Lord's Prayer typography inherits the shared prayer token", as
   assert(appJs.includes('screen.querySelector(".lords-prayer-text")'), "fitted size must apply only to .lords-prayer-text");
   assert(appJs.includes("matchingLordsPrayerLayout"), "Lord's Prayer must use a dedicated fitter");
   assert(appJs.includes("measuredLordsPrayerLayout"), "Lord's Prayer must measure its own HTML");
+});
+
+check("collect prayer fit does not grow above CSS preferred", () => {
+  const measured = appJs.match(/function measuredPrayerLayout\([\s\S]*?\nfunction /);
+  assert(measured, "measuredPrayerLayout must exist");
+  assert(
+    !/largestWholePrayerFont\(\s*probe,\s*view\.prayer\.text,\s*availableHeight,\s*maximumFontSize\s*\)/.test(measured[0]),
+    "collect fit must not call largestWholePrayerFont with default allowGrow",
+  );
+  assert(
+    /largestWholePrayerFont\(\s*probe,\s*view\.prayer\.text,\s*availableHeight,\s*maximumFontSize,\s*appendMeasuredContent,[\s\S]*?,\s*false\s*,?\s*\)/.test(measured[0]),
+    "collect fit must pass allowGrow=false as the seventh argument",
+  );
+  const tokens = readFileSync(join(ROOT, "design-tokens.css"), "utf8");
+  assert(
+    tokens.includes(".reader .device-screen {\n  --type-reader-base: clamp(18px, 2vw, 30px);\n  --type-reader-prayer: clamp(24px, 3.4vw, 34px);\n}"),
+    "reader prayer token max must be 34px",
+  );
 });
 
 check("prayer reminder calendar can be generated", () => {

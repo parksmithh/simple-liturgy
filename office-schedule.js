@@ -1,5 +1,5 @@
-import { complineServiceAt } from "./compline-preference.js?v=0.3.157";
-import { noondayServiceAt } from "./noonday-preference.js?v=0.3.157";
+import { complineServiceAt } from "./compline-preference.js?v=0.3.158";
+import { noondayServiceAt } from "./noonday-preference.js?v=0.3.158";
 
 export function localIsoDate(date = new Date()) {
   const year = date.getFullYear();

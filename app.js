@@ -152,6 +152,7 @@ const scripturePageCache = new Map();
 
 function effectivePsalmDisplayMode() {
   // Scripture body is morning/evening only — never combined morning+evening.
+  // Overview grouping still follows the stored Psalm display preference.
   if (scriptureMode && scriptureMode !== "off") return "by-time-of-day";
   return psalmDisplayMode;
 }
@@ -807,7 +808,9 @@ function paint(view) {
   const previousArtStack = screen.querySelector(".pixel-art-stack");
   screen.innerHTML = screenHtml(view, {
     feastLinksEnabled,
-    psalmDisplayMode: effectivePsalmDisplayMode(),
+    // Overview grouping follows Together / by-time preference; scripture attach
+    // separately office-scopes Psalm body text when a translation is on.
+    psalmDisplayMode,
     psalmOffice,
   });
   const loadingService = fullOfficeLoadingService({

@@ -1,15 +1,15 @@
-const CACHE = "daily-office-reader-v0.3.164";
+const CACHE = "daily-office-reader-v0.3.165";
 const CACHE_PREFIX = "daily-office-reader-v";
 const RELEASE_MARKER = `?v=${CACHE.slice(CACHE_PREFIX.length)}`;
 const CONTENT_ROOT = self.registration.scope.endsWith("/web/") ? "../" : "./";
-const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.164`;
-const PACK_INDEX_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.idx?v=0.3.164`;
-const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json?v=0.3.164`;
-const SCRIPTURE_WEB_URL = `${CONTENT_ROOT}data/scripture/engwebp.json?v=0.3.164`;
-const SCRIPTURE_KJV_URL = `${CONTENT_ROOT}data/scripture/eng-kjv.json?v=0.3.164`;
-const RITE_TWO_URL = `${CONTENT_ROOT}data/daily-office/rite-two.json?v=0.3.164`;
-const FULL_OFFICE_INDEX_URL = "./dor-engine/daily-office-content.index.json?v=0.3.164";
-const FULL_OFFICE_PACK_URL = "./dor-engine/daily-office-content.active.jsonl?v=0.3.164";
+const PACK_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.jsonl?v=0.3.165`;
+const PACK_INDEX_URL = `${CONTENT_ROOT}firmware/circuitpython/readings.active.idx?v=0.3.165`;
+const COLLECTS_URL = `${CONTENT_ROOT}data/collects/collects.json?v=0.3.165`;
+const SCRIPTURE_WEB_URL = `${CONTENT_ROOT}data/scripture/engwebp.json?v=0.3.165`;
+const SCRIPTURE_KJV_URL = `${CONTENT_ROOT}data/scripture/eng-kjv.json?v=0.3.165`;
+const RITE_TWO_URL = `${CONTENT_ROOT}data/daily-office/rite-two.json?v=0.3.165`;
+const FULL_OFFICE_INDEX_URL = "./dor-engine/daily-office-content.index.json?v=0.3.165";
+const FULL_OFFICE_PACK_URL = "./dor-engine/daily-office-content.active.jsonl?v=0.3.165";
 const FULL_OFFICE_CONTENT = [
   RITE_TWO_URL,
   FULL_OFFICE_INDEX_URL,
@@ -31,38 +31,38 @@ const SHELL = [
   "./LICENSE.md",
   "./NOTICE",
   "./CONTRIBUTING.md",
-  "./design-tokens.css?v=0.3.164",
-  "./app.css?v=0.3.164",
-  "./app.js?v=0.3.164",
-  "./analytics.js?v=0.3.164",
-  "./bookmark-engine.js?v=0.3.164",
-  "./boundary-timer.js?v=0.3.164",
-  "./compline-preference.js?v=0.3.164",
-  "./daily-office-content.js?v=0.3.164",
-  "./daily-office.js?v=0.3.164",
-  "./feast-link-preference.js?v=0.3.164",
-  "./feast-wikipedia.js?v=0.3.164",
-  "./full-office-lifecycle.js?v=0.3.164",
-  "./noonday-preference.js?v=0.3.164",
-  "./office-schedule.js?v=0.3.164",
-  "./office-document.js?v=0.3.164",
-  "./pixel-art.js?v=0.3.164",
-  "./prayer-calendar.js?v=0.3.164",
-  "./prayer-format-preference.js?v=0.3.164",
-  "./psalm-preference.js?v=0.3.164",
-  "./reading-pack-loader.js?v=0.3.164",
-  "./scripture-pack-loader.js?v=0.3.164",
-  "./scripture-preference.js?v=0.3.164",
-  "./scripture-reading.js?v=0.3.164",
-  "./scripture-resolve.js?v=0.3.164",
-  "./theme.js?v=0.3.164",
-  "./timed-office-onboarding.js?v=0.3.164",
-  "./version.js?v=0.3.164",
-  "./manifest.webmanifest?v=0.3.164",
-  "./icon.svg?v=0.3.164",
-  "./apple-touch-icon.png?v=0.3.164",
-  "./icon-192.png?v=0.3.164",
-  "./icon-512.png?v=0.3.164",
+  "./design-tokens.css?v=0.3.165",
+  "./app.css?v=0.3.165",
+  "./app.js?v=0.3.165",
+  "./analytics.js?v=0.3.165",
+  "./bookmark-engine.js?v=0.3.165",
+  "./boundary-timer.js?v=0.3.165",
+  "./compline-preference.js?v=0.3.165",
+  "./daily-office-content.js?v=0.3.165",
+  "./daily-office.js?v=0.3.165",
+  "./feast-link-preference.js?v=0.3.165",
+  "./feast-wikipedia.js?v=0.3.165",
+  "./full-office-lifecycle.js?v=0.3.165",
+  "./noonday-preference.js?v=0.3.165",
+  "./office-schedule.js?v=0.3.165",
+  "./office-document.js?v=0.3.165",
+  "./pixel-art.js?v=0.3.165",
+  "./prayer-calendar.js?v=0.3.165",
+  "./prayer-format-preference.js?v=0.3.165",
+  "./psalm-preference.js?v=0.3.165",
+  "./reading-pack-loader.js?v=0.3.165",
+  "./scripture-pack-loader.js?v=0.3.165",
+  "./scripture-preference.js?v=0.3.165",
+  "./scripture-reading.js?v=0.3.165",
+  "./scripture-resolve.js?v=0.3.165",
+  "./theme.js?v=0.3.165",
+  "./timed-office-onboarding.js?v=0.3.165",
+  "./version.js?v=0.3.165",
+  "./manifest.webmanifest?v=0.3.165",
+  "./icon.svg?v=0.3.165",
+  "./apple-touch-icon.png?v=0.3.165",
+  "./icon-192.png?v=0.3.165",
+  "./icon-512.png?v=0.3.165",
   "./assets/og-simple-liturgy.png?v=3",
   "./assets/liturgical-icons/liturgical-calendar/lit-01-solemnity.svg",
   "./assets/liturgical-icons/liturgical-calendar/lit-02-feast.svg",

@@ -1171,12 +1171,16 @@ function readingContentHtml(view, key, className, psalmPresentation) {
     const sectionLabel = key === "PS"
       ? `${PSALM_OFFICE_LABELS[psalmPresentation.office]} Psalms`
       : READING_LABELS[key];
-    // Multi-chapter / Psalm streams: page 1 uses the section label + full citation;
-    // later pages use the active chapter title (Psalm 19, Hebrews 12, …).
+    // Multi-chapter streams: page 1 uses the section label; later pages use the
+    // active chapter title. Psalms omit a combined focus-cite so each Psalm is
+    // named once via the body chapter heading (Psalm 8, then Psalm 148, …).
     if (built.chapterHeadings) {
       if (page > 0) {
         const chapterTitle = built.pageHeadings?.[page] || citationText;
         return `<span class="label">${escapeHtml(chapterTitle)}${pageIndex}</span>${body}`;
+      }
+      if (key === "PS") {
+        return `<span class="label">${sectionLabel}${pageIndex}</span>${body}`;
       }
       const citation = citationText
         ? `<span class="focus-cite">${escapeHtml(citationText)}</span>`

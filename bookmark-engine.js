@@ -1,9 +1,9 @@
-import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.166";
+import { wikipediaUrlForFeast } from "./feast-wikipedia.js?v=0.3.167";
 import {
   adaptLegacyTimedOffice,
   officeDocumentToViewSections,
-} from "./office-document.js?v=0.3.166";
-import { scripturePageBodyText } from "./scripture-reading.js?v=0.3.166";
+} from "./office-document.js?v=0.3.167";
+import { scripturePageBodyText } from "./scripture-reading.js?v=0.3.167";
 
 export function parseBundle(text) {
   const readings = new Map();

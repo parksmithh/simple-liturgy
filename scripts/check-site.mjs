@@ -1125,6 +1125,11 @@ await checkAsync("scripture packs resolve appointed lesson samples", async () =>
   assert(psa128.includes("false way"), "WEB Psalm 119:128 keeps verse text");
   assert(!/\bPE\b/.test(psa128), "WEB omits Psalm 119 PE acrostic title from verse text");
   assert(!/\bAYIN\b/.test(web.books.PSA?.["119"]?.["120"] || ""), "WEB omits AYIN acrostic title");
+  const psa136 = web.books.PSA?.["119"]?.["136"] || "";
+  assert(psa136.includes("Streams of tears"), "WEB Psalm 119:136 keeps verse text");
+  assert(!/\bTZADHE\b/.test(psa136), "WEB omits Psalm 119 TZADHE acrostic title from verse text");
+  assert(!/\bQOPH\b/.test(web.books.PSA?.["119"]?.["144"] || ""), "WEB omits QOPH acrostic title");
+  assert(!/SIN AND SHIN/.test(web.books.PSA?.["119"]?.["160"] || ""), "WEB omits SIN AND SHIN acrostic title");
   const css = await readText("app.css");
   assert(css.includes("min-width: 4ch"), "scripture verse numbers reserve 4ch");
 

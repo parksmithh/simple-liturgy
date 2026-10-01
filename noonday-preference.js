@@ -1,4 +1,4 @@
-import { createBoundaryTimer } from "./boundary-timer.js?v=0.3.167";
+import { createBoundaryTimer } from "./boundary-timer.js?v=0.3.168";
 
 const STORAGE_KEY = "simple-liturgy.noonday-enabled";
 

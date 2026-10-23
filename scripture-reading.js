@@ -1,5 +1,5 @@
-import { editionForMode } from "./scripture-preference.js?v=0.3.169";
-import { resolveCitation, unavailableNote } from "./scripture-resolve.js?v=0.3.169";
+import { editionForMode } from "./scripture-preference.js?v=0.3.170";
+import { resolveCitation, unavailableNote } from "./scripture-resolve.js?v=0.3.170";
 
 /** Unicode ellipsis used when a verse is split across pages. */
 export const VERSE_ELLIPSIS = "\u2026";

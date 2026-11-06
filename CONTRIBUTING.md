@@ -21,7 +21,7 @@ Require the **verify** status check on `main` in GitHub branch protection so the
 
 ### Scripture packs
 
-Optional WEB and KJV lesson text is built from eBible USFX into `data/scripture/`. Regenerate with:
+Optional WEB and KJV lesson text is built from eBible USFX into `data/scripture/`. The WEB pack is the Protestant canon from `engwebp` plus deuterocanonical books from `engwebu`. KJV is `eng-kjv`, including the Apocrypha. Regenerate with:
 
 ```bash
 node scripts/ingest-scripture.mjs

@@ -61,7 +61,9 @@ const BOOK_LABELS = Object.freeze({
   HEB: "Hebrews", JAS: "James", "1PE": "1 Peter", "2PE": "2 Peter", "1JN": "1 John",
   "2JN": "2 John", "3JN": "3 John", JUD: "Jude", REV: "Revelation",
   WIS: "Wisdom", SIR: "Ecclesiasticus", BAR: "Baruch", TOB: "Tobit", JDT: "Judith",
-  "1MA": "1 Maccabees", "2MA": "2 Maccabees", "1ES": "1 Esdras", "2ES": "2 Esdras", DAG: "Song of the Three",
+  "1MA": "1 Maccabees", "2MA": "2 Maccabees", "1ES": "1 Esdras", "2ES": "2 Esdras",
+  ESG: "Esther (Greek)", MAN: "Prayer of Manasses", PS2: "Psalm 151",
+  "3MA": "3 Maccabees", "4MA": "4 Maccabees", DAG: "Daniel (Greek)",
 });
 
 export function chapterHeadingLabel(bookId, chapter) {

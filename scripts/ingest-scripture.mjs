@@ -6,8 +6,13 @@
  *   node scripts/ingest-scripture.mjs
  *   node scripts/ingest-scripture.mjs --cache-dir /tmp/ebible
  *
- * Downloads engwebp + eng-kjv USFX from eBible when missing from --cache-dir,
- * parses verses, writes data/scripture/{engwebp,eng-kjv}.json.
+ * Downloads engwebp, engwebu, and eng-kjv USFX from eBible when missing
+ * from --cache-dir, parses verses, and writes
+ * data/scripture/{engwebp,eng-kjv}.json.
+ *
+ * The WEB pack keeps the Protestant canon from engwebp and adds the
+ * deuterocanonical books from engwebu (World English Bible Updated).
+ * eng-kjv already includes the Apocrypha.
  */
 
 import { createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -21,6 +26,13 @@ import { execFileSync } from "node:child_process";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(ROOT, "data", "scripture");
 const EBIBLE = "https://ebible.org/Scriptures";
+
+/** Deuterocanon source for the WEB pack. engwebp is the Protestant subset. */
+const WEB_DEUTEROCANON = {
+  id: "engwebu",
+  zip: "engwebu_usfx.zip",
+  xml: "engwebu_usfx.xml",
+};
 
 const EDITIONS = [
   {
@@ -98,7 +110,7 @@ function stripMarkup(fragment) {
     .trim();
 }
 
-function parseUsfx(xml) {
+export function parseUsfx(xml) {
   const books = Object.create(null);
   let bookId = null;
   let chapter = 0;
@@ -203,6 +215,19 @@ function assertSmoke(books, editionId) {
     const w = books.WIS?.[1]?.[1];
     if (!w) throw new Error("eng-kjv: expected Wisdom 1:1 (Apocrypha)");
   }
+  if (editionId === "engwebp") {
+    for (const id of ["WIS", "SIR", "BAR", "1MA", "2ES"]) {
+      if (!books[id]) throw new Error(`engwebp: missing deuterocanon book ${id} from engwebu`);
+    }
+    const wisdom = books.WIS?.[1]?.[1] || "";
+    if (!/righteousness/i.test(wisdom)) {
+      throw new Error(`engwebp: Wisdom 1:1 unexpected: ${wisdom.slice(0, 80)}`);
+    }
+    const simon = books.SIR?.[50]?.[1] || "";
+    if (!/Simon/i.test(simon)) {
+      throw new Error(`engwebp: Ecclesiasticus 50:1 unexpected: ${simon.slice(0, 80)}`);
+    }
+  }
 }
 
 function filterEditionBooks(editionId, books) {
@@ -214,14 +239,32 @@ function filterEditionBooks(editionId, books) {
   return filtered;
 }
 
-async function buildEdition(cacheDir, edition) {
+function mergeDeuterocanon(protestantBooks, dcBooks) {
+  const merged = Object.create(null);
+  for (const id of Object.keys(protestantBooks)) merged[id] = protestantBooks[id];
+  for (const id of Object.keys(dcBooks)) {
+    if (PROTESTANT_66.has(id) || FRONT_MATTER.has(id)) continue;
+    if (countVerses({ [id]: dcBooks[id] }) === 0) continue;
+    merged[id] = dcBooks[id];
+  }
+  return merged;
+}
+
+async function loadUsfxBooks(cacheDir, edition) {
   const zipPath = await ensureZip(cacheDir, edition);
   const workDir = join(cacheDir, "extracted", edition.id);
   mkdirSync(workDir, { recursive: true });
   const xmlPath = unzipXml(zipPath, edition.xml, workDir);
-  const xml = readFileSync(xmlPath, "utf8");
-  let books = parseUsfx(xml);
+  return parseUsfx(readFileSync(xmlPath, "utf8"));
+}
+
+async function buildEdition(cacheDir, edition) {
+  let books = await loadUsfxBooks(cacheDir, edition);
   books = filterEditionBooks(edition.id, books);
+  if (edition.id === "engwebp") {
+    const dcBooks = await loadUsfxBooks(cacheDir, WEB_DEUTEROCANON);
+    books = mergeDeuterocanon(books, dcBooks);
+  }
   const bookIds = Object.keys(books);
   if (bookIds.length < edition.expectMinBooks) {
     throw new Error(`${edition.id}: only ${bookIds.length} books (expected >= ${edition.expectMinBooks})`);
@@ -231,7 +274,9 @@ async function buildEdition(cacheDir, edition) {
     schema: "scripture-pack-v1",
     edition: edition.id,
     label: edition.label,
-    source: `eBible ${edition.id} USFX`,
+    source: edition.id === "engwebp"
+      ? "eBible engwebp USFX + engwebu deuterocanon"
+      : `eBible ${edition.id} USFX`,
     book_count: bookIds.length,
     verse_count: countVerses(books),
     books,
@@ -252,7 +297,10 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  console.error(err.message || err);
-  process.exit(1);
-});
+const invokedDirectly = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+if (invokedDirectly) {
+  main().catch(err => {
+    console.error(err.message || err);
+    process.exit(1);
+  });
+}

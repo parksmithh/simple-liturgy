@@ -78,7 +78,7 @@ const BOOK_ALIASES = Object.freeze({
   "3 john": "3JN", "3 jn": "3JN", "3jn": "3JN", "iii john": "3JN",
   jude: "JUD", jud: "JUD",
   revelation: "REV", rev: "REV", apocalypse: "REV",
-  // Deuterocanon / Apocrypha (KJV / BCP)
+  // Deuterocanon / Apocrypha (WEB engwebu, KJV, BCP)
   wisdom: "WIS", wis: "WIS", "wisdom of solomon": "WIS",
   ecclus: "SIR", "ecclus.": "SIR", sirach: "SIR", sir: "SIR", ecclesiasticus: "SIR",
   baruch: "BAR", bar: "BAR",

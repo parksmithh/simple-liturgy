@@ -256,6 +256,26 @@ function startStaticServer() {
   });
 }
 
+function collectAppointedDeuterocanonCitations(jsonl) {
+  const dcName = /^(?:wisdom|ecclus|ecclesiasticus|sirach|baruch|tobit|judith|(?:[1234]\s+)?maccabees|[12]\s+esdras|susanna|bel and the dragon|song of the three(?: young men)?|prayer of manasseh(?:es)?)$/i;
+  const cites = new Set();
+  for (const line of String(jsonl || "").split("\n")) {
+    if (!line.trim()) continue;
+    const row = JSON.parse(line);
+    const walk = node => {
+      if (!node || typeof node !== "object") return;
+      if (typeof node.citation === "string") {
+        const book = node.citation.replace(/^or\s+/i, "").split(/\s+\d/)[0].replace(/\./g, "").trim();
+        if (dcName.test(book)) cites.add(node.citation);
+      }
+      if (Array.isArray(node)) node.forEach(walk);
+      else Object.values(node).forEach(walk);
+    };
+    walk(row);
+  }
+  return [...cites].sort();
+}
+
 async function fetchStatus(origin, path) {
   const response = await fetch(new URL(path, origin));
   return { path, status: response.status, ok: response.ok, bytes: Number(response.headers.get("content-length") || 0) };
@@ -1097,10 +1117,11 @@ await checkAsync("scripture packs resolve appointed lesson samples", async () =>
   const web = JSON.parse(await readText("data/scripture/engwebp.json"));
   const kjv = JSON.parse(await readText("data/scripture/eng-kjv.json"));
   assert(web.schema === "scripture-pack-v1" && kjv.schema === "scripture-pack-v1", "pack schema");
-  assert(Object.keys(web.books).length === 66, `WEB protestant books: ${Object.keys(web.books).length}`);
+  const webDeuterocanon = ["TOB", "JDT", "ESG", "WIS", "SIR", "BAR", "1MA", "2MA", "1ES", "MAN", "PS2", "3MA", "2ES", "4MA", "DAG"];
+  assert(Object.keys(web.books).length === 66 + webDeuterocanon.length, `WEB books: ${Object.keys(web.books).length}`);
   assert(Object.keys(kjv.books).length >= 66, "KJV includes Protestant canon");
   assert(kjv.books.WIS, "KJV includes Wisdom");
-  assert(!web.books.WIS, "WEB omits Wisdom");
+  for (const id of webDeuterocanon) assert(web.books[id], `WEB includes ${id} from engwebu`);
 
   const isaiah = "Isaiah 1:1-9";
   const webIsaiah = resolveCitation(isaiah, web);
@@ -1132,7 +1153,7 @@ await checkAsync("scripture packs resolve appointed lesson samples", async () =>
   assert(versesToPageText(webIsaiah.verses).includes("1 "), "full page text includes verse 1");
 
   const wisdom = resolveCitation("Wisdom 1:1-5", web);
-  assert(!wisdom.ok, "WEB misses Wisdom");
+  assert(wisdom.ok && wisdom.verses.length === 5, `WEB Wisdom resolves: ${wisdom.reason || "ok"}`);
   const kjvWisdom = resolveCitation("Wisdom 1:1-5", kjv);
   assert(kjvWisdom.ok && kjvWisdom.verses.length === 5, "KJV Wisdom resolves");
 
@@ -1161,12 +1182,30 @@ await checkAsync("scripture packs resolve appointed lesson samples", async () =>
 
   const ecclus = resolveCitation("Ecclus. 2:1-11", kjv);
   assert(ecclus.ok, `Ecclus. alias: ${ecclus.reason || "ok"}`);
+  const ecclus50 = "Ecclus. 50:1, 11-24";
+  for (const [label, pack] of [["WEB", web], ["KJV", kjv]]) {
+    const resolved = resolveCitation(ecclus50, pack);
+    assert(resolved.ok, `${label} ${ecclus50}: ${resolved.reason || "ok"}`);
+    assert(resolved.verses.some(verse => verse.verse === 1), `${label} Ecclus. 50 includes verse 1`);
+    assert(resolved.verses.some(verse => verse.verse === 11), `${label} Ecclus. 50 includes verse 11`);
+    assert(resolved.verses.some(verse => verse.verse === 24), `${label} Ecclus. 50 includes verse 24`);
+    assert(/Simon/i.test(resolved.verses[0].text), `${label} Ecclus. 50:1 is Simon the high priest`);
+  }
+  const appointedDc = collectAppointedDeuterocanonCitations(await readText("dor-engine/daily-office-content.active.jsonl"));
+  assert(appointedDc.length >= 60, `appointed deuterocanon lessons: ${appointedDc.length}`);
+  for (const citation of appointedDc) {
+    const webResolved = resolveCitation(citation, web);
+    const kjvResolved = resolveCitation(citation, kjv);
+    assert(webResolved.ok && webResolved.verses.every(verse => verse.text), `WEB ${citation}: ${webResolved.reason || "empty verse"}`);
+    assert(kjvResolved.ok && kjvResolved.verses.every(verse => verse.text), `KJV ${citation}: ${kjvResolved.reason || "empty verse"}`);
+  }
 
   const llmsText = await readText("llms.txt");
   assert(!llmsText.includes("does not reproduce Scripture"), "llms.txt must not deny Scripture text");
   assert(llmsText.includes("WEB") && llmsText.includes("KJV"), "llms.txt mentions translations");
   const notice = await readText("NOTICE");
-  assert(notice.includes("eBible") && notice.includes("engwebp"), "NOTICE attributes eBible packs");
+  assert(notice.includes("eBible") && notice.includes("engwebp") && notice.includes("engwebu"), "NOTICE attributes eBible packs");
+  assert(!indexHtml.includes("absent from WEB"), "FAQ no longer says WEB lacks deuterocanonical lessons");
   assert(workerSource.includes("data/scripture/engwebp.json"), "SW installs WEB pack");
   assert(workerSource.includes("data/scripture/eng-kjv.json"), "SW installs KJV pack");
   assert(workerSource.includes("scripture-resolve.js"), "SW shells scripture modules");
@@ -1530,13 +1569,25 @@ await checkAsync("scripture preference remaps Simple and Traditional lesson focu
       MORNING_LESSON_1: { citation: "Wisdom 1:1-5", pages: ["Wisdom 1:1-5"], label: "First Lesson" },
     },
   };
-  const webMiss = applyScriptureToTimedOffice(wisdomOffice, {
+  const webWisdom = applyScriptureToTimedOffice(wisdomOffice, {
     scriptureMode: "web",
     pack: web,
   });
-  assert(webMiss.sections.MORNING_LESSON_1.scriptureUnavailable, "WEB Wisdom is unavailable");
-  assert(webMiss.sections.MORNING_LESSON_1.pages[0] === unavailableNote(), "R8 note text");
-  assert(webMiss.sections.MORNING_LESSON_1.preservePages === true, "unavailable note preserves pages");
+  assert(!webWisdom.sections.MORNING_LESSON_1.scriptureUnavailable, "WEB Wisdom resolves");
+  assert(webWisdom.sections.MORNING_LESSON_1.scriptureVerses?.length === 5, "WEB Wisdom 1:1-5 has verses");
+  assert(!webWisdom.sections.MORNING_LESSON_1.pages[0].includes(unavailableNote()), "WEB Wisdom is not the fallback note");
+  const missingOffice = {
+    sections: {
+      MORNING_LESSON_1: { citation: "Laodiceans 1:1-5", pages: ["Laodiceans 1:1-5"], label: "First Lesson" },
+    },
+  };
+  const webMissing = applyScriptureToTimedOffice(missingOffice, {
+    scriptureMode: "web",
+    pack: web,
+  });
+  assert(webMissing.sections.MORNING_LESSON_1.scriptureUnavailable, "unknown book stays unavailable");
+  assert(webMissing.sections.MORNING_LESSON_1.pages[0] === unavailableNote(), "R8 note text");
+  assert(webMissing.sections.MORNING_LESSON_1.preservePages === true, "unavailable note preserves pages");
 });
 
 await checkAsync("scripture lesson focus stays non-scrolling", async () => {
